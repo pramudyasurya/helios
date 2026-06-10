@@ -31,6 +31,10 @@ export function RunForm({ onSubmit, isDisabled = false }: RunFormProps) {
             {isDisabled ? "Running QA Check..." : "Run QA Check"}
           </button>
         </div>
+        <p className="mt-3 text-xs text-muted">
+          Currently simulates a single-page QA run. Real browser automation is
+          planned for the next milestone.
+        </p>
       </form>
     </section>
   );

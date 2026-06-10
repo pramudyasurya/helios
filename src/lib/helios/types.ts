@@ -6,12 +6,24 @@ export type TrailStep = {
   timestamp: string;
 };
 
+export type CheckStatus = "passed" | "warning" | "failed";
+export type CheckSeverity = "info" | "low" | "medium" | "high";
+
+export type CheckResult = {
+  title: string;
+  detail: string;
+  status: CheckStatus;
+  severity: CheckSeverity;
+};
+
 export type LatestRun = {
   id: string;
   startingUrl: string;
   status: RunStatus;
   trail: TrailStep[];
   summary: string;
+  checks: CheckResult[];
+
   createdAt: string;
   finishedAt?: string;
   durationMs?: number;
