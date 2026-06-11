@@ -14,6 +14,7 @@ import {
   markFakeRunRunning,
   markFakeRunCompleted,
 } from "@/lib/helios/fake-run";
+import { createRun } from "@/lib/helios/api";
 
 export default function Home() {
   const [latestRun, setLatestRun] = useState<LatestRun | null>(null);
@@ -21,7 +22,7 @@ export default function Home() {
   const isRunActive =
     latestRun?.status === "Queued" || latestRun?.status === "Running";
 
-  const handleSubmit: React.ComponentProps<"form">["onSubmit"] = (e) => {
+  const handleSubmit: React.ComponentProps<"form">["onSubmit"] = async (e) => {
     e.preventDefault();
 
     const formData = new FormData(e.currentTarget);
@@ -45,6 +46,28 @@ export default function Home() {
         return markFakeRunCompleted(prev, startTime);
       });
     }, FAKE_RUN_COMPLETED_DELAY_MS);
+
+    try {
+      const result = await createRun(url);
+      console.log(result);
+
+      setLatestRun((prev) => {
+        if (!prev || prev.id !== runId) return prev;
+        return {
+          ...prev,
+          trail: [
+            ...prev.trail,
+            {
+              label: "API route responded",
+              detail: result.summary,
+              timestamp: new Date().toISOString(),
+            },
+          ],
+        };
+      });
+    } catch (error) {
+      console.error("Failed to call run API", error);
+    }
   };
 
   const handleReset = () => {
