@@ -15,14 +15,30 @@ import {
 import { createRun } from "@/lib/helios/api";
 import { createChecksFromRunResult } from "@/lib/helios/checks";
 
+function getRunErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+
+  return "Helios could not complete the browser QA run.";
+}
+
 export default function Home() {
   const [latestRun, setLatestRun] = useState<LatestRun | null>(null);
-
+  const [runError, setRunError] = useState<string | undefined>();
   const isRunActive =
     latestRun?.status === "Queued" || latestRun?.status === "Running";
 
   const handleSubmit: React.ComponentProps<"form">["onSubmit"] = async (e) => {
     e.preventDefault();
+    setRunError(undefined);
 
     const formData = new FormData(e.currentTarget);
     const url = formData.get("url")?.toString().trim() ?? "";
@@ -74,6 +90,34 @@ export default function Home() {
       });
     } catch (error) {
       console.error("Failed to call run API", error);
+      const message = getRunErrorMessage(error);
+      setRunError(message);
+      setLatestRun((prev) => {
+        if (!prev || prev.id !== runId) return prev;
+
+        return {
+          ...prev,
+          status: "Failed",
+          summary: "Helios could not complete the browser QA run.",
+          finishedAt: new Date().toISOString(),
+          checks: [
+            {
+              title: "Browser run failed",
+              detail: message,
+              status: "failed",
+              severity: "high",
+            },
+          ],
+          trail: [
+            ...prev.trail,
+            {
+              label: "Run failed",
+              detail: message,
+              timestamp: new Date().toISOString(),
+            },
+          ],
+        };
+      });
     }
   };
 
@@ -87,7 +131,11 @@ export default function Home() {
 
       <div className="py-10 px-6 mx-auto max-w-5xl">
         <DashboardHero />
-        <RunForm onSubmit={handleSubmit} isDisabled={isRunActive} />
+        <RunForm
+          onSubmit={handleSubmit}
+          isDisabled={isRunActive}
+          error={runError}
+        />
         <LatestRunPanel latestRun={latestRun} onReset={handleReset} />
       </div>
     </main>

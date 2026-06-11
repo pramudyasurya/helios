@@ -1,9 +1,10 @@
 type RunFormProps = {
   onSubmit: React.ComponentProps<"form">["onSubmit"];
   isDisabled?: boolean;
+  error?: string;
 };
 
-export function RunForm({ onSubmit, isDisabled = false }: RunFormProps) {
+export function RunForm({ onSubmit, isDisabled = false, error }: RunFormProps) {
   return (
     <section className="mt-10 rounded-lg border border-border bg-panel p-5">
       <form aria-label="Create browser run" onSubmit={onSubmit}>
@@ -36,6 +37,13 @@ export function RunForm({ onSubmit, isDisabled = false }: RunFormProps) {
           errors, and failed network request evidence.
         </p>
       </form>
+
+      {error ? (
+        <div className="mt-4 rounded-md border border-danger bg-card p-3">
+          <p className="text-sm font-medium text-danger">Run failed</p>
+          <p className="mt-1 text-xs text-muted">{error}</p>
+        </div>
+      ) : null}
     </section>
   );
 }

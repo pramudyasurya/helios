@@ -5,6 +5,7 @@ const statusBadgeClasses: Record<RunStatus, string> = {
   Queued: "border-accent text-accent",
   Running: "border-accent text-accent",
   Completed: "border-success text-success",
+  Failed: "border-danger text-danger",
 };
 
 export function StatusBadge({ status }: { status: RunStatus }) {

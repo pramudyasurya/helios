@@ -1,4 +1,4 @@
-export type RunStatus = "Idle" | "Queued" | "Running" | "Completed";
+export type RunStatus = "Idle" | "Queued" | "Running" | "Completed" | "Failed";
 
 export type TrailStep = {
   label: string;
