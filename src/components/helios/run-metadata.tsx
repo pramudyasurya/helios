@@ -1,5 +1,6 @@
 import type { LatestRun } from "@/lib/helios/shared/types";
 import { formatTimestamp, formatDurationMs } from "@/lib/helios/shared/format";
+import { formatDomLoadMetric } from "@/lib/helios/shared/performance";
 
 import { ArtifactViewer } from "@/components/helios/artifact-viewer";
 
@@ -71,7 +72,7 @@ export function RunMetadata({ run }: RunMetadataProps) {
           <div>
             <p className="text-sm text-muted">DOM loaded</p>
             <p className="text-foreground break-all">
-              {formatDurationMs(run.loadMetrics.domContentLoadedMs)}
+              {formatDomLoadMetric(run.loadMetrics.domContentLoadedMs)}
             </p>
           </div>
 

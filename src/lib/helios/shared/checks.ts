@@ -1,5 +1,8 @@
 import type { CheckResult, CreateRunResponse } from "@/lib/helios/shared/types";
-import { formatDurationMs } from "@/lib/helios/shared/format";
+import {
+  getDomLoadStatus,
+  formatDomLoadMetric,
+} from "@/lib/helios/shared/performance";
 
 export function createChecksFromRunResult(
   result: CreateRunResponse,
@@ -7,6 +10,10 @@ export function createChecksFromRunResult(
   const hasDescription =
     result.description !== undefined && result.description.trim().length > 0;
   const hasBrokenImages = result.brokenImages.length > 0;
+  const domLoadStatus = result.loadMetrics
+    ? getDomLoadStatus(result.loadMetrics.domContentLoadedMs)
+    : undefined;
+
   return [
     {
       title: "Page loaded successfully",
@@ -17,10 +24,10 @@ export function createChecksFromRunResult(
     {
       title: "Page load metrics captured",
       detail: result.loadMetrics
-        ? `DOM loaded in ${formatDurationMs(result.loadMetrics.domContentLoadedMs)}.`
+        ? `DOM loaded in ${formatDomLoadMetric(result.loadMetrics.domContentLoadedMs)}.`
         : "Page load metrics were not available.",
-      status: result.loadMetrics ? "passed" : "warning",
-      severity: result.loadMetrics ? "info" : "low",
+      status: domLoadStatus?.status ?? "warning",
+      severity: domLoadStatus?.severity ?? "low",
     },
     {
       title: "Page title checked",
