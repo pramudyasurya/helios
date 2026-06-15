@@ -5,7 +5,7 @@ import {
   MAX_VISIBLE_EVIDENCE_ITEMS,
 } from "@/lib/helios/shared/constants";
 
-import { EvidenceItem } from "@/components/helios/evidence-item";
+import { EvidenceSection } from "@/components/helios/evidence-section";
 
 type RunEvidenceListProps = {
   brokenImages?: string[];
@@ -122,74 +122,32 @@ export function RunEvidenceList({
         </div>
       </div>
 
-      {visibleBrokenImages.length > 0 ? (
-        <div className="mt-4">
-          <p className="text-xs font-medium text-muted">
-            Broken images - showing {visibleBrokenImages.length} of{" "}
-            {brokenImagesCount}
-          </p>
-          <ul className="mt-2 space-y-2">
-            {visibleBrokenImages.map((image, index) => (
-              <li
-                key={`image-${image}-${index}`}
-                className="rounded-md border border-border bg-card p-3 text-xs text-muted"
-              >
-                <EvidenceItem
-                  value={image}
-                  isCopied={copiedEvidence === image}
-                  onCopy={handleCopyEvidence}
-                />
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
+      <EvidenceSection
+        title="Broken images"
+        items={visibleBrokenImages}
+        totalCount={brokenImagesCount}
+        copiedEvidence={copiedEvidence}
+        onCopyEvidence={handleCopyEvidence}
+        itemKeyPrefix="image"
+      />
 
-      {visibleConsoleErrors.length > 0 ? (
-        <div className="mt-4">
-          <p className="text-xs font-medium text-muted">
-            Console errors - showing {visibleConsoleErrors.length} of{" "}
-            {consoleErrorCount}
-          </p>
-          <ul className="mt-2 space-y-2">
-            {visibleConsoleErrors.map((error, index) => (
-              <li
-                key={`console-${error}-${index}`}
-                className="rounded-md border border-border bg-card p-3 text-xs text-muted"
-              >
-                <EvidenceItem
-                  value={error}
-                  isCopied={copiedEvidence === error}
-                  onCopy={handleCopyEvidence}
-                />
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
+      <EvidenceSection
+        title="Console errors"
+        items={visibleConsoleErrors}
+        totalCount={consoleErrorCount}
+        copiedEvidence={copiedEvidence}
+        onCopyEvidence={handleCopyEvidence}
+        itemKeyPrefix="console"
+      />
 
-      {visibleFailedRequests.length > 0 ? (
-        <div className="mt-4">
-          <p className="text-xs font-medium text-muted">
-            Failed network requests - showing {visibleFailedRequests.length} of{" "}
-            {failedRequestCount}
-          </p>
-          <ul className="mt-2 space-y-2">
-            {visibleFailedRequests.map((request, index) => (
-              <li
-                key={`request-${request}-${index}`}
-                className="rounded-md border border-border bg-card p-3 text-xs text-muted"
-              >
-                <EvidenceItem
-                  value={request}
-                  isCopied={copiedEvidence === request}
-                  onCopy={handleCopyEvidence}
-                />
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
+      <EvidenceSection
+        title="Failed network requests"
+        items={visibleFailedRequests}
+        totalCount={failedRequestCount}
+        copiedEvidence={copiedEvidence}
+        onCopyEvidence={handleCopyEvidence}
+        itemKeyPrefix="request"
+      />
     </div>
   );
 }
