@@ -1,4 +1,4 @@
-import { EvidenceItem } from "@/components/helios/evidence-item";
+import { EvidenceItem } from "@/components/helios/evidence/evidence-item";
 
 type EvidenceSectionProps = {
   title: string;

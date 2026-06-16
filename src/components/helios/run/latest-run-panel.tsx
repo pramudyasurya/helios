@@ -1,15 +1,15 @@
-import { StatusBadge } from "@/components/helios/status-badge";
-import { OverviewCard } from "@/components/helios/overview-card";
+import { StatusBadge } from "@/components/helios/run/status-badge";
+import { OverviewCard } from "@/components/helios/run/overview-card";
 import {
   getOverviewCardDescription,
   getOverviewCards,
 } from "@/lib/helios/shared/overview-cards";
 
 import type { LatestRun } from "@/lib/helios/shared/types";
-import { RunChecksList } from "@/components/helios/run-checks-list";
-import { BrowserTrail } from "@/components/helios/browser-trail";
-import { RunMetadata } from "@/components/helios/run-metadata";
-import { RunEvidenceList } from "@/components/helios/run-evidence-list";
+import { RunChecksList } from "@/components/helios/run/run-checks-list";
+import { BrowserTrail } from "@/components/helios/run/browser-trail";
+import { RunMetadata } from "@/components/helios/run/run-metadata";
+import { RunEvidenceList } from "@/components/helios/evidence/run-evidence-list";
 import { downloadRunJson } from "@/lib/helios/client/export";
 
 type LatestRunPanelProps = {

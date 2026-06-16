@@ -51,6 +51,11 @@ src/components/helios/
   checks, browser trail, status badges, and recent runs.
 ```
 
+More detail:
+
+- [Project structure](./docs/project-structure.md)
+- [Roadmap](./docs/roadmap.md)
+
 ## Development
 
 Install dependencies:

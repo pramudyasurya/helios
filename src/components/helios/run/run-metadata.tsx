@@ -2,7 +2,7 @@ import type { LatestRun } from "@/lib/helios/shared/types";
 import { formatTimestamp, formatDurationMs } from "@/lib/helios/shared/format";
 import { formatDomLoadMetric } from "@/lib/helios/shared/performance";
 
-import { ArtifactViewer } from "@/components/helios/artifact-viewer";
+import { ArtifactViewer } from "@/components/helios/evidence/artifact-viewer";
 
 type RunMetadataProps = {
   run: LatestRun;
