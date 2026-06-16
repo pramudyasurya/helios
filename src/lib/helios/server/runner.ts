@@ -1,48 +1,22 @@
-import { chromium, type Browser, type Page } from "playwright";
+import { chromium, type Browser } from "playwright";
 
-import {
-  PAGE_GOTO_TIMEOUT_MS,
-  PAGE_SETTLE_TIMEOUT_MS,
-} from "@/lib/helios/shared/constants";
+import { PAGE_GOTO_TIMEOUT_MS } from "@/lib/helios/shared/constants";
 
 import { getPlaywrightErrorMessage } from "@/lib/helios/server/errors";
 import { capturePageMetadata } from "@/lib/helios/server/metadata";
-import { captureBrokenImages } from "@/lib/helios/server/evidence";
+import {
+  attachPageEvidenceListeners,
+  captureBrokenImages,
+  createBrowserEvidenceCollector,
+} from "@/lib/helios/server/evidence";
 import { captureRunScreenshots } from "@/lib/helios/server/artifacts";
+import { waitForPageToSettle } from "@/lib/helios/server/navigation";
+import { createTrailStep, getRunTimestamp } from "@/lib/helios/server/trail";
 
 type RunSinglePageQAProps = {
   submittedUrl: string;
   runId: string;
 };
-
-type RunTrailStepInput = {
-  label: string;
-  detail: string;
-  timestamp?: string;
-};
-
-async function waitForPageToSettle(page: Page) {
-  try {
-    await page.waitForLoadState("networkidle", {
-      timeout: PAGE_SETTLE_TIMEOUT_MS,
-    });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function getRunTimestamp(startedAt: Date, offsetMs: number) {
-  return new Date(startedAt.getTime() + offsetMs).toISOString();
-}
-
-function createTrailStep({ label, detail, timestamp }: RunTrailStepInput) {
-  return {
-    label,
-    detail,
-    timestamp: timestamp ?? new Date().toISOString(),
-  };
-}
 
 export async function runSinglePageQA({
   submittedUrl,
@@ -68,31 +42,18 @@ export async function runSinglePageQA({
       isMobile: true,
     });
 
-    const consoleErrors: string[] = [];
-    const failedRequests: string[] = [];
+    const evidenceCollector = createBrowserEvidenceCollector();
 
-    page.on("console", (msg) => {
-      if (msg.type() === "error") {
-        consoleErrors.push(`[Desktop] ${msg.text()}`);
-      }
+    attachPageEvidenceListeners({
+      page,
+      viewportLabel: "Desktop",
+      collector: evidenceCollector,
     });
 
-    page.on("requestfailed", (request) => {
-      failedRequests.push(
-        `[Desktop] ${request.url()} - ${request.failure()?.errorText ?? "Unknown failure"}`,
-      );
-    });
-
-    mobilePage.on("console", (msg) => {
-      if (msg.type() === "error") {
-        consoleErrors.push(`[Mobile] ${msg.text()}`);
-      }
-    });
-
-    mobilePage.on("requestfailed", (request) => {
-      failedRequests.push(
-        `[Mobile] ${request.url()} - ${request.failure()?.errorText ?? "Unknown failure"}`,
-      );
+    attachPageEvidenceListeners({
+      page: mobilePage,
+      viewportLabel: "Mobile",
+      collector: evidenceCollector,
     });
 
     await page.goto(submittedUrl, {
@@ -121,6 +82,7 @@ export async function runSinglePageQA({
 
     const finishedAt = new Date();
     const durationMs = finishedAt.getTime() - startedAt.getTime();
+    const { consoleErrors, failedRequests } = evidenceCollector;
 
     return {
       id: runId,
