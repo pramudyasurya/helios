@@ -4,12 +4,8 @@ import { useEffect, useState } from "react";
 import type { LatestRun } from "@/lib/helios/shared/types";
 import { getRunErrorMessage } from "@/lib/helios/shared/errors";
 import { isValidHttpUrl } from "@/lib/helios/shared/validators";
-import { createRun } from "@/lib/helios/client/api";
-import {
-  addRecentRun,
-  loadRecentRuns,
-  saveRecentRuns,
-} from "@/lib/helios/client/recent-runs";
+import { createRun, getRecentRuns } from "@/lib/helios/client/api";
+import { addRecentRun } from "@/lib/helios/client/recent-runs";
 import {
   RUNNING_STATE_DELAY_MS,
   createQueuedRunState,
@@ -24,22 +20,25 @@ export function useRunDashboard() {
   const [latestRun, setLatestRun] = useState<LatestRun | null>(null);
   const [runError, setRunError] = useState<string | undefined>();
   const [recentRuns, setRecentRuns] = useState<LatestRun[]>([]);
-  const [hasLoadedRecentRuns, setHasLoadedRecentRuns] = useState(false);
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      setRecentRuns(loadRecentRuns());
-      setHasLoadedRecentRuns(true);
-    }, 0);
+    let active = true;
+    async function fetchHistory() {
+      try {
+        const history = await getRecentRuns();
+        if (active) {
+          setRecentRuns(history);
+        }
+      } catch (error) {
+        console.warn("Failed to load recent runs:", error);
+      }
+    }
 
-    return () => window.clearTimeout(timeoutId);
+    fetchHistory();
+    return () => {
+      active = false;
+    };
   }, []);
-
-  useEffect(() => {
-    if (!hasLoadedRecentRuns) return;
-
-    saveRecentRuns(recentRuns);
-  }, [hasLoadedRecentRuns, recentRuns]);
 
   const isRunActive =
     latestRun?.status === "Queued" || latestRun?.status === "Running";

@@ -9,6 +9,7 @@ export function createCompletedRunState(
 
   return {
     ...currentRun,
+    id: result.id,
     finalUrl: result.finalUrl,
     title: result.title,
     description: result.description,

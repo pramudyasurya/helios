@@ -1,5 +1,7 @@
 import { chromium, type Browser } from "playwright";
 
+import type { CreateRunResponse } from "@/lib/helios/shared/types";
+
 import { PAGE_GOTO_TIMEOUT_MS } from "@/lib/helios/shared/constants";
 
 import { getPlaywrightErrorMessage } from "@/lib/helios/server/errors";
@@ -21,7 +23,7 @@ type RunSinglePageQAProps = {
 export async function runSinglePageQA({
   submittedUrl,
   runId,
-}: RunSinglePageQAProps) {
+}: RunSinglePageQAProps): Promise<CreateRunResponse> {
   const startedAt = new Date();
 
   let browser: Browser | undefined;

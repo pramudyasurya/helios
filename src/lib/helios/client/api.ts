@@ -1,4 +1,4 @@
-import type { CreateRunResponse } from "@/lib/helios/shared/types";
+import type { CreateRunResponse, LatestRun } from "@/lib/helios/shared/types";
 
 export type ApiErrorResponse = {
   error: string;
@@ -23,4 +23,26 @@ export async function createRun(url: string): Promise<CreateRunResponse> {
   }
 
   return result as CreateRunResponse;
+}
+
+export async function getRecentRuns(): Promise<LatestRun[]> {
+  const response = await fetch("/api/runs");
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw result;
+  }
+
+  return result as LatestRun[];
+}
+
+export async function getRunDetail(id: string): Promise<LatestRun> {
+  const response = await fetch(`/api/runs/${id}`);
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw result;
+  }
+
+  return result as LatestRun;
 }

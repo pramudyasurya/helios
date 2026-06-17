@@ -50,7 +50,7 @@ export type CreateRunResponse = {
   id: string;
   startingUrl: string;
   finalUrl: string;
-  status: "completed";
+  status: "Completed";
   title: string;
   description?: string;
   createdAt: string;
