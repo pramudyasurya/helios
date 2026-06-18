@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import type { LatestRun } from "@/lib/helios/shared/types";
 import { getRunErrorMessage } from "@/lib/helios/shared/errors";
 import { isValidHttpUrl } from "@/lib/helios/shared/validators";
-import { createRun, getRecentRuns } from "@/lib/helios/client/api";
+import {
+  createRun,
+  getRecentRuns,
+  clearRecentRuns,
+} from "@/lib/helios/client/api";
 import { addRecentRun } from "@/lib/helios/client/recent-runs";
 import {
   RUNNING_STATE_DELAY_MS,
@@ -91,18 +95,16 @@ export function useRunDashboard() {
     setLatestRun(null);
   };
 
-  const handleClearRecentRuns = () => {
+  const handleClearRecentRuns = async () => {
+    try {
+      await clearRecentRuns();
+    } catch (error) {
+      console.error("Failed to clear runs from database:", error);
+      return;
+    }
+
     setRecentRuns([]);
-
-    setLatestRun((currentRun) => {
-      if (!currentRun) return currentRun;
-
-      const isCurrentRunInHistory = recentRuns.some(
-        (run) => run.id === currentRun.id,
-      );
-
-      return isCurrentRunInHistory ? null : currentRun;
-    });
+    if (!isRunActive) setLatestRun(null);
   };
 
   return {

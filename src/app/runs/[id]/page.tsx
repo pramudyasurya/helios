@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
@@ -8,10 +9,14 @@ import { RunMetadata } from "@/components/helios/run/run-metadata";
 import { RunEvidenceList } from "@/components/helios/evidence/run-evidence-list";
 import { RunChecksList } from "@/components/helios/run/run-checks-list";
 import { BrowserTrail } from "@/components/helios/run/browser-trail";
-import { ArtifactViewer } from "@/components/helios/evidence/artifact-viewer";
 
 import { prisma } from "@/lib/prisma";
 import { runRecordToLatestRun } from "@/lib/helios/server/run-record";
+import { ExportRunButton } from "@/components/helios/run/export-run-button";
+
+const getRunById = cache(async (id: string) => {
+  return prisma.run.findUnique({ where: { id } });
+});
 
 export async function generateMetadata({
   params,
@@ -19,10 +24,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const record = await prisma.run.findUnique({
-    where: { id },
-    select: { startingUrl: true, title: true },
-  });
+  const record = await getRunById(id);
 
   if (!record) {
     return {
@@ -43,9 +45,7 @@ export default async function RunDetailPage({
 }) {
   const { id } = await params;
 
-  const record = await prisma.run.findUnique({
-    where: { id },
-  });
+  const record = await getRunById(id);
 
   if (!record) {
     notFound();
@@ -64,7 +64,12 @@ export default async function RunDetailPage({
           >
             Back to dashboard
           </Link>
-          <StatusBadge status={run.status} />
+          <div className="flex items-center gap-2">
+            <StatusBadge status={run.status} />
+            {run.status === "Completed" || run.status === "Failed" ? (
+              <ExportRunButton run={run} />
+            ) : null}
+          </div>
         </div>
 
         <h1 className="text-lg font-semibold text-foreground mb-1 break-all">
@@ -77,7 +82,6 @@ export default async function RunDetailPage({
         )}
 
         <section className="rounded-lg border border-border bg-panel p-5 space-y-4">
-          {run.artifacts ? <ArtifactViewer artifacts={run.artifacts} /> : null}
           <RunMetadata run={run} />
           <RunEvidenceList
             brokenImages={run.brokenImages}

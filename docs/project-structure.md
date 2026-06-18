@@ -42,7 +42,8 @@ Important components:
 - `layout/dashboard-hero.tsx`: dashboard hero copy and badges.
 - `run/run-form.tsx`: URL input and submit state.
 - `run/latest-run-panel.tsx`: main result panel for the selected/latest run.
-- `run/run-metadata.tsx`: run metadata, timing, page metadata, and artifacts.
+- `run/run-metadata.tsx`: run metadata, timing, and page metadata.
+- `run/export-run-button.tsx`: client-side button for exporting a run as JSON.
 - `run/run-checks-list.tsx`: QA check result list.
 - `run/browser-trail.tsx`: run timeline.
 - `evidence/artifact-viewer.tsx`: desktop/mobile screenshot preview and modal view.

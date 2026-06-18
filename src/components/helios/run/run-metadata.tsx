@@ -2,8 +2,6 @@ import type { LatestRun } from "@/lib/helios/shared/types";
 import { formatTimestamp, formatDurationMs } from "@/lib/helios/shared/format";
 import { formatDomLoadMetric } from "@/lib/helios/shared/performance";
 
-import { ArtifactViewer } from "@/components/helios/evidence/artifact-viewer";
-
 type RunMetadataProps = {
   run: LatestRun;
 };
@@ -105,13 +103,6 @@ export function RunMetadata({ run }: RunMetadataProps) {
           <p className="text-foreground">{run.failedRequests.length}</p>
         </div>
       )}
-
-      {run.artifacts ? (
-        <div className="md:col-span-3">
-          <p className="mb-2 text-sm text-muted">Artifacts</p>
-          <ArtifactViewer artifacts={run.artifacts} />
-        </div>
-      ) : null}
     </div>
   );
 }

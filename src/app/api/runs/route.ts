@@ -137,3 +137,18 @@ export async function GET() {
     );
   }
 }
+
+export async function DELETE() {
+  try {
+    await prisma.run.deleteMany();
+    return Response.json({ success: true });
+  } catch (error) {
+    return Response.json(
+      {
+        error: "Failed to clear runs",
+        message: error instanceof Error ? error.message : "Database error",
+      },
+      { status: 500 },
+    );
+  }
+}

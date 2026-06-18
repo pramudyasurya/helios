@@ -8,10 +8,7 @@ type RecentRunsListProps = {
   onClearRuns: () => void;
 };
 
-export function RecentRunsList({
-  runs,
-  onClearRuns,
-}: RecentRunsListProps) {
+export function RecentRunsList({ runs, onClearRuns }: RecentRunsListProps) {
   if (runs.length <= 0) return null;
 
   return (
@@ -35,7 +32,14 @@ export function RecentRunsList({
           >
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-foreground break-all">{run.startingUrl}</p>
+                <p className="text-foreground break-all">
+                  {run.title ?? run.startingUrl}
+                </p>
+                {run.title ? (
+                  <p className="mt-0.5 text-xs text-muted break-all">
+                    {run.startingUrl}
+                  </p>
+                ) : null}
                 <p className="mt-1 text-xs text-muted">
                   {formatTimestamp(run.createdAt)}
                   {run.durationMs !== undefined

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { StatusBadge } from "@/components/helios/run/status-badge";
 import { OverviewCard } from "@/components/helios/run/overview-card";
 import {
@@ -10,8 +11,8 @@ import { RunChecksList } from "@/components/helios/run/run-checks-list";
 import { BrowserTrail } from "@/components/helios/run/browser-trail";
 import { RunMetadata } from "@/components/helios/run/run-metadata";
 import { RunEvidenceList } from "@/components/helios/evidence/run-evidence-list";
+import { ArtifactViewer } from "@/components/helios/evidence/artifact-viewer";
 import { downloadRunJson } from "@/lib/helios/client/export";
-import Link from "next/link";
 
 type LatestRunPanelProps = {
   latestRun: LatestRun | null;
@@ -42,7 +43,7 @@ export function LatestRunPanel({ latestRun, onReset }: LatestRunPanelProps) {
               >
                 Export JSON
               </button>
-              {latestRun.status === "Completed" ? (
+              {canExport ? (
                 <Link
                   href={`/runs/${latestRun.id}`}
                   className="rounded-full border border-border px-2 py-1 text-xs text-muted transition hover:text-foreground"
@@ -64,7 +65,12 @@ export function LatestRunPanel({ latestRun, onReset }: LatestRunPanelProps) {
 
       <div className="mt-4 text-sm text-muted">
         {latestRun ? (
-          <RunMetadata run={latestRun} />
+          <>
+            {latestRun.artifacts ? (
+              <ArtifactViewer artifacts={latestRun.artifacts} />
+            ) : null}
+            <RunMetadata run={latestRun} />
+          </>
         ) : (
           <div className="rounded-md border border-dashed border-border bg-card p-4">
             <p className="text-sm font-medium text-foreground">
