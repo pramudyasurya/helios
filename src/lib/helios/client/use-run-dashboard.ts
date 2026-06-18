@@ -110,7 +110,7 @@ export function useRunDashboard() {
       await deleteRun(id);
     } catch (error) {
       console.error("Failed to delete run:", error);
-      return;
+      throw error;
     }
 
     setRecentRuns((current) => current.filter((r) => r.id !== id));
@@ -122,7 +122,7 @@ export function useRunDashboard() {
       await clearRecentRuns();
     } catch (error) {
       console.error("Failed to clear runs from database:", error);
-      return;
+      throw error;
     }
 
     setRecentRuns([]);

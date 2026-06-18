@@ -7,8 +7,8 @@ import Link from "next/link";
 
 type RecentRunsListProps = {
   runs: LatestRun[];
-  onClearRuns: () => void;
-  onDeleteRun: (id: string) => void;
+  onClearRuns: () => Promise<void>;
+  onDeleteRun: (id: string) => Promise<void>;
 };
 
 export function RecentRunsList({
@@ -18,6 +18,10 @@ export function RecentRunsList({
 }: RecentRunsListProps) {
   const [confirming, setConfirming] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deletingInProgress, setDeletingInProgress] = useState<string | null>(
+    null,
+  );
+
   if (runs.length <= 0) return null;
 
   return (
@@ -26,16 +30,18 @@ export function RecentRunsList({
         <h2 className="text-base font-medium text-foreground">Recent runs</h2>
         {confirming ? (
           <div className="flex items-center gap-1">
-            <span className="text-xs text-muted">Sure?</span>
+            <span className="text-xs text-muted">Clear all runs?</span>
             <button
               type="button"
-              onClick={() => {
-                onClearRuns();
-                setConfirming(false);
+              onClick={async () => {
+                try {
+                  await onClearRuns();
+                  setConfirming(false);
+                } catch {}
               }}
               className="rounded-full border border-border px-2 py-1 text-xs text-muted transition hover:text-foreground"
             >
-              Yes
+              Yes, clear
             </button>
             <button
               type="button"
@@ -93,18 +99,26 @@ export function RecentRunsList({
                     <span className="text-xs text-muted">Delete?</span>
                     <button
                       type="button"
-                      onClick={() => {
-                        onDeleteRun(run.id);
-                        setDeletingId(null);
+                      onClick={async () => {
+                        setDeletingInProgress(run.id);
+
+                        try {
+                          await onDeleteRun(run.id);
+                          setDeletingId(null);
+                        } finally {
+                          setDeletingInProgress(null);
+                        }
                       }}
-                      className="rounded-full border border-border px-2 py-1 text-xs text-muted transition hover:text-foreground"
+                      disabled={deletingInProgress === run.id}
+                      className="rounded-full border border-border px-2 py-1 text-xs text-muted transition hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Yes
                     </button>
                     <button
                       type="button"
                       onClick={() => setDeletingId(null)}
-                      className="rounded-full border border-border px-2 py-1 text-xs text-muted transition hover:text-foreground"
+                      className="rounded-full border border-border px-2 py-1 text-xs text-muted transition hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={deletingInProgress === run.id}
                     >
                       Cancel
                     </button>
