@@ -131,10 +131,17 @@ export function RunEvidenceList({
 
   const handleCopyAllEvidence = async () => {
     const visibleText = sectionConfigs
-      .filter((s) => activeFilter === "all" || activeFilter === s.id)
-      .flatMap((s) => s.items)
-      .map((e) => `- ${e.content}`)
-      .join("\n");
+      .filter(
+        (section) => activeFilter === "all" || activeFilter === section.id,
+      )
+      .filter((section) => section.items.length > 0)
+      .map((section) =>
+        [
+          `${section.title} (${section.items.length})`,
+          ...section.items.map((evidence) => `- ${evidence.content}`),
+        ].join("\n"),
+      )
+      .join("\n\n");
 
     await navigator.clipboard.writeText(visibleText);
     setHasCopiedAllEvidence(true);

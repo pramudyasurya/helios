@@ -1,4 +1,5 @@
 import type { RunEvidence } from "@/lib/helios/shared/types";
+import { ArrowUpRight } from "lucide-react";
 
 type EvidenceItemProps = {
   evidence: RunEvidence;
@@ -18,9 +19,16 @@ export function EvidenceItem({
       <button
         type="button"
         onClick={() => onSelect(evidence)}
-        className="min-w-0 text-left break-all hover:text-foreground transition"
+        className="group min-w-0 text-left break-all hover:text-foreground transition"
       >
-        {evidence.content}
+        <span className="block break-all">{evidence.content}</span>
+        <span className="mt-2 flex w-fit items-center gap-1 text-xs font-medium text-accent transition-colors group-hover:underline">
+          View details
+          <ArrowUpRight
+            className="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+            aria-hidden="true"
+          />
+        </span>
       </button>
 
       <button
