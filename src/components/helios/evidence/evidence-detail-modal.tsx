@@ -90,16 +90,28 @@ export function EvidenceDetailModal({
           </button>
         </div>
 
-        {evidence.sourceUrl && (
+        <div className="mt-4">
+          <p className="text-xs text-muted">Observed on</p>
+          <a
+            href={evidence.pageUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-1 block break-all text-xs text-accent hover:underline"
+          >
+            {evidence.pageUrl}
+          </a>
+        </div>
+
+        {evidence.resourceUrl && evidence.resourceUrl !== evidence.pageUrl && (
           <div className="mt-4">
-            <p className="text-xs text-muted">Source URL</p>
+            <p className="text-xs text-muted">Related resource</p>
             <a
-              href={evidence.sourceUrl}
+              href={evidence.resourceUrl}
               target="_blank"
               rel="noreferrer"
               className="mt-1 block break-all text-xs text-accent hover:underline"
             >
-              {evidence.sourceUrl}
+              {evidence.resourceUrl}
             </a>
           </div>
         )}

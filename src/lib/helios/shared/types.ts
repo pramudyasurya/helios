@@ -82,6 +82,7 @@ export type RunEvidence = {
   id: string;
   type: EvidenceType;
   content: string;
-  sourceUrl?: string;
+  pageUrl: string;
+  resourceUrl?: string;
   capturedAt: string;
 };

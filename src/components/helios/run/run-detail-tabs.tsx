@@ -42,6 +42,7 @@ export function RunDetailTabs({ run }: RunDetailTabsProps) {
       label: "Evidence",
       content: (
         <RunEvidenceList
+          key={activeEvidenceFilter}
           runId={run.id}
           capturedAt={run.finishedAt ?? run.createdAt}
           pageUrl={run.finalUrl ?? run.startingUrl}

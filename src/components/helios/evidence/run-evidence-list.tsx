@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import {
   COPY_FEEDBACK_TIMEOUT_MS,
   MAX_VISIBLE_EVIDENCE_ITEMS,
@@ -44,13 +44,6 @@ export function RunEvidenceList({
   );
 
   const activeFilter = controlledActiveFilter ?? uncontrolledActiveFilter;
-
-  useEffect(() => {
-    if (controlledActiveFilter === undefined) return;
-
-    setShowAllEvidence(false);
-    setHasCopiedAllEvidence(false);
-  }, [controlledActiveFilter]);
 
   const handleFilterChange = (filter: EvidenceFilter) => {
     if (controlledActiveFilter === undefined) {

@@ -10,8 +10,15 @@ type TransformRawEvidenceInput = {
 };
 
 function tryExtractUrl(text: string): string | undefined {
-  const urlMatch = text.match(/https?:\/\/\S+/);
-  return urlMatch?.[0];
+  const match = text.match(/https?:\/\/[^\s"'<>]+/);
+
+  if (!match) return undefined;
+
+  try {
+    return new URL(match[0]).toString();
+  } catch {
+    return undefined;
+  }
 }
 
 function toRunEvidence(
@@ -25,7 +32,8 @@ function toRunEvidence(
     id: `${runId}:${type}:${index}`,
     type,
     content,
-    sourceUrl: tryExtractUrl(content) ?? pageUrl,
+    pageUrl,
+    resourceUrl: tryExtractUrl(content),
     capturedAt,
   }));
 }
