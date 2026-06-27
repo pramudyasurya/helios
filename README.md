@@ -43,6 +43,7 @@ Helios is not AI-first at this stage. The first core is a stable dashboard and a
 - Playwright
 - Prisma
 - PostgreSQL
+- Vitest
 
 ## Project Structure
 
@@ -74,6 +75,12 @@ Run the development server:
 
 ```bash
 npm run dev
+```
+
+Run unit tests:
+
+```bash
+npm test
 ```
 
 Open the app in your browser:
@@ -108,6 +115,7 @@ Completed:
 - Screenshot lightbox and route-level loading, error, and not-found states
 - Evidence filters, structured evidence view models, and detail inspection with page/resource URL context
 - QA checks can navigate directly to their relevant evidence filter
+- Vitest unit tests for shared Helios helpers
 
 Next:
 

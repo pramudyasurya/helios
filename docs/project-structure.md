@@ -117,6 +117,8 @@ Shared types and pure helpers live here. These files can be used by both client 
 - `errors.ts`: client-facing API error message helpers.
 - `evidence-transformer.ts`: transforms persisted raw evidence strings into structured UI evidence records and extracts related resource URLs when available.
 - `overview-cards.ts`: dashboard overview card data.
+
+Unit tests for shared helpers live next to the files they cover using the `*.test.ts` naming pattern, for example `checks.test.ts`, `performance.test.ts`, and `validators.test.ts`.
 ## Database Configuration
 
 ```txt

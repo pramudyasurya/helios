@@ -95,6 +95,7 @@ Completed:
 - Evidence detail modal with type, timestamp, observed page URL, related resource URL, raw content, and copy action
 - Keyboard and backdrop close behavior for evidence detail inspection
 - QA checks link to their relevant evidence filter for newly created runs
+- Vitest unit tests for shared helpers including checks, evidence transforms, performance labels, validators, routes, formatters, and error messages
 
 Next:
 
