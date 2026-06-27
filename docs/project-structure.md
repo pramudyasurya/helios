@@ -52,6 +52,7 @@ Important components:
 - `run/run-overview.tsx`: composes the summary, metrics, screenshots, and administrative details for a run.
 - `run/run-detail-tabs.tsx`: client-side coordinator for detail tabs and check-to-evidence navigation.
 - `run/run-summary-card.tsx`: prominent run summary panel.
+- `run/run-findings-summary.tsx`: compact findings summary for checks that need review, with optional evidence navigation.
 - `run/run-metrics-grid.tsx`: compact duration, load, console, and network metrics.
 - `run/run-admin-details.tsx`: secondary run identifiers and page metadata.
 - `run/screenshot-gallery.tsx`: interactive screenshot gallery with a lightbox preview.
@@ -110,6 +111,7 @@ Shared types and pure helpers live here. These files can be used by both client 
 - `types.ts`: core run, check, trail, metric, evidence, and response types.
 - `constants.ts`: shared limits, timeouts, storage keys, and thresholds.
 - `checks.ts`: creates QA checks from run results.
+- `findings.ts`: derives reviewable findings from warning and failed checks.
 - `performance.ts`: page load metric status and formatting helpers.
 - `format.ts`: timestamp, label, and duration formatting.
 - `routes.ts`: shared app route helpers for dashboard and run detail links.

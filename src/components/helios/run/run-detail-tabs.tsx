@@ -10,6 +10,7 @@ import {
 } from "@/components/helios/evidence/run-evidence-list";
 import { RunChecksList } from "@/components/helios/run/run-checks-list";
 import { BrowserTrail } from "@/components/helios/run/browser-trail";
+import { RunFindingsSummary } from "@/components/helios/run/run-findings-summary";
 
 type RunDetailTabsProps = {
   run: LatestRun;
@@ -35,7 +36,15 @@ export function RunDetailTabs({ run }: RunDetailTabsProps) {
     {
       id: "overview",
       label: "Overview",
-      content: <RunOverview run={run} />,
+      content: (
+        <div className="space-y-4">
+          <RunOverview run={run} />
+          <RunFindingsSummary
+            checks={run.checks}
+            onViewEvidence={handleViewEvidence}
+          />
+        </div>
+      ),
     },
     {
       id: "evidence",
