@@ -1,7 +1,14 @@
 import type { LatestRun } from "@/lib/helios/shared/types";
+import {
+  Activity,
+  AlertCircle,
+  Clock,
+  ListChecks,
+  Network,
+} from "lucide-react";
 import { formatDurationMs } from "@/lib/helios/shared/format";
+import { getFindingsFromChecks } from "@/lib/helios/shared/findings";
 import { formatDomLoadMetric } from "@/lib/helios/shared/performance";
-import { Activity, AlertCircle, Clock, Network } from "lucide-react";
 
 type RunMetricsGridProps = {
   run: LatestRun;
@@ -10,6 +17,7 @@ type RunMetricsGridProps = {
 export function RunMetricsGrid({ run }: RunMetricsGridProps) {
   const consoleErrorCount = run.consoleErrors?.length ?? 0;
   const failedRequestCount = run.failedRequests?.length ?? 0;
+  const findingCount = getFindingsFromChecks(run.checks).length;
   const metrics = [
     {
       label: "Duration",
@@ -27,6 +35,12 @@ export function RunMetricsGrid({ run }: RunMetricsGridProps) {
       color: "text-accent",
     },
     {
+      label: "Findings",
+      value: findingCount,
+      icon: ListChecks,
+      color: findingCount > 0 ? "text-accent" : "text-green-500",
+    },
+    {
       label: "Console Errors",
       value: consoleErrorCount,
       icon: AlertCircle,
@@ -41,7 +55,7 @@ export function RunMetricsGrid({ run }: RunMetricsGridProps) {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
       {metrics.map((m) => (
         <div
           key={m.label}
