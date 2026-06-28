@@ -16,6 +16,7 @@ describe("getFindingsFromChecks", () => {
         detail: "needs review",
         status: "warning",
         severity: "medium",
+        evidenceType: "console",
       },
     ];
 
@@ -25,6 +26,7 @@ describe("getFindingsFromChecks", () => {
     expect(findings[0]).toMatchObject({
       title: "Warning check",
       status: "warning",
+      evidenceLabel: "View console evidence",
     });
   });
 });
