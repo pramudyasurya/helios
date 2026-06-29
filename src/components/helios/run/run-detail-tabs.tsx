@@ -23,11 +23,22 @@ const evidenceFilterByType: Record<EvidenceType, EvidenceFilter> = {
   network: "network",
 };
 
+function formatTabLabel(label: string, count: number) {
+  return count > 0 ? `${label} (${count})` : label;
+}
+
 export function RunDetailTabs({ run }: RunDetailTabsProps) {
   const [activeTab, setActiveTab] = useState("overview");
   const [activeEvidenceFilter, setActiveEvidenceFilter] =
     useState<EvidenceFilter>("all");
   const findingCount = getFindingsFromChecks(run.checks).length;
+  const evidenceCount =
+    (run.brokenImages?.length ?? 0) +
+    (run.consoleErrors?.length ?? 0) +
+    (run.failedRequests?.length ?? 0);
+
+  const checksCount = run.checks.length;
+  const trailCount = run.trail.length;
 
   const handleViewEvidence = (evidenceType: EvidenceType) => {
     setActiveEvidenceFilter(evidenceFilterByType[evidenceType]);
@@ -50,7 +61,7 @@ export function RunDetailTabs({ run }: RunDetailTabsProps) {
     },
     {
       id: "findings",
-      label: `Findings (${findingCount})`,
+      label: formatTabLabel("Findings", findingCount),
       content: (
         <RunFindingsSummary
           checks={run.checks}
@@ -61,7 +72,7 @@ export function RunDetailTabs({ run }: RunDetailTabsProps) {
     },
     {
       id: "evidence",
-      label: "Evidence",
+      label: formatTabLabel("Evidence", evidenceCount),
       content: (
         <RunEvidenceList
           key={activeEvidenceFilter}
@@ -78,7 +89,7 @@ export function RunDetailTabs({ run }: RunDetailTabsProps) {
     },
     {
       id: "checks",
-      label: "QA Checks",
+      label: formatTabLabel("QA Checks", checksCount),
       content: (
         <RunChecksList
           checks={run.checks}
@@ -88,7 +99,7 @@ export function RunDetailTabs({ run }: RunDetailTabsProps) {
     },
     {
       id: "trail",
-      label: "Browser Trail",
+      label: formatTabLabel("Trail", trailCount),
       content: <BrowserTrail trail={run.trail} />,
     },
   ];
