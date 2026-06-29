@@ -1,10 +1,12 @@
 import type { CheckResult, EvidenceType } from "@/lib/helios/shared/types";
 import { getFindingsFromChecks } from "@/lib/helios/shared/findings";
 import { formatLabel } from "@/lib/helios/shared/format";
+import { EmptyState } from "@/components/helios/ui/empty-state";
 
 type RunFindingsSummaryProps = {
   checks: CheckResult[];
   onViewEvidence?: (evidenceType: EvidenceType) => void;
+  showEmptyState?: boolean;
 };
 
 const severityClasses = {
@@ -17,10 +19,20 @@ const severityClasses = {
 export function RunFindingsSummary({
   checks,
   onViewEvidence,
+  showEmptyState = false,
 }: RunFindingsSummaryProps) {
   const findings = getFindingsFromChecks(checks);
 
-  if (findings.length === 0) return null;
+  if (findings.length === 0) {
+    if (!showEmptyState) return null;
+
+    return (
+      <EmptyState
+        title="No findings to review"
+        description="All QA checks passed or only informational checks were recorded."
+      />
+    );
+  }
 
   return (
     <section className="rounded-lg border border-border bg-card p-4">

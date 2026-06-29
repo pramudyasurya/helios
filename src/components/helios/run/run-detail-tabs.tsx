@@ -11,6 +11,7 @@ import {
 import { RunChecksList } from "@/components/helios/run/run-checks-list";
 import { BrowserTrail } from "@/components/helios/run/browser-trail";
 import { RunFindingsSummary } from "@/components/helios/run/run-findings-summary";
+import { getFindingsFromChecks } from "@/lib/helios/shared/findings";
 
 type RunDetailTabsProps = {
   run: LatestRun;
@@ -26,6 +27,7 @@ export function RunDetailTabs({ run }: RunDetailTabsProps) {
   const [activeTab, setActiveTab] = useState("overview");
   const [activeEvidenceFilter, setActiveEvidenceFilter] =
     useState<EvidenceFilter>("all");
+  const findingCount = getFindingsFromChecks(run.checks).length;
 
   const handleViewEvidence = (evidenceType: EvidenceType) => {
     setActiveEvidenceFilter(evidenceFilterByType[evidenceType]);
@@ -44,6 +46,17 @@ export function RunDetailTabs({ run }: RunDetailTabsProps) {
             onViewEvidence={handleViewEvidence}
           />
         </div>
+      ),
+    },
+    {
+      id: "findings",
+      label: `Findings (${findingCount})`,
+      content: (
+        <RunFindingsSummary
+          checks={run.checks}
+          onViewEvidence={handleViewEvidence}
+          showEmptyState
+        />
       ),
     },
     {
