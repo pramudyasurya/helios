@@ -15,6 +15,7 @@ import { RunChecksList } from "@/components/helios/run/run-checks-list";
 import { BrowserTrail } from "@/components/helios/run/browser-trail";
 import { RunFindingsSummary } from "@/components/helios/run/run-findings-summary";
 import { getFindingsFromChecks } from "@/lib/helios/shared/findings";
+import { AIReportPanel } from "@/components/helios/run/ai-report-panel";
 
 type RunDetailTabsProps = {
   run: LatestRun;
@@ -90,6 +91,11 @@ export function RunDetailTabs({ run }: RunDetailTabsProps) {
           />
         </div>
       ),
+    },
+    {
+      id: "ai-report",
+      label: "AI Report",
+      content: <AIReportPanel runId={run.id} initialReport={run.report} />,
     },
     {
       id: "findings",

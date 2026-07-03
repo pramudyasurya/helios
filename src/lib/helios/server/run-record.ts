@@ -5,11 +5,13 @@ import type {
   EvidenceType,
 } from "@/generated/prisma/client";
 import type {
+  AIReport,
   CheckResult,
   LatestRun,
   TrailStep,
 } from "@/lib/helios/shared/types";
 import { transformRawEvidence } from "@/lib/helios/shared/evidence-transformer";
+import { validateAIReport } from "../shared/validators";
 
 function jsonStringArray(value: unknown): string[] {
   return Array.isArray(value)
@@ -38,6 +40,9 @@ export function runRecordToLatestRun(
     consoleErrors: run.consoleErrors as LatestRun["consoleErrors"],
     failedRequests: run.failedRequests as LatestRun["failedRequests"],
     loadMetrics: run.loadMetrics as LatestRun["loadMetrics"],
+    report: run.report
+      ? (validateAIReport(run.report) ?? undefined)
+      : undefined,
     evidence:
       run.evidence && run.evidence.length > 0
         ? run.evidence.map((e) => ({

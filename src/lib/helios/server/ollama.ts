@@ -84,18 +84,29 @@ export function generateMockReport(run: LatestRun): AIReport {
 }
 
 export async function generateAIReport(run: LatestRun): Promise<AIReport> {
-  const ollamaUrl = process.env.OLLAMA_HOST || "https://localhost:11434";
+  const ollamaUrl = process.env.OLLAMA_HOST || "http://localhost:11434";
   const modelName = process.env.OLLAMA_MODEL || "llama3.2";
+
+  let safeUrl = run.startingUrl;
+  try {
+    safeUrl = new URL(run.startingUrl).href;
+  } catch {
+    safeUrl = "Invalid URL";
+  }
+
+  const rawEvidence = run.evidence || [];
+  const slicedEvidence = rawEvidence.slice(0, 25).map((e) => ({
+    id: e.id,
+    type: e.type,
+    content: e.content,
+  }));
 
   const systemPrompt = `You are an AI QA Analyst checking a website run report.
 Analyze the following QA run data:
-URL: ${run.startingUrl}
+URL: ${safeUrl}
 Status: ${run.status}
 Checks: ${JSON.stringify(run.checks)}
-Console Errors: ${JSON.stringify(run.consoleErrors)}
-Failed Requests: ${JSON.stringify(run.failedRequests)}
-Broken Images: ${JSON.stringify(run.brokenImages)}
-Evidence Items: ${JSON.stringify(run.evidence?.map((e) => ({ id: e.id, type: e.type, content: e.content })) || [])}
+Evidence: ${JSON.stringify(slicedEvidence)}
 Generate a structured QA analysis report in JSON format matching this schema:
 {
   "summary": "Concise summary sentence explaining the overall status and problems",

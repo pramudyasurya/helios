@@ -46,6 +46,7 @@ export type LatestRun = {
   failedRequests?: string[];
   loadMetrics?: LoadMetrics;
   evidence?: RunEvidence[];
+  report?: AIReport;
 };
 
 export type CreateRunResponse = {
