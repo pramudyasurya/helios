@@ -92,7 +92,7 @@ http://localhost:3000
 
 ## Status
 
-Phase 3 is complete, and Phase 4 evidence-board work is in progress. Helios uses a real Playwright runner with database-backed run persistence.
+Phase 5 is complete. Helios features a real Playwright runner, database-backed run persistence, a global evidence board, and AI-assisted QA reports powered by local LLMs.
 
 Completed:
 
@@ -118,8 +118,11 @@ Completed:
 - QA checks can navigate directly to their relevant evidence filter with scroll and highlight feedback
 - Findings summary highlights checks that need review from the run overview
 - Vitest unit tests for shared Helios helpers
+- First-class persisted Evidence records with open/resolved statuses
+- AI-assisted QA Reports powered by local LLM (Ollama) with deterministic mock fallback
+- Report UI panel with severity badges, findings list, and suggested actions
 
-Next:
+Next up:
 
-- Evidence-to-finding links, evidence statuses, and stronger evidence-board relationships
-- AI-assisted QA reports: summaries, triage suggestions, severity classification, and exportable reports
+- Global Search & Analytics Dashboard
+- CI/CD Integration via Webhooks/API Keys

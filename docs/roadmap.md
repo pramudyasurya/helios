@@ -100,18 +100,25 @@ Completed:
 
 Next:
 
-- Persist item-level supporting evidence relationships when evidence is stored as first-class records
-- Add evidence status and stronger source metadata when individual evidence is persisted
-- Consider a normalized `Evidence` database model when cross-run evidence querying becomes necessary
+- [x] Persist item-level supporting evidence relationships when evidence is stored as first-class records
+- [x] Add evidence status and stronger source metadata when individual evidence is persisted
+- [x] Consider a normalized `Evidence` database model when cross-run evidence querying becomes necessary
 
-## Later: AI-Assisted QA Reports
+## Phase 5: Local LLM QA Reports
 
 Goal: use the evidence layer to generate summaries, triage suggestions, and next actions.
 
-Possible features:
+Completed:
 
-- AI-generated issue summaries
-- Suggested fixes or investigation steps
-- Severity classification
-- Exportable QA reports
-- Replayable evidence bundles for teams
+- [x] AI-generated issue summaries
+- [x] Suggested fixes or investigation steps
+- [x] Severity classification
+- [x] Report UI panel powered by local LLM (Ollama)
+- [x] Deterministic mock fallback for gracefully handling LLM connection issues
+
+## Next Up (Phase 6 Candidates)
+
+- Global Search & Analytics Dashboard
+- CI/CD Integration via Webhooks/API Keys
+- Projects & Environments Grouping
+- Exportable shareable reports (PDF/HTML)
