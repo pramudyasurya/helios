@@ -27,6 +27,7 @@ model Run {
   trail     Json
   checks    Json
   artifacts Json?
+  report    Json?
 
   brokenImages   Json?
   consoleErrors  Json?

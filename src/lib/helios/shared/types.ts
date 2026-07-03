@@ -90,3 +90,20 @@ export type RunEvidence = {
   capturedAt: string;
   status: EvidenceStatus;
 };
+
+export const AI_RISK_LEVELS = ["low", "medium", "high"] as const;
+export type AIRiskLevel = (typeof AI_RISK_LEVELS)[number];
+
+export type AIFinding = {
+  title: string;
+  severity: AIRiskLevel;
+  evidenceIds: string[];
+  suggestedFix?: string;
+};
+
+export type AIReport = {
+  summary: string;
+  riskLevel: AIRiskLevel;
+  findings: AIFinding[];
+  suggestedActions: string[];
+};
