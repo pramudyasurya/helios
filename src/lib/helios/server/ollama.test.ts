@@ -1,9 +1,9 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   generateMockReport,
   generateAIReport,
 } from "@/lib/helios/server/ollama";
-import type { LatestRun } from "../shared/types";
+import type { LatestRun } from "@/lib/helios/shared/types";
 
 describe("generateMockReport", () => {
   const mockRun: LatestRun = {

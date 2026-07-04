@@ -106,6 +106,8 @@ Analyze the following QA run data:
 URL: ${safeUrl}
 Status: ${run.status}
 Checks: ${JSON.stringify(run.checks)}
+Console Errors: ${JSON.stringify(run.consoleErrors || [])}
+Failed Requests: ${JSON.stringify(run.failedRequests || [])}
 Evidence: ${JSON.stringify(slicedEvidence)}
 Generate a structured QA analysis report in JSON format matching this schema:
 {

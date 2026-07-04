@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import type { AIReport, AIRiskLevel } from "@/lib/helios/shared/types";
 import { getErrorMessage } from "@/lib/helios/shared/errors";
+import { generateReport } from "@/lib/helios/client/api";
 
 type AIReportPanelProps = {
   runId: string;
@@ -67,16 +68,7 @@ export function AIReportPanel({ runId, initialReport }: AIReportPanelProps) {
     setError(null);
 
     try {
-      const response = await fetch(`/api/runs/${runId}/report`, {
-        method: "POST",
-      });
-
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.message || "Failed to generate report");
-      }
-
-      const generatedReport = await response.json();
+      const generatedReport = await generateReport(runId);
       setReport(generatedReport);
     } catch (error) {
       setError(

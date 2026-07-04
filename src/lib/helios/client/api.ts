@@ -4,6 +4,7 @@ import type {
   LatestRun,
   RunEvidence,
 } from "@/lib/helios/shared/types";
+import type { AIReport } from "@/lib/helios/shared/types";
 
 export type ApiErrorResponse = {
   error: string;
@@ -94,4 +95,18 @@ export async function updateEvidenceStatus(
   }
 
   return result as RunEvidence;
+}
+
+export async function generateReport(runId: string): Promise<AIReport> {
+  const response = await fetch(`/api/runs/${runId}/report`, {
+    method: "POST",
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw result;
+  }
+
+  return result as AIReport;
 }

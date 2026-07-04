@@ -13,6 +13,7 @@ src/app/
   runs/[id]/not-found.tsx
   api/runs/route.ts
   api/runs/[id]/route.ts
+  api/runs/[id]/report/route.ts
 ```
 
 - `src/app/page.tsx` renders the main Helios dashboard.
@@ -20,6 +21,7 @@ src/app/
 - `src/app/runs/[id]/loading.tsx`, `error.tsx`, and `not-found.tsx` provide route-level loading, failure, and missing-run states.
 - `src/app/api/runs/route.ts` handles run creation (`POST`) and recent run history (`GET`).
 - `src/app/api/runs/[id]/route.ts` returns a single run's full payload by ID.
+- `src/app/api/runs/[id]/report/route.ts` triggers and retrieves AI-assisted QA reports.
 
 ## Helios Components
 
@@ -37,7 +39,7 @@ UI components for the dashboard live here. These components render forms, latest
 Component groups:
 
 - `layout/`: app shell and dashboard introduction.
-- `run/`: run form, latest run panel, overview, screenshots, checks, timeline, and status badge.
+- `run/`: run form, latest run panel, overview, screenshots, checks, timeline, status badge, and AI reports.
 - `evidence/`: filterable evidence lists, detail inspection, grouped evidence sections, and copy actions.
 - `history/`: recent run history preview.
 - `ui/`: small reusable UI primitives shared by Helios components.
@@ -51,6 +53,7 @@ Important components:
 - `run/summary-header.tsx`: run detail header with status, export, timing, and navigation.
 - `run/run-overview.tsx`: composes the summary, metrics, screenshots, and administrative details for a run.
 - `run/run-detail-tabs.tsx`: client-side coordinator for detail tabs, check-to-evidence navigation, and evidence highlight targets.
+- `run/ai-report-panel.tsx`: AI-generated QA report panel with risk badges and findings.
 - `run/run-summary-card.tsx`: prominent run summary panel.
 - `run/run-findings-summary.tsx`: compact findings summary for checks that need review, with optional evidence navigation.
 - `run/run-metrics-grid.tsx`: compact duration, load, console, and network metrics.
@@ -98,6 +101,7 @@ Server-only Playwright runner code lives here. These modules should not be impor
 - `artifacts.ts`: creates screenshot artifact paths and captures screenshots.
 - `navigation.ts`: page settle helper.
 - `trail.ts`: run trail timestamp and trail step helpers.
+- `ollama.ts`: Local LLM wrapper with deterministic mock fallback for AI reports.
 - `errors.ts`: maps Playwright/browser errors into user-friendly messages.
 
 ## Helios Shared Library
@@ -115,7 +119,7 @@ Shared types and pure helpers live here. These files can be used by both client 
 - `performance.ts`: page load metric status and formatting helpers.
 - `format.ts`: timestamp, label, and duration formatting.
 - `routes.ts`: shared app route helpers for dashboard and run detail links.
-- `validators.ts`: URL validation helpers.
+- `validators.ts`: URL validation and AI report schema validation helpers.
 - `errors.ts`: client-facing API error message helpers.
 - `evidence-transformer.ts`: transforms persisted raw evidence strings into structured UI evidence records and extracts related resource URLs when available.
 - `overview-cards.ts`: dashboard overview card data.

@@ -25,14 +25,14 @@ Sistem menggunakan model LLM lokal via Ollama, dengan fallback otomatis ke *rule
 - `src/app/runs/[id]/page.tsx` -> Integrasi tab baru "AI Report" ke navigasi detail run.
 
 ## Boundaries
-- **Always**: Validasi output JSON dari LLM menggunakan schema parser (Zod) sebelum disimpan ke DB.
+- **Always**: Validasi output JSON dari LLM menggunakan schema parser (custom validator) sebelum disimpan ke DB.
 - **Ask first**: Model Ollama default yang disarankan (`llama3.2` / `mistral`).
 - **Never**: Membiarkan halaman crash jika koneksi ke Ollama gagal. Fallback harus menghasilkan mock report yang relevan dengan logs run yang ada.
 
 ## Success Criteria
-- [ ] Tab "AI Report" muncul di navigasi halaman `/runs/[id]`.
-- [ ] Mengklik tab tersebut untuk pertama kali (atau saat run selesai) akan memicu tombol "Generate AI Report".
-- [ ] Proses generation menampilkan state loading skeleton yang rapi.
-- [ ] Hasil laporan terstruktur tersimpan di kolom `report` database pada tabel `Run`.
-- [ ] Membuka kembali detail run tersebut langsung menampilkan report yang tersimpan secara instan (tanpa re-generate).
-- [ ] Tampilan report rapi dengan penunjuk level risiko (Low = hijau, Medium = kuning, High = merah), daftar temuan terperinci, dan tombol "Suggested Actions".
+- [x] Tab "AI Report" muncul di navigasi halaman `/runs/[id]`.
+- [x] Mengklik tab tersebut untuk pertama kali (atau saat run selesai) akan memicu tombol "Generate AI Report".
+- [x] Proses generation menampilkan state loading skeleton yang rapi.
+- [x] Hasil laporan terstruktur tersimpan di kolom `report` database pada tabel `Run`.
+- [x] Membuka kembali detail run tersebut langsung menampilkan report yang tersimpan secara instan (tanpa re-generate).
+- [x] Tampilan report rapi dengan penunjuk level risiko (Low = hijau, Medium = kuning, High = merah), daftar temuan terperinci, dan tombol "Suggested Actions".

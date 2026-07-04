@@ -5,13 +5,12 @@ import type {
   EvidenceType,
 } from "@/generated/prisma/client";
 import type {
-  AIReport,
   CheckResult,
   LatestRun,
   TrailStep,
 } from "@/lib/helios/shared/types";
 import { transformRawEvidence } from "@/lib/helios/shared/evidence-transformer";
-import { validateAIReport } from "../shared/validators";
+import { validateAIReport } from "@/lib/helios/shared/validators";
 
 function jsonStringArray(value: unknown): string[] {
   return Array.isArray(value)
