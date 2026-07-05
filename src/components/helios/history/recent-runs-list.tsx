@@ -2,13 +2,19 @@ import { useState } from "react";
 import Link from "next/link";
 import type { LatestRun } from "@/lib/helios/shared/types";
 import { HELIOS_ROUTES } from "@/lib/helios/shared/routes";
-import { Trash2 } from "lucide-react";
+import { Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { formatDurationMs, formatTimestamp } from "@/lib/helios/shared/format";
 import { StatusBadge } from "@/components/helios/run/status-badge";
 
 type RecentRunsListProps = {
   runs: LatestRun[];
+  meta?: {
+    page: number;
+    totalPages: number;
+  };
+  hasFilters?: boolean;
+  onPageChange?: (page: number) => void;
   onClearRuns: () => Promise<void>;
   onDeleteRun: (id: string) => Promise<void>;
 };
@@ -21,8 +27,14 @@ function getDomain(urlStr: string) {
   }
 }
 
+const PAGINATION_BUTTON_CLASS =
+  "inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background text-muted transition hover:bg-muted hover:text-foreground disabled:opacity-50 disabled:pointer-events-none";
+
 export function RecentRunsList({
   runs,
+  meta,
+  hasFilters,
+  onPageChange,
   onClearRuns,
   onDeleteRun,
 }: RecentRunsListProps) {
@@ -34,7 +46,18 @@ export function RecentRunsList({
   const [isClearing, setIsClearing] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  if (runs.length <= 0) return null;
+  if (runs.length <= 0) {
+    if (hasFilters) {
+      return (
+        <section className="mt-6 rounded-lg border border-border bg-panel p-8 text-center">
+          <p className="text-sm text-muted">
+            No runs found matching your search or filters.
+          </p>
+        </section>
+      );
+    }
+    return null;
+  }
 
   return (
     <section className="mt-6 rounded-lg border border-border bg-panel p-5">
@@ -189,6 +212,37 @@ export function RecentRunsList({
           </li>
         ))}
       </ul>
+
+      {meta && meta.totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-between border-t border-border p-4">
+          <p className="text-sm text-muted">
+            Page{" "}
+            <span className="font-medium text-foreground">{meta.page}</span> of{" "}
+            <span className="font-medium text-foreground">
+              {meta.totalPages}
+            </span>
+          </p>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onPageChange?.(meta.page - 1)}
+              disabled={meta.page <= 1}
+              className={PAGINATION_BUTTON_CLASS}
+              aria-label="Previous page"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => onPageChange?.(meta.page + 1)}
+              disabled={meta.page >= meta.totalPages}
+              className={PAGINATION_BUTTON_CLASS}
+              aria-label="Next page"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

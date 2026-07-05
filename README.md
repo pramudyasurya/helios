@@ -35,6 +35,8 @@ Helios is not AI-first at this stage. The first core is a stable dashboard and a
 - Findings summary for checks that need review
 - Screenshot lightbox with keyboard close support
 - Run detail loading, error, and not-found states
+- QA Observability Dashboard with aggregate metrics (total runs, pass rate, avg duration)
+- Global Search, status filtering, and offset pagination on historical runs
 
 ## Tech Stack
 
@@ -92,7 +94,7 @@ http://localhost:3000
 
 ## Status
 
-Phase 5 is complete. Helios features a real Playwright runner, database-backed run persistence, a global evidence board, and AI-assisted QA reports powered by local LLMs.
+Phase 6 is complete. Helios features a real Playwright runner, database-backed run persistence, a global evidence board, AI-assisted QA reports, and a complete QA Observability Dashboard with analytics, search, and pagination.
 
 Completed:
 
@@ -121,8 +123,14 @@ Completed:
 - First-class persisted Evidence records with open/resolved statuses
 - AI-assisted QA Reports powered by local LLM (Ollama) with deterministic mock fallback
 - Report UI panel with severity badges, findings list, and suggested actions
+- Stats endpoint `GET /api/runs/stats` for aggregate metrics (total runs, pass rate, average duration)
+- Search, filter, and pagination support for `GET /api/runs`
+- `DashboardMetrics` component for visual summary cards with loading/empty states
+- `RunSearchBar` component with 300ms query debouncing and status filtering
+- Pagination controls added to `RecentRunsList` for offset navigation
+- URL state synchronization for search queries, filters, and page index
 
 Next up:
 
-- Global Search & Analytics Dashboard
 - CI/CD Integration via Webhooks/API Keys
+- Projects & Environments Grouping

@@ -116,9 +116,21 @@ Completed:
 - [x] Report UI panel powered by local LLM (Ollama)
 - [x] Deterministic mock fallback for gracefully handling LLM connection issues
 
-## Next Up (Phase 6 Candidates)
+## Phase 6: Global Search & Analytics Dashboard
 
-- Global Search & Analytics Dashboard
+Goal: provide a complete QA Observability Dashboard with metrik analitik, global search, status filter, and pagination.
+
+Completed:
+
+- Stats endpoint `GET /api/runs/stats` for aggregate metrics (total runs, pass rate, average duration)
+- Search, filter, and pagination support for `GET /api/runs`
+- `DashboardMetrics` component for visual summary cards with loading/empty states
+- `RunSearchBar` component with 300ms query debouncing and status filtering
+- Pagination controls added to `RecentRunsList` for offset navigation
+- URL state synchronization for search queries, filters, and page index
+
+## Next Up (Phase 7 Candidates)
+
 - CI/CD Integration via Webhooks/API Keys
 - Projects & Environments Grouping
 - Exportable shareable reports (PDF/HTML)

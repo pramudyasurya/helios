@@ -4,6 +4,7 @@ import type {
   LatestRun,
   PaginatedResponse,
   RunEvidence,
+  RunStats,
 } from "@/lib/helios/shared/types";
 import type { AIReport } from "@/lib/helios/shared/types";
 
@@ -57,6 +58,17 @@ export async function getRuns(params?: {
   }
 
   return result as PaginatedResponse<LatestRun>;
+}
+
+export async function getRunStats(): Promise<RunStats> {
+  const response = await fetch("/api/runs/stats");
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw result;
+  }
+
+  return result as RunStats;
 }
 
 export async function getRunDetail(id: string): Promise<LatestRun> {

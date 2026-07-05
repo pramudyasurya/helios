@@ -12,6 +12,7 @@ src/app/
   runs/[id]/error.tsx
   runs/[id]/not-found.tsx
   api/runs/route.ts
+  api/runs/stats/route.ts
   api/runs/[id]/route.ts
   api/runs/[id]/report/route.ts
 ```
@@ -20,6 +21,7 @@ src/app/
 - `src/app/runs/[id]/page.tsx` renders the run detail page for a stable run URL.
 - `src/app/runs/[id]/loading.tsx`, `error.tsx`, and `not-found.tsx` provide route-level loading, failure, and missing-run states.
 - `src/app/api/runs/route.ts` handles run creation (`POST`) and recent run history (`GET`).
+- `src/app/api/runs/stats/route.ts` aggregates historical run metrics.
 - `src/app/api/runs/[id]/route.ts` returns a single run's full payload by ID.
 - `src/app/api/runs/[id]/report/route.ts` triggers and retrieves AI-assisted QA reports.
 
@@ -67,7 +69,9 @@ Important components:
 - `evidence/evidence-section.tsx`: reusable grouped evidence section.
 - `evidence/evidence-item.tsx`: selectable evidence item with copy and detail affordances.
 - `evidence/evidence-detail-modal.tsx`: modal for inspecting structured evidence content, timestamps, and page/resource URL context.
-- `history/recent-runs-list.tsx`: responsive recent run history with clear and individual delete actions.
+- `history/recent-runs-list.tsx`: responsive recent run history with clear, delete, and pagination controls.
+- `history/dashboard-metrics.tsx`: displays visual metrics cards for total runs, pass rate, failed runs, and avg duration.
+- `history/run-search-bar.tsx`: search input and status dropdown for filtering runs.
 - `ui/tabs.tsx`: controlled or uncontrolled tabbed section layout used by run detail pages.
 - `ui/empty-state.tsx`: shared empty-state block for sections without data.
 
