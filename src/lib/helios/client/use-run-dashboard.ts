@@ -6,7 +6,7 @@ import { getRunErrorMessage } from "@/lib/helios/shared/errors";
 import { isValidHttpUrl } from "@/lib/helios/shared/validators";
 import {
   createRun,
-  getRecentRuns,
+  getRuns,
   clearRecentRuns,
   deleteRun,
 } from "@/lib/helios/client/api";
@@ -33,9 +33,9 @@ export function useRunDashboard() {
     async function fetchHistory() {
       try {
         setIsHistoryLoading(true);
-        const history = await getRecentRuns();
+        const response = await getRuns();
         if (active) {
-          setRecentRuns(history);
+          setRecentRuns(response.data);
           setHistoryError(undefined);
         }
       } catch (error) {

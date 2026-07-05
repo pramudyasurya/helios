@@ -2,6 +2,7 @@ import type {
   CreateRunResponse,
   EvidenceStatus,
   LatestRun,
+  PaginatedResponse,
   RunEvidence,
 } from "@/lib/helios/shared/types";
 import type { AIReport } from "@/lib/helios/shared/types";
@@ -31,15 +32,31 @@ export async function createRun(url: string): Promise<CreateRunResponse> {
   return result as CreateRunResponse;
 }
 
-export async function getRecentRuns(): Promise<LatestRun[]> {
-  const response = await fetch("/api/runs");
+export async function getRuns(params?: {
+  page?: number;
+  limit?: number;
+  q?: string;
+  status?: string;
+}): Promise<PaginatedResponse<LatestRun>> {
+  const searchParams = new URLSearchParams();
+  if (params?.page) searchParams.set("page", params.page.toString());
+  if (params?.limit) searchParams.set("limit", params.limit.toString());
+  if (params?.q) searchParams.set("q", params.q);
+  if (params?.status && params.status !== "All") {
+    searchParams.set("status", params.status);
+  }
+
+  const queryString = searchParams.toString();
+  const url = queryString ? `/api/runs?${queryString}` : "/api/runs";
+
+  const response = await fetch(url);
   const result = await response.json();
 
   if (!response.ok) {
     throw result;
   }
 
-  return result as LatestRun[];
+  return result as PaginatedResponse<LatestRun>;
 }
 
 export async function getRunDetail(id: string): Promise<LatestRun> {

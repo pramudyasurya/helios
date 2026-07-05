@@ -108,3 +108,20 @@ export type AIReport = {
   findings: AIFinding[];
   suggestedActions: string[];
 };
+
+export type RunStats = {
+  totalRuns: number;
+  completedRuns: number;
+  failedRuns: number;
+  avgDurationMs: number;
+};
+
+export type PaginatedResponse<T> = {
+  data: T[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+};

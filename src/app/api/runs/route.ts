@@ -6,6 +6,7 @@ import { createChecksFromRunResult } from "@/lib/helios/shared/checks";
 import { runRecordToLatestRun } from "@/lib/helios/server/run-record";
 import { getErrorMessage } from "@/lib/helios/shared/errors";
 import { transformRawEvidence } from "@/lib/helios/shared/evidence-transformer";
+import { Prisma } from "@/generated/prisma/client";
 
 type CreateRunRequest = {
   url?: string;
@@ -136,16 +137,64 @@ export async function POST(request: Request) {
   return Response.json(result);
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const runs = await prisma.run.findMany({
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: 10,
-    });
+    const { searchParams } = new URL(request.url);
 
-    return Response.json(runs.map(runRecordToLatestRun));
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
+    const limit = Math.max(
+      1,
+      Math.min(50, parseInt(searchParams.get("limit") || "10")),
+    );
+    const q = searchParams.get("q")?.trim() || "";
+    const status = searchParams.get("status") || "";
+
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.RunWhereInput = {};
+
+    if (status && status !== "All") {
+      where.status = status;
+    }
+
+    if (q) {
+      where.OR = [
+        {
+          startingUrl: {
+            contains: q,
+            mode: "insensitive",
+          },
+        },
+        {
+          title: {
+            contains: q,
+            mode: "insensitive",
+          },
+        },
+      ];
+    }
+
+    const [total, runs] = await Promise.all([
+      prisma.run.count({ where }),
+      prisma.run.findMany({
+        where,
+        orderBy: {
+          createdAt: "desc",
+        },
+        skip,
+        take: limit,
+      }),
+    ]);
+
+    return Response.json({
+      data: runs.map(runRecordToLatestRun),
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
     return Response.json(
       {
