@@ -22,10 +22,70 @@ import {
   createFailedRunState,
 } from "@/lib/helios/client/run-transformer";
 
-export function useRunDashboard() {
+export function useRunDashboard(onRunComplete?: () => void) {
   const [latestRun, setLatestRun] = useState<LatestRun | null>(null);
   const [runError, setRunError] = useState<string | undefined>();
 
+  const isRunActive =
+    latestRun?.status === "Queued" || latestRun?.status === "Running";
+
+  const handleSubmit: React.ComponentProps<"form">["onSubmit"] = async (e) => {
+    e.preventDefault();
+    setRunError(undefined);
+
+    const formData = new FormData(e.currentTarget);
+    const url = formData.get("url")?.toString().trim() ?? "";
+
+    if (!isValidHttpUrl(url)) {
+      setRunError("Please enter a valid HTTP or HTTPS URL.");
+      return;
+    }
+
+    const { run } = createQueuedRunState(url);
+    const runId = run.id;
+
+    setLatestRun(run);
+
+    setTimeout(() => {
+      setLatestRun((prev) => {
+        if (!prev || prev.id !== runId || prev.status !== "Queued") return prev;
+        return markRunRunning(prev);
+      });
+    }, RUNNING_STATE_DELAY_MS);
+
+    try {
+      const result = await createRun(url);
+      const completedRun = createCompletedRunState(run, result);
+
+      setLatestRun(completedRun);
+
+      onRunComplete?.();
+    } catch (error) {
+      const message = getRunErrorMessage(error);
+      console.warn("Failed to call run API", message);
+      setRunError(message);
+
+      const failedRun = createFailedRunState(run, message);
+      setLatestRun(failedRun);
+
+      onRunComplete?.();
+    }
+  };
+
+  const handleReset = () => {
+    setLatestRun(null);
+  };
+
+  return {
+    latestRun,
+    runError,
+    isRunActive,
+    handleSubmit,
+    handleReset,
+  };
+}
+
+export function useRunHistory(refreshTrigger?: number) {
   const [recentRuns, setRecentRuns] = useState<LatestRun[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(true);
   const [historyError, setHistoryError] = useState<string | undefined>();
@@ -88,7 +148,7 @@ export function useRunDashboard() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [refreshTrigger]);
 
   useEffect(() => {
     let active = true;
@@ -102,12 +162,9 @@ export function useRunDashboard() {
         });
         if (active) {
           setRecentRuns(response.data);
-
           setTotalPages(response.meta.totalPages);
           setHistoryError(undefined);
-
           const newUrl = new URL(window.location.href);
-
           if (searchQuery) newUrl.searchParams.set("q", searchQuery);
           else newUrl.searchParams.delete("q");
           if (statusFilter !== "All")
@@ -116,7 +173,6 @@ export function useRunDashboard() {
           if (currentPage > 1)
             newUrl.searchParams.set("page", currentPage.toString());
           else newUrl.searchParams.delete("page");
-
           window.history.replaceState({}, "", newUrl.toString());
         }
       } catch (error) {
@@ -128,132 +184,61 @@ export function useRunDashboard() {
         if (active) setIsHistoryLoading(false);
       }
     }
-
     fetchHistory();
     return () => {
       active = false;
     };
-  }, [currentPage, searchQuery, statusFilter]);
+  }, [currentPage, searchQuery, statusFilter, refreshTrigger]);
 
-  const isRunActive =
-    latestRun?.status === "Queued" || latestRun?.status === "Running";
+  const handleDeleteRun = useCallback(
+    async (id: string) => {
+      try {
+        await deleteRun(id);
+        setRecentRuns((current) => current.filter((r) => r.id !== id));
+        refreshStats();
 
-  const isOnDefaultView =
-    currentPage === 1 && searchQuery === "" && statusFilter === "All";
-
-  const handleSubmit: React.ComponentProps<"form">["onSubmit"] = async (e) => {
-    e.preventDefault();
-    setRunError(undefined);
-
-    const formData = new FormData(e.currentTarget);
-    const url = formData.get("url")?.toString().trim() ?? "";
-
-    if (!isValidHttpUrl(url)) {
-      setRunError("Please enter a valid HTTP or HTTPS URL.");
-      return;
-    }
-
-    const { run } = createQueuedRunState(url);
-    const runId = run.id;
-
-    setLatestRun(run);
-
-    setTimeout(() => {
-      setLatestRun((prev) => {
-        if (!prev || prev.id !== runId || prev.status !== "Queued") return prev;
-        return markRunRunning(prev);
-      });
-    }, RUNNING_STATE_DELAY_MS);
-
-    try {
-      const result = await createRun(url);
-      const completedRun = createCompletedRunState(run, result);
-
-      setLatestRun(completedRun);
-
-      if (isOnDefaultView) {
-        setRecentRuns((currentRuns) => addRecentRun(currentRuns, completedRun));
+        const res = await getRuns({
+          page: currentPage,
+          q: searchQuery,
+          status: statusFilter,
+        });
+        setRecentRuns(res.data);
+        setTotalPages(res.meta.totalPages);
+      } catch (error) {
+        console.error("Failed to delete run:", error);
+        throw error;
       }
-      refreshStats();
-    } catch (error) {
-      const message = getRunErrorMessage(error);
-      console.warn("Failed to call run API", message);
-      setRunError(message);
+    },
+    [currentPage, searchQuery, statusFilter, refreshStats],
+  );
 
-      const failedRun = createFailedRunState(run, message);
-      setLatestRun(failedRun);
-
-      if (isOnDefaultView) {
-        setRecentRuns((currentRuns) => addRecentRun(currentRuns, failedRun));
-      }
-      refreshStats();
-    }
-  };
-
-  const handleReset = () => {
-    setLatestRun(null);
-  };
-
-  const handleDeleteRun = async (id: string) => {
-    try {
-      await deleteRun(id);
-      setRecentRuns((current) => current.filter((r) => r.id !== id));
-      setLatestRun((currentRun) => (currentRun?.id === id ? null : currentRun));
-
-      refreshStats();
-
-      const res = await getRuns({
-        page: currentPage,
-        q: searchQuery,
-        status: statusFilter,
-      });
-      setRecentRuns(res.data);
-      setTotalPages(res.meta.totalPages);
-    } catch (error) {
-      console.error("Failed to delete run:", error);
-      throw error;
-    }
-  };
-
-  const handleClearRecentRuns = async () => {
+  const handleClearRecentRuns = useCallback(async () => {
     try {
       await clearRecentRuns();
       setRecentRuns([]);
       setTotalPages(1);
       setCurrentPage(1);
-      if (!isRunActive) setLatestRun(null);
       refreshStats();
     } catch (error) {
       console.error("Failed to clear runs from database:", error);
       throw error;
     }
-  };
-
-  const handleSearch = (query: string) => {
+  }, [refreshStats]);
+  const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
     setCurrentPage(1);
-  };
-
-  const handleStatusChange = (status: string) => {
+  }, []);
+  const handleStatusChange = useCallback((status: string) => {
     setStatusFilter(status);
     setCurrentPage(1);
-  };
-
-  const handlePageChange = (page: number) => {
+  }, []);
+  const handlePageChange = useCallback((page: number) => {
     setCurrentPage(page);
-  };
-
+  }, []);
   return {
-    latestRun,
-    runError,
     recentRuns,
     isHistoryLoading,
     historyError,
-    isRunActive,
-    handleSubmit,
-    handleReset,
-    handleClearRecentRuns,
-    handleDeleteRun,
     stats,
     isStatsLoading,
     searchQuery,
@@ -263,5 +248,7 @@ export function useRunDashboard() {
     handleSearch,
     handleStatusChange,
     handlePageChange,
+    handleClearRecentRuns,
+    handleDeleteRun,
   };
 }

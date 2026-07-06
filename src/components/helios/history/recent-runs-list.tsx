@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { EmptyState } from "../ui/empty-state";
 import Link from "next/link";
 import type { LatestRun } from "@/lib/helios/shared/types";
 import { HELIOS_ROUTES } from "@/lib/helios/shared/routes";
-import { Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Trash2, ChevronLeft, ChevronRight, Search } from "lucide-react";
 
 import { formatDurationMs, formatTimestamp } from "@/lib/helios/shared/format";
 import { StatusBadge } from "@/components/helios/run/status-badge";
@@ -49,11 +50,11 @@ export function RecentRunsList({
   if (runs.length <= 0) {
     if (hasFilters) {
       return (
-        <section className="mt-6 rounded-lg border border-border bg-panel p-8 text-center">
-          <p className="text-sm text-muted">
-            No runs found matching your search or filters.
-          </p>
-        </section>
+        <EmptyState
+          title="No runs found"
+          description="No runs match your search query or status filter. Try clearing your search or changing the filter."
+          icon={Search}
+        />
       );
     }
     return null;

@@ -63,9 +63,10 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
     avgDurationMs: 0,
   };
 
+  const completedOrFailed = safeStats.completedRuns + safeStats.failedRuns;
   const passRate =
-    safeStats.totalRuns > 0
-      ? Math.round((safeStats.completedRuns / safeStats.totalRuns) * 100)
+    completedOrFailed > 0
+      ? Math.round((safeStats.completedRuns / completedOrFailed) * 100)
       : 0;
 
   return (

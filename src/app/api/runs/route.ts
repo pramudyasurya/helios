@@ -153,7 +153,18 @@ export async function GET(request: Request) {
 
     const where: Prisma.RunWhereInput = {};
 
+    const VALID_STATUSES = ["Idle", "Queued", "Running", "Completed", "Failed"];
+
     if (status && status !== "All") {
+      if (!VALID_STATUSES.includes(status)) {
+        return Response.json(
+          {
+            error: "Invalid status parameter",
+            message: `Status must be one of: ${VALID_STATUSES.join(", ")}`,
+          },
+          { status: 400 },
+        );
+      }
       where.status = status;
     }
 

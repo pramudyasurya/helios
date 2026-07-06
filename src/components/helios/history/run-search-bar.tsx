@@ -1,5 +1,5 @@
 import { Search, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, memo } from "react";
 
 type RunSearchBarProps = {
   initialQuery?: string;
@@ -8,7 +8,7 @@ type RunSearchBarProps = {
   onStatusChange: (status: string) => void;
 };
 
-export function RunSearchBar({
+export const RunSearchBar = memo(function RunSearchBar({
   initialQuery = "",
   initialStatus = "All",
   onSearch,
@@ -16,8 +16,19 @@ export function RunSearchBar({
 }: RunSearchBarProps) {
   const [query, setQuery] = useState(initialQuery);
 
+  const lastQueryRef = useRef(initialQuery);
+
+  const handleClear = () => {
+    setQuery("");
+    lastQueryRef.current = "";
+    onSearch("");
+  };
+
   useEffect(() => {
+    if (query === lastQueryRef.current) return;
+
     const timeoutId = setTimeout(() => {
+      lastQueryRef.current = query;
       onSearch(query);
     }, 300);
 
@@ -43,7 +54,7 @@ export function RunSearchBar({
         {query.length > 0 && (
           <button
             type="button"
-            onClick={() => setQuery("")}
+            onClick={handleClear}
             className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted hover:text-foreground"
             aria-label="Clear search"
           >
@@ -67,4 +78,4 @@ export function RunSearchBar({
       </div>
     </div>
   );
-}
+});
