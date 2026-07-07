@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  CreateRunSchema,
+  GetRunsQuerySchema,
   isValidHttpUrl,
+  UpdateEvidenceStatusSchema,
   validateAIReport,
 } from "@/lib/helios/shared/validators";
 
@@ -58,5 +61,90 @@ describe("validateAIReport", () => {
     };
 
     expect(validateAIReport(incompleteReport)).toBeNull();
+  });
+});
+
+describe("CreateRunSchema (SSRF Protection)", () => {
+  it("accepts valid external public URLs", () => {
+    const valid = CreateRunSchema.safeParse({ url: "https://github.com" });
+
+    expect(valid.success).toBe(true);
+  });
+
+  it("rejects localhost", () => {
+    const testLocalhost = CreateRunSchema.safeParse({
+      url: "http://localhost:3000",
+    });
+    const testLocalhostName = CreateRunSchema.safeParse({
+      url: "http//localhost",
+    });
+    const testLoopbackIp = CreateRunSchema.safeParse({
+      url: "http://127.0.0.1",
+    });
+
+    expect(testLocalhost.success).toBe(false);
+    expect(testLocalhostName.success).toBe(false);
+    expect(testLoopbackIp.success).toBe(false);
+  });
+
+  it("rejects cloud metadata and private intranet IPs", () => {
+    const testAwsMetadata = CreateRunSchema.safeParse({
+      url: "http://169.254.169.254",
+    });
+    const testPrivateIpClassA = CreateRunSchema.safeParse({
+      url: "http://10.0.0.1",
+    });
+    const testPrivateIpClassC = CreateRunSchema.safeParse({
+      url: "http://192.168.1.1",
+    });
+
+    expect(testAwsMetadata.success).toBe(false);
+    expect(testPrivateIpClassA.success).toBe(false);
+    expect(testPrivateIpClassC.success).toBe(false);
+  });
+});
+
+describe("GetRunsQuerySchema", () => {
+  it("coerces page and limit strings to numbers and applies defaults", () => {
+    const result = GetRunsQuerySchema.safeParse({
+      page: "2",
+      limit: "15",
+    });
+
+    expect(result.success).toBe(true);
+
+    if (result.success) {
+      expect(result.data.page).toBe(2);
+      expect(result.data.limit).toBe(15);
+      expect(result.data.q).toBe("");
+    }
+  });
+
+  it("rejects invalid status", () => {
+    const result = GetRunsQuerySchema.safeParse({
+      status: "InvalidStatus",
+    });
+
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("UpdateEvidenceStatusSchema", () => {
+  it("accepts valid evidence statuses", () => {
+    expect(
+      UpdateEvidenceStatusSchema.safeParse({ status: "open" }).success,
+    ).toBe(true);
+    expect(
+      UpdateEvidenceStatusSchema.safeParse({ status: "resolved" }).success,
+    ).toBe(true);
+    expect(
+      UpdateEvidenceStatusSchema.safeParse({ status: "ignored" }).success,
+    ).toBe(true);
+  });
+
+  it("rejects invalid evidence status", () => {
+    expect(
+      UpdateEvidenceStatusSchema.safeParse({ status: "pending" }).success,
+    ).toBe(false);
   });
 });

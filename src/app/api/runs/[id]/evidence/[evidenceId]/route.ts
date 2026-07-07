@@ -4,6 +4,7 @@ import {
 } from "@/lib/helios/shared/types";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { UpdateEvidenceStatusSchema } from "@/lib/helios/shared/validators";
 
 export async function PATCH(
   request: Request,
@@ -25,11 +26,18 @@ export async function PATCH(
 
   const { status } = body;
 
-  if (
-    typeof status !== "string" ||
-    !EVIDENCE_STATUSES.includes(status as EvidenceStatus)
-  ) {
-    return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+  const validation = UpdateEvidenceStatusSchema.safeParse(body);
+
+  if (!validation.success) {
+    return NextResponse.json(
+      {
+        error: "Invalid status",
+        message:
+          validation.error.issues[0]?.message || "Invalid evidence status.",
+        details: validation.error.issues,
+      },
+      { status: 400 },
+    );
   }
 
   try {

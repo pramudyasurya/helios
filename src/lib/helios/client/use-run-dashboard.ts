@@ -11,7 +11,6 @@ import {
   clearRecentRuns,
   deleteRun,
 } from "@/lib/helios/client/api";
-import { addRecentRun } from "@/lib/helios/client/recent-runs";
 import {
   RUNNING_STATE_DELAY_MS,
   createQueuedRunState,

@@ -1,5 +1,8 @@
 import { runSinglePageQA } from "@/lib/helios/server/runner";
-import { isValidHttpUrl } from "@/lib/helios/shared/validators";
+import {
+  CreateRunSchema,
+  GetRunsQuerySchema,
+} from "@/lib/helios/shared/validators";
 
 import { prisma } from "@/lib/prisma";
 import { createChecksFromRunResult } from "@/lib/helios/shared/checks";
@@ -27,17 +30,21 @@ export async function POST(request: Request) {
     );
   }
 
-  const submittedUrl = body.url?.trim();
+  const validation = CreateRunSchema.safeParse(body);
 
-  if (!submittedUrl || !isValidHttpUrl(submittedUrl)) {
+  if (!validation.success) {
     return Response.json(
       {
         error: "Invalid URL",
-        message: "Please submit a valid HTTP or HTTPS URL.",
+        message:
+          validation.error.issues[0]?.message || "Please submit a valid URL.",
+        details: validation.error.issues,
       },
       { status: 400 },
     );
   }
+
+  const submittedUrl = validation.data.url;
 
   const now = new Date();
   const runId = `run_${now.getTime()}`;
@@ -140,31 +147,35 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
+    const rawParams = Object.fromEntries(searchParams);
 
-    const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
-    const limit = Math.max(
-      1,
-      Math.min(50, parseInt(searchParams.get("limit") || "10")),
-    );
-    const q = searchParams.get("q")?.trim() || "";
-    const status = searchParams.get("status") || "";
+    if (rawParams.status === "All" || rawParams.status === "") {
+      delete rawParams.status;
+    }
 
+    const validation = GetRunsQuerySchema.safeParse(rawParams);
+
+    if (!validation.success) {
+      return Response.json(
+        {
+          error: "Invalid Query Parameters",
+          message:
+            validation.error.issues[0]?.message ||
+            "Invalid search or pagination parameters.",
+          details: validation.error.issues,
+        },
+        {
+          status: 400,
+        },
+      );
+    }
+
+    const {q, status, page, limit} = validation.data;
     const skip = (page - 1) * limit;
 
     const where: Prisma.RunWhereInput = {};
 
-    const VALID_STATUSES = ["Idle", "Queued", "Running", "Completed", "Failed"];
-
-    if (status && status !== "All") {
-      if (!VALID_STATUSES.includes(status)) {
-        return Response.json(
-          {
-            error: "Invalid status parameter",
-            message: `Status must be one of: ${VALID_STATUSES.join(", ")}`,
-          },
-          { status: 400 },
-        );
-      }
+    if (status) {
       where.status = status;
     }
 
