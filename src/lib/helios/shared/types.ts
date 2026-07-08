@@ -114,6 +114,7 @@ export type RunStats = {
   completedRuns: number;
   failedRuns: number;
   avgDurationMs: number;
+  recentDurations?: number[];
 };
 
 export type PaginatedResponse<T> = {

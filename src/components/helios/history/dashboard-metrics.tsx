@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic";
 import { formatDurationMs } from "@/lib/helios/shared/format";
 import { RunStats } from "@/lib/helios/shared/types";
 import {
@@ -19,20 +20,57 @@ type MetricCardProps = {
   value: React.ReactNode;
   icon: LucideIcon;
   subValue?: React.ReactNode;
+  chart?: React.ReactNode;
 };
 
-function MetricCard({ title, value, icon: Icon, subValue }: MetricCardProps) {
+const PassRateDonut = dynamic(
+  () => import("./charts/pass-rate-donut").then((mod) => mod.PassRateDonut),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="h-12 w-12 rounded-full bg-border/50 animate-pulse shrink-0"
+        aria-hidden="true"
+      />
+    ),
+  },
+);
+
+const DurationSparkLine = dynamic(
+  () =>
+    import("./charts/duration-sparkline").then((mod) => mod.DurationSparkline),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="h-8 w-20 rounded bg-border/50 animate-pulse shrink-0"
+        aria-hidden="true"
+      />
+    ),
+  },
+);
+
+function MetricCard({
+  title,
+  value,
+  icon: Icon,
+  subValue,
+  chart,
+}: MetricCardProps) {
   return (
     <div className="rounded-lg border border-border bg-panel p-5">
       <div className="flex items-center gap-2 text-sm font-medium text-muted">
         <Icon className="h-4 w-4" />
         {title}
       </div>
-      <div className="mt-3 flex items-baseline gap-2">
-        <span className="text-3xl font-semibold tracking-tight text-foreground">
-          {value}
-        </span>
-        {subValue && <span className="text-sm text-muted">{subValue}</span>}
+      <div className="mt-3 flex items-center justify-between gap-4">
+        <div className="flex items-baseline gap-2">
+          <span className="text-3xl font-semibold tracking-tight text-foreground">
+            {value}
+          </span>
+          {subValue && <span className="text-sm text-muted">{subValue}</span>}
+        </div>
+        {chart}
       </div>
     </div>
   );
@@ -85,6 +123,9 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
         value={`${passRate}%`}
         icon={CheckCircle}
         subValue={`(${safeStats.completedRuns} passed)`}
+        chart={
+          safeStats.totalRuns > 0 ? <PassRateDonut passRate={passRate} /> : null
+        }
       />
 
       <MetricCard
@@ -101,6 +142,13 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
             : "-"
         }
         icon={Clock}
+        chart={
+          safeStats.totalRuns > 0 &&
+          safeStats.recentDurations &&
+          safeStats.recentDurations.length > 0 ? (
+            <DurationSparkLine recentDurations={safeStats.recentDurations} />
+          ) : null
+        }
       />
     </section>
   );

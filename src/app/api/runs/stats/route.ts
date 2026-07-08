@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
-    const [statusGroups, durationAggr] = await Promise.all([
+    const [statusGroups, durationAggr, recentRuns] = await Promise.all([
       prisma.run.groupBy({
         by: ["status"],
         _count: {
@@ -15,7 +15,23 @@ export async function GET() {
           durationMs: true,
         },
       }),
+      prisma.run.findMany({
+        where: {
+          durationMs: { not: null },
+        },
+        take: 10,
+        orderBy: {
+          createdAt: "desc",
+        },
+        select: {
+          durationMs: true,
+        },
+      }),
     ]);
+
+    const recentDurations = recentRuns
+      .map((r) => r.durationMs as number)
+      .reverse();
 
     let completedRuns = 0;
     let failedRuns = 0;
@@ -36,6 +52,7 @@ export async function GET() {
       completedRuns,
       failedRuns,
       avgDurationMs,
+      recentDurations,
     });
   } catch (error) {
     return Response.json(
