@@ -1,7 +1,4 @@
-import {
-  EVIDENCE_STATUSES,
-  type EvidenceStatus,
-} from "@/lib/helios/shared/types";
+import { type EvidenceStatus } from "@/lib/helios/shared/types";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { UpdateEvidenceStatusSchema } from "@/lib/helios/shared/validators";
@@ -24,8 +21,6 @@ export async function PATCH(
     );
   }
 
-  const { status } = body;
-
   const validation = UpdateEvidenceStatusSchema.safeParse(body);
 
   if (!validation.success) {
@@ -47,7 +42,7 @@ export async function PATCH(
         runId: id,
       },
       data: {
-        status: status as EvidenceStatus,
+        status: validation.data.status as EvidenceStatus,
       },
     });
 

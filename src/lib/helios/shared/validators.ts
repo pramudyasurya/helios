@@ -20,40 +20,68 @@ export function validateAIReport(data: unknown): AIReport | null {
 }
 
 export const CreateRunSchema = z.object({
-  url: z
-    .string()
-    .url()
-    .refine(
-      (val) => {
-        try {
-          const parsed = new URL(val);
-          const hostname = parsed.hostname.toLowerCase();
-          if (hostname === "localhost") return false;
+  url: z.url({ error: "Format URL salah" }).refine(
+    (val) => {
+      try {
+        const parsed = new URL(val);
+        if (parsed.protocol !== "http:" && parsed.protocol !== "https:")
+          return false;
 
-          const ipRegex =
-            /^(?:127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+|169\.254\.\d+\.\d+)$/;
+        const hostname = parsed.hostname.toLowerCase();
 
-          if (ipRegex.test(hostname)) return false;
+        let checkHost = hostname;
 
-          if (
-            hostname === "::1" ||
-            hostname.startsWith("fe80:") ||
-            hostname.startsWith("fc00:") ||
-            hostname.startsWith("fd00:")
-          ) {
-            return false;
+        if (checkHost.startsWith("[") && checkHost.endsWith("]")) {
+          checkHost = checkHost.slice(1, -1);
+        }
+
+        if (checkHost.startsWith("::ffff:")) {
+          const suffix = checkHost.substring(7);
+          if (suffix.includes(".")) {
+            checkHost = suffix;
+          } else {
+            const parts = suffix.split(":");
+            if (parts.length === 2) {
+              const part1 = parseInt(parts[0], 16);
+              const part2 = parseInt(parts[1], 16);
+              if (!isNaN(part1) && !isNaN(part2)) {
+                const b1 = (part1 >> 8) & 0xff;
+                const b2 = part1 & 0xff;
+                const b3 = (part2 >> 8) & 0xff;
+                const b4 = part2 & 0xff;
+                checkHost = `${b1}.${b2}.${b3}.${b4}`;
+              }
+            }
           }
+        }
 
-          return true;
-        } catch {
+        if (checkHost === "localhost") return false;
+
+        const ipRegex =
+          /^(?:127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+|169\.254\.\d+\.\d+)$/;
+
+        if (ipRegex.test(checkHost)) return false;
+
+        if (
+          checkHost === "::1" ||
+          checkHost.startsWith("fe80:") ||
+          checkHost.startsWith("fc00:") ||
+          checkHost.startsWith("fd00:")
+        ) {
           return false;
         }
-      },
-      { message: "Invalid URL or local address not allowed (SSRF protection)" },
-    ),
+
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    { message: "Invalid URL or local address not allowed (SSRF protection)" },
+  ),
 });
 
 const VALID_QUERY_STATUSES = [
+  "Idle",
   "Queued",
   "Running",
   "Completed",
@@ -61,7 +89,7 @@ const VALID_QUERY_STATUSES = [
 ] as const;
 
 export const GetRunsQuerySchema = z.object({
-  q: z.string().optional().default(""),
+  q: z.string().trim().optional().default(""),
   status: z.enum(VALID_QUERY_STATUSES).optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),

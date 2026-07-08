@@ -102,6 +102,22 @@ describe("CreateRunSchema (SSRF Protection)", () => {
     expect(testPrivateIpClassA.success).toBe(false);
     expect(testPrivateIpClassC.success).toBe(false);
   });
+
+  it("rejects IPv6 brackets and hex representation SSRF bypasses", () => {
+    const testIPv6Bracket = CreateRunSchema.safeParse({
+      url: "http://[::ffff:127.0.0.1]",
+    });
+    const testIPv6Hex = CreateRunSchema.safeParse({
+      url: "http://[::ffff:7f00:1]",
+    });
+    const testIPv6HexPrivate = CreateRunSchema.safeParse({
+      url: "http://[::ffff:a00:1]",
+    });
+
+    expect(testIPv6Bracket.success).toBe(false);
+    expect(testIPv6Hex.success).toBe(false);
+    expect(testIPv6HexPrivate.success).toBe(false);
+  });
 });
 
 describe("GetRunsQuerySchema", () => {

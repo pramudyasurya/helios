@@ -153,6 +153,12 @@ export async function GET(request: Request) {
       delete rawParams.status;
     }
 
+    for (const [key, value] of Object.entries(rawParams)) {
+      if (value === "" || (key === "status" && value === "All")) {
+        delete rawParams[key];
+      }
+    }
+
     const validation = GetRunsQuerySchema.safeParse(rawParams);
 
     if (!validation.success) {
@@ -170,7 +176,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const {q, status, page, limit} = validation.data;
+    const { q, status, page, limit } = validation.data;
     const skip = (page - 1) * limit;
 
     const where: Prisma.RunWhereInput = {};
