@@ -24,54 +24,11 @@ export const CreateRunSchema = z.object({
     (val) => {
       try {
         const parsed = new URL(val);
+
         if (parsed.protocol !== "http:" && parsed.protocol !== "https:")
           return false;
 
-        const hostname = parsed.hostname.toLowerCase();
-
-        let checkHost = hostname;
-
-        if (checkHost.startsWith("[") && checkHost.endsWith("]")) {
-          checkHost = checkHost.slice(1, -1);
-        }
-
-        if (checkHost.startsWith("::ffff:")) {
-          const suffix = checkHost.substring(7);
-          if (suffix.includes(".")) {
-            checkHost = suffix;
-          } else {
-            const parts = suffix.split(":");
-            if (parts.length === 2) {
-              const part1 = parseInt(parts[0], 16);
-              const part2 = parseInt(parts[1], 16);
-              if (!isNaN(part1) && !isNaN(part2)) {
-                const b1 = (part1 >> 8) & 0xff;
-                const b2 = part1 & 0xff;
-                const b3 = (part2 >> 8) & 0xff;
-                const b4 = part2 & 0xff;
-                checkHost = `${b1}.${b2}.${b3}.${b4}`;
-              }
-            }
-          }
-        }
-
-        if (checkHost === "localhost") return false;
-
-        const ipRegex =
-          /^(?:127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+|169\.254\.\d+\.\d+)$/;
-
-        if (ipRegex.test(checkHost)) return false;
-
-        if (
-          checkHost === "::1" ||
-          checkHost.startsWith("fe80:") ||
-          checkHost.startsWith("fc00:") ||
-          checkHost.startsWith("fd00:")
-        ) {
-          return false;
-        }
-
-        return true;
+        return !isIpPrivate(parsed.hostname);
       } catch {
         return false;
       }
@@ -112,3 +69,49 @@ export const AIReportSchema = z.object({
   ),
   suggestedActions: z.array(z.string()),
 });
+
+export function isIpPrivate(ip: string): boolean {
+  let checkHost = ip.toLowerCase();
+
+  if (checkHost.startsWith("[") && checkHost.endsWith("]")) {
+    checkHost = checkHost.slice(1, -1);
+  }
+
+  if (checkHost.startsWith("::ffff:")) {
+    const suffix = checkHost.substring(7);
+    if (suffix.includes(".")) {
+      checkHost = suffix;
+    } else {
+      const parts = suffix.split(":");
+      if (parts.length === 2) {
+        const part1 = parseInt(parts[0], 16);
+        const part2 = parseInt(parts[1], 16);
+        if (!isNaN(part1) && !isNaN(part2)) {
+          const b1 = (part1 >> 8) & 0xff;
+          const b2 = part1 & 0xff;
+          const b3 = (part2 >> 8) & 0xff;
+          const b4 = part2 & 0xff;
+          checkHost = `${b1}.${b2}.${b3}.${b4}`;
+        }
+      }
+    }
+  }
+
+  if (checkHost === "localhost") return true;
+
+  const ipRegex =
+    /^(?:127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+|169\.254\.\d+\.\d+)$/;
+
+  if (ipRegex.test(checkHost)) return true;
+
+  if (
+    checkHost === "::1" ||
+    checkHost.startsWith("fe80:") ||
+    checkHost.startsWith("fc00:") ||
+    checkHost.startsWith("fd00:")
+  ) {
+    return true;
+  }
+
+  return false;
+}

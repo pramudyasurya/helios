@@ -1,4 +1,5 @@
-import { chromium, type Browser } from "playwright";
+import { chromium, type Route, type Request, type Browser } from "playwright";
+import { lookup } from "node:dns/promises";
 
 import type { CreateRunResponse } from "@/lib/helios/shared/types";
 
@@ -14,17 +15,45 @@ import {
 import { captureRunScreenshots } from "@/lib/helios/server/artifacts";
 import { waitForPageToSettle } from "@/lib/helios/server/navigation";
 import { createTrailStep, getRunTimestamp } from "@/lib/helios/server/trail";
+import { isIpPrivate } from "../shared/validators";
 
 type RunSinglePageQAProps = {
   submittedUrl: string;
   runId: string;
 };
 
+async function handleRoute(
+  route: Route,
+  request: Request,
+  dnsCache: Map<string, boolean>,
+) {
+  try {
+    const result = new URL(request.url());
+
+    if (result.protocol !== "http:" && result.protocol !== "https:") {
+      await route.continue();
+      return true;
+    }
+
+    if (await isPrivateHostOrIp(result.hostname, dnsCache)) {
+      await route.abort("blockedbyclient");
+      return false;
+    }
+
+    await route.continue();
+    return true;
+  } catch {
+    await route.abort("blockedbyclient");
+    return false;
+  }
+}
+
 export async function runSinglePageQA({
   submittedUrl,
   runId,
 }: RunSinglePageQAProps): Promise<CreateRunResponse> {
   const startedAt = new Date();
+  const dnsCache = new Map<string, boolean>();
 
   let browser: Browser | undefined;
   try {
@@ -43,6 +72,13 @@ export async function runSinglePageQA({
       },
       isMobile: true,
     });
+
+    await page.route("**/*", (route, request) =>
+      handleRoute(route, request, dnsCache),
+    );
+    await mobilePage.route("**/*", (route, request) =>
+      handleRoute(route, request, dnsCache),
+    );
 
     const evidenceCollector = createBrowserEvidenceCollector();
 
@@ -154,5 +190,27 @@ export async function runSinglePageQA({
     throw new Error(getPlaywrightErrorMessage(error));
   } finally {
     await browser?.close();
+  }
+}
+
+export async function isPrivateHostOrIp(
+  hostOrIp: string,
+  dnsCache?: Map<string, boolean>,
+): Promise<boolean> {
+  if (isIpPrivate(hostOrIp)) return true;
+
+  if (dnsCache?.has(hostOrIp)) {
+    return dnsCache.get(hostOrIp)!;
+  }
+
+  try {
+    const result = await lookup(hostOrIp, { all: true });
+    const isPrivate = result.some((r) => isIpPrivate(r.address));
+
+    dnsCache?.set(hostOrIp, isPrivate);
+    return isPrivate;
+  } catch {
+    dnsCache?.set(hostOrIp, false);
+    return false;
   }
 }
