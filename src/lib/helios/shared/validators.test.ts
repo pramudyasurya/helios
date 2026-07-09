@@ -214,6 +214,22 @@ describe("CreateRunSchema (SSRF Protection)", () => {
     expect(testSiteLocal.success).toBe(false);
     expect(testMulticast.success).toBe(false);
   });
+
+  it("rejects fully-expanded mapped/compatible IPv6 formats", () => {
+    const testExpandedCompat = CreateRunSchema.safeParse({
+      url: "http://[0000:0000:0000:0000:0000:0000:7f00:0001]", // ::127.0.0.1
+    });
+    const testExpandedMapped = CreateRunSchema.safeParse({
+      url: "http://[0000:0000:0000:0000:0000:ffff:7f00:0001]", // ::ffff:127.0.0.1
+    });
+    const testExpandedMapped0 = CreateRunSchema.safeParse({
+      url: "http://[0000:0000:0000:0000:ffff:0000:7f00:0001]", // ::ffff:0:127.0.0.1
+    });
+
+    expect(testExpandedCompat.success).toBe(false);
+    expect(testExpandedMapped.success).toBe(false);
+    expect(testExpandedMapped0.success).toBe(false);
+  });
 });
 
 describe("GetRunsQuerySchema", () => {

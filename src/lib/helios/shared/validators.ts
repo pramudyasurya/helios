@@ -77,31 +77,80 @@ export function isIpPrivate(ip: string): boolean {
     checkHost = checkHost.slice(1, -1);
   }
 
-  if (checkHost === "::1") return true;
-  if (checkHost.includes(":") && checkHost.replace(/[:0]/g, "") === "") {
-    return true;
-  }
-
   if (checkHost.includes(":")) {
-    if (checkHost.includes(".")) {
-      const lastColon = checkHost.lastIndexOf(":");
-      checkHost = checkHost.substring(lastColon + 1);
-    } else if (checkHost.startsWith("::")) {
-      const parts = checkHost.split(":");
-      if (parts.length >= 4) {
-        const p1Str = parts[parts.length - 2];
-        const p2Str = parts[parts.length - 1];
-        const part1 = parseInt(p1Str, 16);
-        const part2 = parseInt(p2Str, 16);
-        if (!isNaN(part1) && !isNaN(part2)) {
-          const b1 = (part1 >> 8) & 255;
-          const b2 = part1 & 255;
-          const b3 = (part2 >> 8) & 255;
-          const b4 = part2 & 255;
-          checkHost = `${b1}.${b2}.${b3}.${b4}`;
-        }
+    const segs = expandIPv6(checkHost);
+
+    if (segs === null) return false;
+
+    const [s0, s1, s2, s3, s4, s5, s6, s7] = segs;
+
+    if (segs.every((s) => s === 0)) return true;
+
+    if (
+      s0 === 0 &&
+      s1 === 0 &&
+      s2 === 0 &&
+      s3 === 0 &&
+      s4 === 0 &&
+      s5 === 0 &&
+      s6 === 0 &&
+      s7 === 1
+    ) {
+      return true;
+    }
+
+    if (
+      s0 >> 9 === 0x7e || // ULA
+      s0 >> 6 === 0x3fa || // LLA
+      s0 >> 6 === 0x3fb || // Site-Local
+      s0 >> 8 === 0xff // Multicast
+    ) {
+      return true;
+    }
+
+    let isCompat = false;
+    let isMapped = false;
+
+    if (
+      s0 === 0 &&
+      s1 === 0 &&
+      s2 === 0 &&
+      s3 === 0 &&
+      s4 === 0 &&
+      (s5 === 0 || s5 === 0xffff)
+    ) {
+      isCompat = true;
+    }
+
+    if (
+      s0 === 0 &&
+      s1 === 0 &&
+      s2 === 0 &&
+      s3 === 0 &&
+      s4 === 0xffff &&
+      s5 === 0
+    ) {
+      isMapped = true;
+    }
+
+    if (isCompat || isMapped) {
+      const o1 = (s6 >> 8) & 255;
+      const o2 = s6 & 255;
+
+      if (
+        o1 === 127 ||
+        o1 === 10 ||
+        (o1 === 172 && o2 >= 16 && o2 <= 31) ||
+        (o1 === 192 && o2 === 168) ||
+        (o1 === 169 && o2 === 254) ||
+        o1 === 0 ||
+        o1 >= 224
+      ) {
+        return true;
       }
     }
+
+    return false;
   }
 
   if (checkHost === "0.0.0.0") return true;
@@ -110,7 +159,7 @@ export function isIpPrivate(ip: string): boolean {
 
   const parsed = parseIPv4(checkHost);
   if (parsed !== null) {
-    const [o1, o2, o3, o4] = parsed;
+    const [o1, o2] = parsed;
     if (
       o1 === 127 || // Loopback
       o1 === 10 || // Private Class A
@@ -121,26 +170,6 @@ export function isIpPrivate(ip: string): boolean {
       o1 >= 224 // Multicast / Reserved
     ) {
       return true;
-    }
-  }
-
-  if (checkHost.includes(":")) {
-    const firstSegment = checkHost.split(":")[0];
-
-    if (
-      firstSegment &&
-      firstSegment.length <= 4 &&
-      /^[0-9a-f]+$/i.test(firstSegment)
-    ) {
-      const val = parseInt(firstSegment, 16);
-      if (
-        (val >> 9) === 0x7e || // ULA (fc00::/7)
-        (val >> 6) === 0x3fa || // LLA (fe80::/10)
-        (val >> 6) === 0x3fb || // Site-local (fec0::/10)
-        (val >> 8) === 0xff // Multicast (ff00::/8)
-      ) {
-        return true;
-      }
     }
   }
 
@@ -207,3 +236,59 @@ function parseIPv4(host: string): number[] | null {
 
   return null;
 }
+
+const expandIPv6 = (host: string): number[] | null => {
+  if (host.split("::").length > 2) return null;
+
+  if (!host.includes(":")) return null;
+
+  if (host.includes(".")) {
+    const lastIndex = host.lastIndexOf(":");
+
+    const ipv4Str = host.substring(lastIndex + 1);
+    const parsed = parseIPv4(ipv4Str);
+
+    if (parsed === null) return null;
+
+    const [o1, o2, o3, o4] = parsed;
+
+    const hex1 = ((o1 << 8) | o2).toString(16);
+    const hex2 = ((o3 << 8) | o4).toString(16);
+
+    host = host.substring(0, lastIndex + 1) + hex1 + ":" + hex2;
+  }
+
+  let segments: string[] = [];
+
+  if (host.includes("::")) {
+    const doubleColonIndex = host.indexOf("::");
+    const leftPart = host.substring(0, doubleColonIndex);
+    const rightPart = host.substring(doubleColonIndex + 2);
+
+    const leftSegments = leftPart.split(":").filter(Boolean);
+    const rightSegments = rightPart.split(":").filter(Boolean);
+
+    const zeroCount = 8 - (leftSegments.length + rightSegments.length);
+
+    if (zeroCount < 0) return null;
+
+    segments = [
+      ...leftSegments,
+      ...Array(zeroCount).fill("0"),
+      ...rightSegments,
+    ];
+  } else {
+    segments = host.split(":");
+
+    if (segments.length !== 8) return null;
+  }
+
+  const nums: number[] = [];
+
+  for (const seg of segments) {
+    if (/^[0-9a-f]{1,4}$/i.test(seg)) nums.push(parseInt(seg, 16));
+    else return null;
+  }
+
+  return nums;
+};
