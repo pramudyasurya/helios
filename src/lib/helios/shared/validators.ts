@@ -77,20 +77,27 @@ export function isIpPrivate(ip: string): boolean {
     checkHost = checkHost.slice(1, -1);
   }
 
-  if (checkHost.startsWith("::ffff:")) {
-    const suffix = checkHost.substring(7);
-    if (suffix.includes(".")) {
-      checkHost = suffix;
-    } else {
-      const parts = suffix.split(":");
-      if (parts.length === 2) {
-        const part1 = parseInt(parts[0], 16);
-        const part2 = parseInt(parts[1], 16);
+  if (checkHost === "::1") return true;
+  if (checkHost.includes(":") && checkHost.replace(/[:0]/g, "") === "") {
+    return true;
+  }
+
+  if (checkHost.includes(":")) {
+    if (checkHost.includes(".")) {
+      const lastColon = checkHost.lastIndexOf(":");
+      checkHost = checkHost.substring(lastColon + 1);
+    } else if (checkHost.startsWith("::")) {
+      const parts = checkHost.split(":");
+      if (parts.length >= 4) {
+        const p1Str = parts[parts.length - 2];
+        const p2Str = parts[parts.length - 1];
+        const part1 = parseInt(p1Str, 16);
+        const part2 = parseInt(p2Str, 16);
         if (!isNaN(part1) && !isNaN(part2)) {
-          const b1 = (part1 >> 8) & 0xff;
-          const b2 = part1 & 0xff;
-          const b3 = (part2 >> 8) & 0xff;
-          const b4 = part2 & 0xff;
+          const b1 = (part1 >> 8) & 255;
+          const b2 = part1 & 255;
+          const b3 = (part2 >> 8) & 255;
+          const b4 = part2 & 255;
           checkHost = `${b1}.${b2}.${b3}.${b4}`;
         }
       }
@@ -99,19 +106,23 @@ export function isIpPrivate(ip: string): boolean {
 
   if (checkHost === "0.0.0.0") return true;
 
-  if (checkHost.includes(":")) {
-    const result = checkHost.replace(/[:0]/g, "");
-    if (result === "") return true;
-  }
-
   if (checkHost === "localhost") return true;
 
-  const ipRegex =
-    /^(?:127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+|169\.254\.\d+\.\d+)$/;
-
-  if (ipRegex.test(checkHost)) return true;
-
-  if (checkHost === "::1") return true;
+  const parsed = parseIPv4(checkHost);
+  if (parsed !== null) {
+    const [o1, o2, o3, o4] = parsed;
+    if (
+      o1 === 127 || // Loopback
+      o1 === 10 || // Private Class A
+      (o1 === 172 && o2 >= 16 && o2 <= 31) || // Private Class B
+      (o1 === 192 && o2 === 168) || // Private Class C
+      (o1 === 169 && o2 === 254) || // Link-local
+      o1 === 0 || // Wildcard / Non-routable
+      o1 >= 224 // Multicast / Reserved
+    ) {
+      return true;
+    }
+  }
 
   if (checkHost.includes(":")) {
     const firstSegment = checkHost.split(":")[0];
@@ -122,9 +133,77 @@ export function isIpPrivate(ip: string): boolean {
       /^[0-9a-f]+$/i.test(firstSegment)
     ) {
       const val = parseInt(firstSegment, 16);
-      if (val >> 9 === 0x7e || val >> 6 === 0x3fa) return true;
+      if (
+        (val >> 9) === 0x7e || // ULA (fc00::/7)
+        (val >> 6) === 0x3fa || // LLA (fe80::/10)
+        (val >> 6) === 0x3fb || // Site-local (fec0::/10)
+        (val >> 8) === 0xff // Multicast (ff00::/8)
+      ) {
+        return true;
+      }
     }
   }
 
   return false;
+}
+
+function parseIPv4(host: string): number[] | null {
+  const segments = host.split(".");
+  if (segments.length < 1 || segments.length > 4) return null;
+
+  const nums: number[] = [];
+
+  for (const segment of segments) {
+    if (segment.toLowerCase().startsWith("0x")) {
+      if (/^0x[0-9a-f]+$/i.test(segment)) {
+        nums.push(parseInt(segment, 16));
+      } else {
+        return null;
+      }
+    } else if (segment.startsWith("0")) {
+      if (segment === "0") {
+        nums.push(0);
+      } else if (segment.length > 1 && /^0[0-7]+$/.test(segment)) {
+        nums.push(parseInt(segment, 8));
+      } else {
+        return null;
+      }
+    } else {
+      if (/^[0-9]+$/.test(segment)) {
+        nums.push(parseInt(segment, 10));
+      } else {
+        return null;
+      }
+    }
+  }
+
+  if (nums.length === 4) {
+    return nums.every((num) => num <= 255) ? nums : null;
+  }
+
+  if (nums.length === 3) {
+    if (nums[0] > 255 || nums[1] > 255 || nums[2] > 65535) return null;
+    const byte3 = Math.floor(nums[2] / 256);
+    const byte4 = nums[2] % 256;
+    return [nums[0], nums[1], byte3, byte4];
+  }
+
+  if (nums.length === 2) {
+    if (nums[0] > 255 || nums[1] > 16777215) return null;
+    const byte2 = Math.floor(nums[1] / 65536);
+    const byte3 = Math.floor((nums[1] % 65536) / 256);
+    const byte4 = nums[1] % 256;
+    return [nums[0], byte2, byte3, byte4];
+  }
+
+  if (nums.length === 1) {
+    if (nums[0] > 4294967295) return null;
+    const byte1 = Math.floor(nums[0] / 16777216);
+    const byte2 = Math.floor((nums[0] % 16777216) / 65536);
+    const byte3 = Math.floor((nums[0] % 65536) / 256);
+    const byte4 = nums[0] % 256;
+    return [byte1, byte2, byte3, byte4];
+  }
+
+  return null;
 }

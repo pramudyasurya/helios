@@ -158,6 +158,62 @@ describe("CreateRunSchema (SSRF Protection)", () => {
     expect(testLLA.success).toBe(false);
     expect(testLLA2.success).toBe(false);
   });
+
+  it("rejects alternate bases and integer formats of IPv4", () => {
+    const testDecimalInt = CreateRunSchema.safeParse({
+      url: "http://2130706433", // 127.0.0.1
+    });
+    const testHexInt = CreateRunSchema.safeParse({
+      url: "http://0x7f000001", // 127.0.0.1
+    });
+    const testOctalInt = CreateRunSchema.safeParse({
+      url: "http://017700000001", // 127.0.0.1
+    });
+    const testMixedHex = CreateRunSchema.safeParse({
+      url: "http://0x7f.0.0.1", // 127.0.0.1
+    });
+
+    expect(testDecimalInt.success).toBe(false);
+    expect(testHexInt.success).toBe(false);
+    expect(testOctalInt.success).toBe(false);
+    expect(testMixedHex.success).toBe(false);
+  });
+
+  it("rejects shorthand IPv4 formats", () => {
+    const testShorthand1 = CreateRunSchema.safeParse({
+      url: "http://127.1", // 127.0.0.1
+    });
+    const testShorthand2 = CreateRunSchema.safeParse({
+      url: "http://10.1", // 10.0.0.1
+    });
+
+    expect(testShorthand1.success).toBe(false);
+    expect(testShorthand2.success).toBe(false);
+  });
+
+  it("rejects IPv4-compatible and IPv4-mapped IPv6 formats", () => {
+    const testCompatible = CreateRunSchema.safeParse({
+      url: "http://[::127.0.0.1]",
+    });
+    const testMapped = CreateRunSchema.safeParse({
+      url: "http://[::ffff:0:127.0.0.1]",
+    });
+
+    expect(testCompatible.success).toBe(false);
+    expect(testMapped.success).toBe(false);
+  });
+
+  it("rejects site-local and multicast IPv6 ranges", () => {
+    const testSiteLocal = CreateRunSchema.safeParse({
+      url: "http://[fec0::1]",
+    });
+    const testMulticast = CreateRunSchema.safeParse({
+      url: "http://[ff02::1]",
+    });
+
+    expect(testSiteLocal.success).toBe(false);
+    expect(testMulticast.success).toBe(false);
+  });
 });
 
 describe("GetRunsQuerySchema", () => {
