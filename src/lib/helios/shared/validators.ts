@@ -97,6 +97,13 @@ export function isIpPrivate(ip: string): boolean {
     }
   }
 
+  if (checkHost === "0.0.0.0") return true;
+
+  if (checkHost.includes(":")) {
+    const result = checkHost.replace(/[:0]/g, "");
+    if (result === "") return true;
+  }
+
   if (checkHost === "localhost") return true;
 
   const ipRegex =
@@ -104,13 +111,19 @@ export function isIpPrivate(ip: string): boolean {
 
   if (ipRegex.test(checkHost)) return true;
 
-  if (
-    checkHost === "::1" ||
-    checkHost.startsWith("fe80:") ||
-    checkHost.startsWith("fc00:") ||
-    checkHost.startsWith("fd00:")
-  ) {
-    return true;
+  if (checkHost === "::1") return true;
+
+  if (checkHost.includes(":")) {
+    const firstSegment = checkHost.split(":")[0];
+
+    if (
+      firstSegment &&
+      firstSegment.length <= 4 &&
+      /^[0-9a-f]+$/i.test(firstSegment)
+    ) {
+      const val = parseInt(firstSegment, 16);
+      if (val >> 9 === 0x7e || val >> 6 === 0x3fa) return true;
+    }
   }
 
   return false;

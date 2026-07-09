@@ -17,6 +17,7 @@ export function AppHeader() {
               className="rounded-md"
               width={32}
               height={32}
+              loading="eager"
             />
             <div>
               <p className="text-sm font-semibold text-foreground">Helios</p>

@@ -71,6 +71,14 @@ describe("CreateRunSchema (SSRF Protection)", () => {
     expect(valid.success).toBe(true);
   });
 
+  it("accepts public IPv6", () => {
+    const testPublicIPv6 = CreateRunSchema.safeParse({
+      url: "https://[2001:db8::1]",
+    });
+
+    expect(testPublicIPv6.success).toBe(true);
+  });
+
   it("rejects localhost", () => {
     const testLocalhost = CreateRunSchema.safeParse({
       url: "http://localhost:3000",
@@ -117,6 +125,38 @@ describe("CreateRunSchema (SSRF Protection)", () => {
     expect(testIPv6Bracket.success).toBe(false);
     expect(testIPv6Hex.success).toBe(false);
     expect(testIPv6HexPrivate.success).toBe(false);
+  });
+
+  it("rejects 0.0.0.0 and [::] IP address", () => {
+    const testZeroIp = CreateRunSchema.safeParse({
+      url: "http://0.0.0.0",
+    });
+    const testEmptyIp = CreateRunSchema.safeParse({
+      url: "http://[::]",
+    });
+
+    expect(testZeroIp.success).toBe(false);
+    expect(testEmptyIp.success).toBe(false);
+  });
+
+  it("rejects ULA and LLA", () => {
+    const testULA = CreateRunSchema.safeParse({
+      url: "http://[fd00::1]",
+    });
+    const testULA2 = CreateRunSchema.safeParse({
+      url: "http://[fdff::1]",
+    });
+    const testLLA = CreateRunSchema.safeParse({
+      url: "http://[fe80::1]",
+    });
+    const testLLA2 = CreateRunSchema.safeParse({
+      url: "http://[febf::1]",
+    });
+
+    expect(testULA.success).toBe(false);
+    expect(testULA2.success).toBe(false);
+    expect(testLLA.success).toBe(false);
+    expect(testLLA2.success).toBe(false);
   });
 });
 

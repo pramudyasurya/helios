@@ -210,7 +210,6 @@ export async function isPrivateHostOrIp(
     dnsCache?.set(hostOrIp, isPrivate);
     return isPrivate;
   } catch {
-    dnsCache?.set(hostOrIp, false);
     return false;
   }
 }
