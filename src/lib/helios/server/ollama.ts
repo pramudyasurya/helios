@@ -160,10 +160,15 @@ export function buildSystemPrompt(
   failedRequests: string[],
   evidence: Pick<RunEvidence, "id" | "type" | "content">[],
 ) {
-  const sanitize = (text: string) => text.replace(/<\/raw-evidence>/gi, "");
-  const safeConsole = sanitize(JSON.stringify(consoleErrors || []));
-  const safeRequests = sanitize(JSON.stringify(failedRequests || []));
-  const safeEvidence = sanitize(JSON.stringify(evidence || []));
+  const safeConsole = JSON.stringify((consoleErrors || []).map(escapeXml));
+  const safeRequests = JSON.stringify((failedRequests || []).map(escapeXml));
+  const safeEvidence = JSON.stringify(
+    (evidence || []).map((e) => ({
+      id: escapeXml(e.id),
+      type: escapeXml(e.type),
+      content: escapeXml(e.content),
+    })),
+  );
 
   return `You are an AI QA Analyst checking a website run report.
 Analyze the following QA run data:
@@ -194,4 +199,23 @@ Generate a structured QA analysis report in JSON format matching this schema:
   ]
 }
 Only output the JSON object. Do not include markdown formatting or wrapping.`;
+}
+
+export function escapeXml(text: string): string {
+  return text.replace(/[<>&"']/g, (char) => {
+    switch (char) {
+      case "<":
+        return "&lt;";
+      case ">":
+        return "&gt;";
+      case "&":
+        return "&amp;";
+      case '"':
+        return "&quot;";
+      case "'":
+        return "&#x27;";
+      default:
+        return char;
+    }
+  });
 }

@@ -89,4 +89,24 @@ describe("buildSystemPrompt", () => {
 
     expect(prompt).toContain("IMPORTANT: All contents within <raw-evidence> tags");
   });
+
+  it("escapes HTML/XML entities in inputs to prevent injection", () => {
+    const prompt = buildSystemPrompt(
+      "https://example.com",
+      "Completed",
+      [],
+      ["<script>alert('xss')</script> & \"test\""],
+      [],
+      [
+        {
+          id: "ev-1",
+          type: "console",
+          content: "error & <bad-tag>",
+        },
+      ],
+    );
+
+    expect(prompt).toContain("&lt;script&gt;alert(&#x27;xss&#x27;)&lt;/script&gt; &amp; &quot;test&quot;");
+    expect(prompt).toContain("error &amp; &lt;bad-tag&gt;");
+  });
 });
