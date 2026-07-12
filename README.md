@@ -68,69 +68,31 @@ More detail:
 
 ## Development
 
-Install dependencies:
+### Quick Start
 
-```bash
-npm install
-```
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Set up environment:
+   ```bash
+   cp .env.example .env
+   ```
+3. Initialize the database and run migrations:
+   ```bash
+   npx prisma db push
+   ```
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
-Run the development server:
+### Commands
 
-```bash
-npm run dev
-```
-
-Run unit tests:
-
-```bash
-npm test
-```
-
-Open the app in your browser:
-
-```txt
-http://localhost:3000
-```
-
-## Status
-
-Phase 6 is complete. Helios features a real Playwright runner, database-backed run persistence, a global evidence board, AI-assisted QA reports, and a complete QA Observability Dashboard with analytics, search, and pagination.
-
-Completed:
-
-- Real Playwright single-page browser runs
-- Desktop and mobile screenshot artifacts
-- Console error and failed request evidence
-- Broken image checks
-- Page metadata and load metrics
-- User-friendly browser-run error handling
-- Evidence copy, copy all, and show all interactions
-- Runner helper modules for metadata, evidence, artifacts, navigation, and trail steps
-- Prisma ORM with PostgreSQL for run persistence
-- Completed and failed runs persisted to database
-- `GET /api/runs` for recent run history from database
-- `GET /api/runs/[id]` for stable run detail payload
-- `DELETE /api/runs` and `DELETE /api/runs/[id]` for run history cleanup
-- `/runs/[id]` detail page with stable URL per run
-- Detail page tabs for overview, evidence, checks, and browser trail
-- Recent runs list sourced from database, localStorage removed
-- Responsive, scannable recent run history with clear/delete action feedback
-- Screenshot lightbox and route-level loading, error, and not-found states
-- Evidence filters, structured evidence view models, and detail inspection with page/resource URL context
-- QA checks can navigate directly to their relevant evidence filter with scroll and highlight feedback
-- Findings summary highlights checks that need review from the run overview
-- Vitest unit tests for shared Helios helpers
-- First-class persisted Evidence records with open/resolved statuses
-- AI-assisted QA Reports powered by local LLM (Ollama) with deterministic mock fallback
-- Report UI panel with severity badges, findings list, and suggested actions
-- Stats endpoint `GET /api/runs/stats` for aggregate metrics (total runs, pass rate, average duration)
-- Search, filter, and pagination support for `GET /api/runs`
-- `DashboardMetrics` component for visual summary cards with loading/empty states
-- `RunSearchBar` component with 300ms query debouncing and status filtering
-- Pagination controls added to `RecentRunsList` for offset navigation
-- URL state synchronization for search queries, filters, and page index
-
-Next up:
-
-- CI/CD Integration via Webhooks/API Keys
-- Projects & Environments Grouping
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server at `http://localhost:3000` |
+| `npm test` | Run Vitest unit tests |
+| `npm run build` | Build Next.js production bundle |
+| `npm run lint` | Run ESLint linter |
+| `npx prisma studio` | Open Prisma Studio GUI |

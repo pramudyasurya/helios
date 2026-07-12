@@ -115,6 +115,7 @@ Completed:
 - [x] Severity classification
 - [x] Report UI panel powered by local LLM (Ollama)
 - [x] Deterministic mock fallback for gracefully handling LLM connection issues
+- [x] Prompt injection mitigation and HTML/XML entity encoding for Ollama input parameters (URL, Checks, console errors, network requests, and evidence)
 
 ## Phase 6: Global Search & Analytics Dashboard
 

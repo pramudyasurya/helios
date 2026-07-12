@@ -170,11 +170,22 @@ export function buildSystemPrompt(
     })),
   );
 
+  const safeUrl = escapeXml(url || "");
+  const safeChecks = JSON.stringify(
+    (checks || []).map((ch) => ({
+      title: escapeXml(ch.title),
+      detail: escapeXml(ch.detail),
+      status: escapeXml(ch.status),
+      severity: escapeXml(ch.severity),
+      evidenceType: ch.evidenceType ? escapeXml(ch.evidenceType) : undefined,
+    })),
+  );
+
   return `You are an AI QA Analyst checking a website run report.
 Analyze the following QA run data:
-URL: ${url}
+URL: ${safeUrl}
 Status: ${status}
-Checks: ${JSON.stringify(checks)}
+Checks: ${safeChecks}
 
 Console Errors: <raw-evidence>${safeConsole}</raw-evidence>
 Failed Requests: <raw-evidence>${safeRequests}</raw-evidence>

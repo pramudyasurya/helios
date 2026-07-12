@@ -26,6 +26,7 @@ Sistem menggunakan model LLM lokal via Ollama, dengan fallback otomatis ke *rule
 
 ## Boundaries
 - **Always**: Validasi output JSON dari LLM menggunakan schema parser (custom validator) sebelum disimpan ke DB.
+- **Always**: Sanitasi dan escape seluruh parameter input yang dikirim ke LLM (seperti URL, Checks, console errors, failed requests, dan evidence) menggunakan HTML/XML entity encoding (`escapeXml`) untuk mencegah kerentanan Indirect Prompt Injection.
 - **Ask first**: Model Ollama default yang disarankan (`llama3.2` / `mistral`).
 - **Never**: Membiarkan halaman crash jika koneksi ke Ollama gagal. Fallback harus menghasilkan mock report yang relevan dengan logs run yang ada.
 
