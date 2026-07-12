@@ -120,11 +120,15 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
 
       <MetricCard
         title="Pass Rate"
-        value={`${passRate}%`}
+        value={completedOrFailed > 0 ? `${passRate}%` : "-"}
         icon={CheckCircle}
-        subValue={`(${safeStats.completedRuns} passed)`}
+        subValue={
+          completedOrFailed > 0
+            ? `(${safeStats.completedRuns} passed)`
+            : undefined
+        }
         chart={
-          safeStats.totalRuns > 0 ? <PassRateDonut passRate={passRate} /> : null
+          completedOrFailed > 0 ? <PassRateDonut passRate={passRate} /> : null
         }
       />
 
