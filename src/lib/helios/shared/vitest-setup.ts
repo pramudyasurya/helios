@@ -11,8 +11,21 @@ vi.mock("recharts", async (importOriginal) => {
   const original = await importOriginal<typeof import("recharts")>();
   return {
     ...original,
-    ResponsiveContainer: ({ children }: { children: React.ReactNode }) =>
-      React.createElement(
+    ResponsiveContainer: ({
+      children,
+    }: {
+      children:
+        | React.ReactNode
+        | ((props: { width: number; height: number }) => React.ReactNode);
+    }) => {
+      if (typeof children === "function") {
+        return React.createElement(
+          "div",
+          { style: { width: 800, height: 400 } },
+          children({ width: 800, height: 400 }),
+        );
+      }
+      return React.createElement(
         "div",
         { style: { width: "100%", height: "100%" } },
         React.Children.map(children, (child) =>
@@ -29,6 +42,7 @@ vi.mock("recharts", async (importOriginal) => {
               )
             : null,
         ),
-      ),
+      );
+    },
   };
 });
