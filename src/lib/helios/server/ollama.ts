@@ -89,7 +89,16 @@ export function generateMockReport(run: LatestRun): AIReport {
 export async function generateAIReport(run: LatestRun): Promise<AIReport> {
   const ollamaUrl = process.env.OLLAMA_HOST || "http://localhost:11434";
   const modelName = process.env.OLLAMA_MODEL || "llama3.2";
-  const ollamaTimeout = parseInt(process.env.OLLAMA_TIMEOUT || "30000", 10);
+
+  const DEFAULT_TIMEOUT = "30000";
+  let ollamaTimeout = parseInt(
+    process.env.OLLAMA_TIMEOUT || DEFAULT_TIMEOUT,
+    10,
+  );
+
+  if (isNaN(ollamaTimeout) || ollamaTimeout <= 0) {
+    ollamaTimeout = parseInt(DEFAULT_TIMEOUT, 10);
+  }
 
   let safeUrl = run.startingUrl;
   try {
@@ -114,9 +123,10 @@ export async function generateAIReport(run: LatestRun): Promise<AIReport> {
     slicedEvidence,
   );
 
+  let timeoutId: NodeJS.Timeout | undefined;
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), ollamaTimeout);
+    timeoutId = setTimeout(() => controller.abort(), ollamaTimeout);
 
     const response = await fetch(`${ollamaUrl}/api/generate`, {
       method: "POST",
@@ -129,8 +139,6 @@ export async function generateAIReport(run: LatestRun): Promise<AIReport> {
       }),
       signal: controller.signal,
     });
-
-    clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error(`Ollama returned status ${response.status}`);
@@ -150,6 +158,10 @@ export async function generateAIReport(run: LatestRun): Promise<AIReport> {
       `Ollama LLM generation unavailable (${(error as Error).message}). Falling back to rule-based mock report.`,
     );
     return generateMockReport(run);
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
   }
 }
 
