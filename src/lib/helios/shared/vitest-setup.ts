@@ -1,3 +1,4 @@
+import React from "react";
 import { vi } from "vitest";
 
 global.ResizeObserver = vi.fn().mockImplementation(() => ({
@@ -11,6 +12,23 @@ vi.mock("recharts", async (importOriginal) => {
   return {
     ...original,
     ResponsiveContainer: ({ children }: { children: React.ReactNode }) =>
-      children,
+      React.createElement(
+        "div",
+        { style: { width: "100%", height: "100%" } },
+        React.Children.map(children, (child) =>
+          React.isValidElement(child)
+            ? React.cloneElement(
+                child as React.ReactElement<{
+                  width?: number;
+                  height?: number;
+                }>,
+                {
+                  width: 800,
+                  height: 400,
+                },
+              )
+            : null,
+        ),
+      ),
   };
 });
