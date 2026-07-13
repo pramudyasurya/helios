@@ -60,8 +60,26 @@ export async function getRuns(params?: {
   return result as PaginatedResponse<LatestRun>;
 }
 
-export async function getRunStats(): Promise<RunStats> {
-  const response = await fetch("/api/runs/stats");
+export async function getRunStats(filters?: {
+  q?: string;
+  status?: string;
+}): Promise<RunStats> {
+  const searchParams = new URLSearchParams();
+
+  if (filters?.q) {
+    searchParams.set("q", filters.q);
+  }
+
+  if (filters?.status && filters?.status !== "All") {
+    searchParams.set("status", filters?.status);
+  }
+
+  const queryString = searchParams.toString();
+  const url = queryString
+    ? `/api/runs/stats?${queryString}`
+    : "/api/runs/stats";
+
+  const response = await fetch(url);
   const result = await response.json();
 
   if (!response.ok) {

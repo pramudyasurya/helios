@@ -120,18 +120,24 @@ export function useRunHistory(refreshTrigger?: number) {
 
   const refreshStats = useCallback(async () => {
     try {
-      const fetchedStats = await getRunStats();
+      const fetchedStats = await getRunStats({
+        q: searchQuery,
+        status: statusFilter,
+      });
       setStats(fetchedStats);
     } catch (error) {
       console.warn("Failed to refresh stats:", error);
     }
-  }, []);
+  }, [searchQuery, statusFilter]);
 
   useEffect(() => {
     let active = true;
     async function loadStats() {
       try {
-        const fetchedStats = await getRunStats();
+        const fetchedStats = await getRunStats({
+          q: searchQuery,
+          status: statusFilter,
+        });
         if (active) {
           setStats(fetchedStats);
         }
@@ -147,7 +153,7 @@ export function useRunHistory(refreshTrigger?: number) {
     return () => {
       active = false;
     };
-  }, [refreshTrigger]);
+  }, [refreshTrigger, searchQuery, statusFilter]);
 
   useEffect(() => {
     let active = true;

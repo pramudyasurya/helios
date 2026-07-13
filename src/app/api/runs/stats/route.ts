@@ -1,22 +1,73 @@
 import { getErrorMessage } from "@/lib/helios/shared/errors";
 import { prisma } from "@/lib/prisma";
+import { GetRunsQuerySchema } from "@/lib/helios/shared/validators";
+import { Prisma } from "@/generated/prisma/client";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const rawParams = Object.fromEntries(url.searchParams);
+  for (const [key, value] of Object.entries(rawParams)) {
+    if (value === "" || (key === "status" && value === "All")) {
+      delete rawParams[key];
+    }
+  }
+
+  const validation = GetRunsQuerySchema.safeParse(rawParams);
+
+  if (!validation.success) {
+    return Response.json(
+      {
+        error: "Invalid query parameters",
+        message: getErrorMessage(validation.error, "Invalid query parameters"),
+      },
+      {
+        status: 400,
+      },
+    );
+  }
+
+  const { q, status } = validation.data;
+
+  const where: Prisma.RunWhereInput = {};
+
+  if (status) {
+    where.status = status;
+  }
+  if (q) {
+    where.OR = [
+      {
+        startingUrl: {
+          contains: q,
+          mode: "insensitive",
+        },
+      },
+      {
+        title: {
+          contains: q,
+          mode: "insensitive",
+        },
+      },
+    ];
+  }
+
   try {
     const [statusGroups, durationAggr, recentRuns] = await Promise.all([
       prisma.run.groupBy({
         by: ["status"],
+        where,
         _count: {
           _all: true,
         },
       }),
       prisma.run.aggregate({
+        where,
         _avg: {
           durationMs: true,
         },
       }),
       prisma.run.findMany({
         where: {
+          ...where,
           durationMs: { not: null },
         },
         take: 10,
