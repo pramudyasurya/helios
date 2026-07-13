@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   generateMockReport,
   generateAIReport,
@@ -66,6 +66,62 @@ describe("generateAIReport", () => {
     expect(report).toBeDefined();
     expect(report.riskLevel).toBe("low");
     expect(report.summary).toContain("completed successfully");
+  });
+
+  it("respects the OLLAMA_TIMEOUT environment variable and aborts the request", async () => {
+    const originalTimeout = process.env.OLLAMA_TIMEOUT;
+    process.env.OLLAMA_TIMEOUT = "50";
+    process.env.OLLAMA_HOST = "http://localhost:9999";
+
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn().mockImplementation(
+      (url, init) =>
+        new Promise((resolve, reject) => {
+          const signal = init?.signal;
+          if (signal?.aborted) {
+            return reject(new DOMException("The user aborted a request.", "AbortError"));
+          }
+
+          const timeoutId = setTimeout(() => {
+            resolve({
+              ok: true,
+              json: async () => ({ response: "{}" }),
+            } as unknown as Response);
+          }, 300);
+
+          if (signal) {
+            signal.addEventListener("abort", () => {
+              clearTimeout(timeoutId);
+              reject(new DOMException("The user aborted a request.", "AbortError"));
+            });
+          }
+        }),
+    );
+
+    const mockRun: LatestRun = {
+      id: "run-123",
+      startingUrl: "https://example.com",
+      status: "Completed",
+      trail: [],
+      summary: "Loaded",
+      checks: [],
+      createdAt: new Date().toISOString(),
+    };
+
+    const startTime = Date.now();
+    const report = await generateAIReport(mockRun);
+    const duration = Date.now() - startTime;
+
+    expect(duration).toBeLessThan(250);
+    expect(report).toBeDefined();
+    expect(report.riskLevel).toBe("low");
+
+    globalThis.fetch = originalFetch;
+    if (originalTimeout === undefined) {
+      delete process.env.OLLAMA_TIMEOUT;
+    } else {
+      process.env.OLLAMA_TIMEOUT = originalTimeout;
+    }
   });
 });
 

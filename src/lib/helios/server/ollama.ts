@@ -89,6 +89,7 @@ export function generateMockReport(run: LatestRun): AIReport {
 export async function generateAIReport(run: LatestRun): Promise<AIReport> {
   const ollamaUrl = process.env.OLLAMA_HOST || "http://localhost:11434";
   const modelName = process.env.OLLAMA_MODEL || "llama3.2";
+  const ollamaTimeout = parseInt(process.env.OLLAMA_TIMEOUT || "30000", 10);
 
   let safeUrl = run.startingUrl;
   try {
@@ -115,7 +116,7 @@ export async function generateAIReport(run: LatestRun): Promise<AIReport> {
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    const timeoutId = setTimeout(() => controller.abort(), ollamaTimeout);
 
     const response = await fetch(`${ollamaUrl}/api/generate`, {
       method: "POST",
