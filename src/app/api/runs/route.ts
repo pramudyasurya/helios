@@ -3,6 +3,7 @@ import {
   CreateRunSchema,
   GetRunsQuerySchema,
 } from "@/lib/helios/shared/validators";
+import { revalidateTag } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
 import { createChecksFromRunResult } from "@/lib/helios/shared/checks";
@@ -81,6 +82,7 @@ export async function POST(request: Request) {
           ],
         },
       });
+      revalidateTag("run-stats", "max");
     } catch (dbError) {
       console.error("Failed to persist failed run:", dbError);
     }
@@ -137,6 +139,7 @@ export async function POST(request: Request) {
             : undefined,
       },
     });
+    revalidateTag("run-stats", "max");
   } catch (dbError) {
     console.error("Failed to persist completed run:", dbError);
   }
@@ -239,6 +242,7 @@ export async function GET(request: Request) {
 export async function DELETE() {
   try {
     await prisma.run.deleteMany();
+    revalidateTag("run-stats", "max");
     return Response.json({ success: true });
   } catch (error) {
     return Response.json(

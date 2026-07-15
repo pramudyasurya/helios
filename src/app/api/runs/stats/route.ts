@@ -73,62 +73,65 @@ export async function GET(request: Request) {
   }
 }
 
-const getCachedStatsData = unstable_cache(
-  async (q?: string, status?: string) => {
-    const where: Prisma.RunWhereInput = {};
+async function getCachedStatsData(q?: string, status?: string) {
+  return unstable_cache(
+    async () => {
+      const where: Prisma.RunWhereInput = {};
 
-    if (status) {
-      where.status = status;
-    }
+      if (status) {
+        where.status = status;
+      }
 
-    if (q) {
-      where.OR = [
-        {
-          startingUrl: { contains: q, mode: "insensitive" },
-        },
-        {
-          title: { contains: q, mode: "insensitive" },
-        },
-      ];
-    }
+      if (q) {
+        where.OR = [
+          {
+            startingUrl: { contains: q, mode: "insensitive" },
+          },
+          {
+            title: { contains: q, mode: "insensitive" },
+          },
+        ];
+      }
 
-    const [statusGroups, durationAggr, recentRuns] = await Promise.all([
-      prisma.run.groupBy({
-        by: ["status"],
-        where,
-        _count: {
-          _all: true,
-        },
-      }),
-      prisma.run.aggregate({
-        where,
-        _avg: {
-          durationMs: true,
-        },
-      }),
-      prisma.run.findMany({
-        where: {
-          ...where,
-          durationMs: { not: null },
-        },
-        take: 10,
-        orderBy: {
-          createdAt: "desc",
-        },
-        select: {
-          durationMs: true,
-        },
-      }),
-    ]);
+      const [statusGroups, durationAggr, recentRuns] = await Promise.all([
+        prisma.run.groupBy({
+          by: ["status"],
+          where,
+          _count: {
+            _all: true,
+          },
+        }),
+        prisma.run.aggregate({
+          where,
+          _avg: {
+            durationMs: true,
+          },
+        }),
+        prisma.run.findMany({
+          where: {
+            ...where,
+            durationMs: { not: null },
+          },
+          take: 10,
+          orderBy: {
+            createdAt: "desc",
+          },
+          select: {
+            durationMs: true,
+          },
+        }),
+      ]);
 
-    return {
-      statusGroups,
-      durationAggr,
-      recentRuns,
-    };
-  },
-  ["run-stats"],
-  {
-    revalidate: 60,
-  },
-);
+      return {
+        statusGroups,
+        durationAggr,
+        recentRuns,
+      };
+    },
+    ["run-stats", q || "", status || ""],
+    {
+      revalidate: 60,
+      tags: ["run-stats"],
+    },
+  )();
+}

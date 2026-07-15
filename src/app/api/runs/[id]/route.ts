@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { revalidateTag } from "next/cache";
 
 import { runRecordToLatestRun } from "@/lib/helios/server/run-record";
 import { getErrorMessage } from "@/lib/helios/shared/errors";
@@ -44,6 +45,7 @@ export async function DELETE(
     await prisma.run.deleteMany({
       where: { id },
     });
+    revalidateTag("run-stats", "max");
 
     return new Response(null, { status: 204 });
   } catch (error) {
