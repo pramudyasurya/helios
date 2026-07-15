@@ -2,6 +2,7 @@ import { getErrorMessage } from "@/lib/helios/shared/errors";
 import { prisma } from "@/lib/prisma";
 import { GetRunsQuerySchema } from "@/lib/helios/shared/validators";
 import { Prisma } from "@/generated/prisma/client";
+import { unstable_cache } from "next/cache";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -28,57 +29,11 @@ export async function GET(request: Request) {
 
   const { q, status } = validation.data;
 
-  const where: Prisma.RunWhereInput = {};
-
-  if (status) {
-    where.status = status;
-  }
-  if (q) {
-    where.OR = [
-      {
-        startingUrl: {
-          contains: q,
-          mode: "insensitive",
-        },
-      },
-      {
-        title: {
-          contains: q,
-          mode: "insensitive",
-        },
-      },
-    ];
-  }
-
   try {
-    const [statusGroups, durationAggr, recentRuns] = await Promise.all([
-      prisma.run.groupBy({
-        by: ["status"],
-        where,
-        _count: {
-          _all: true,
-        },
-      }),
-      prisma.run.aggregate({
-        where,
-        _avg: {
-          durationMs: true,
-        },
-      }),
-      prisma.run.findMany({
-        where: {
-          ...where,
-          durationMs: { not: null },
-        },
-        take: 10,
-        orderBy: {
-          createdAt: "desc",
-        },
-        select: {
-          durationMs: true,
-        },
-      }),
-    ]);
+    const { statusGroups, durationAggr, recentRuns } = await getCachedStatsData(
+      q,
+      status,
+    );
 
     const recentDurations = recentRuns
       .map((r) => r.durationMs as number)
@@ -117,3 +72,63 @@ export async function GET(request: Request) {
     );
   }
 }
+
+const getCachedStatsData = unstable_cache(
+  async (q?: string, status?: string) => {
+    const where: Prisma.RunWhereInput = {};
+
+    if (status) {
+      where.status = status;
+    }
+
+    if (q) {
+      where.OR = [
+        {
+          startingUrl: { contains: q, mode: "insensitive" },
+        },
+        {
+          title: { contains: q, mode: "insensitive" },
+        },
+      ];
+    }
+
+    const [statusGroups, durationAggr, recentRuns] = await Promise.all([
+      prisma.run.groupBy({
+        by: ["status"],
+        where,
+        _count: {
+          _all: true,
+        },
+      }),
+      prisma.run.aggregate({
+        where,
+        _avg: {
+          durationMs: true,
+        },
+      }),
+      prisma.run.findMany({
+        where: {
+          ...where,
+          durationMs: { not: null },
+        },
+        take: 10,
+        orderBy: {
+          createdAt: "desc",
+        },
+        select: {
+          durationMs: true,
+        },
+      }),
+    ]);
+
+    return {
+      statusGroups,
+      durationAggr,
+      recentRuns,
+    };
+  },
+  ["run-stats"],
+  {
+    revalidate: 60,
+  },
+);
