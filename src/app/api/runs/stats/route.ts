@@ -6,7 +6,14 @@ import { unstable_cache } from "next/cache";
 
 const getCachedStatsData = unstable_cache(
   async (q: string, status: string) => {
-    const where: Prisma.RunWhereInput = {};
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const where: Prisma.RunWhereInput = {
+      createdAt: {
+        gte: thirtyDaysAgo,
+      },
+    };
 
     if (status) {
       where.status = status;
@@ -32,7 +39,10 @@ const getCachedStatsData = unstable_cache(
         },
       }),
       prisma.run.aggregate({
-        where,
+        where: {
+          ...where,
+          status: "Completed",
+        },
         _avg: {
           durationMs: true,
         },
