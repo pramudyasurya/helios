@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import { ResponsiveContainer, AreaChart, Area } from "recharts";
 import { ChartErrorBoundary } from "./chart-error-boundary";
 
@@ -8,6 +9,9 @@ interface DurationSparklineProps {
 }
 
 function DurationSparklineInner({ recentDurations }: DurationSparklineProps) {
+  const id = useId();
+  const gradientId = `sparklineGradient-${id}`;
+
   const data = recentDurations.map((duration, index) => ({
     index,
     duration,
@@ -25,7 +29,7 @@ function DurationSparklineInner({ recentDurations }: DurationSparklineProps) {
           margin={{ top: 2, right: 2, left: 2, bottom: 2 }}
         >
           <defs>
-            <linearGradient id="sparklineGradient" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.3} />
               <stop offset="95%" stopColor="var(--accent)" stopOpacity={0} />
             </linearGradient>
@@ -36,7 +40,7 @@ function DurationSparklineInner({ recentDurations }: DurationSparklineProps) {
             stroke="var(--accent)"
             strokeWidth={1.5}
             fillOpacity={1}
-            fill="url(#sparklineGradient)"
+            fill={`url(#${gradientId})`}
           />
         </AreaChart>
       </ResponsiveContainer>
