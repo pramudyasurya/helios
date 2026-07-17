@@ -1,4 +1,4 @@
-import { AppHeader } from "@/components/helios/layout/app-header";
+import { AppHeader } from "@/components/shared/app-header";
 
 function SkeletonBlock({ className = "" }: { className?: string }) {
   return <div className={`animate-pulse rounded bg-card ${className}`} />;

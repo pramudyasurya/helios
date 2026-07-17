@@ -1,7 +1,7 @@
-import { type EvidenceStatus } from "@/lib/helios/shared/types";
-import { prisma } from "@/lib/prisma";
+import { type EvidenceStatus } from "@/lib/shared/domain/types";
+import { prisma } from "@/lib/server/infrastructure/db/prisma";
 import { NextResponse } from "next/server";
-import { UpdateEvidenceStatusSchema } from "@/lib/helios/shared/validators";
+import { UpdateEvidenceStatusSchema } from "@/lib/shared/domain/validators";
 
 export async function PATCH(
   request: Request,

@@ -1,15 +1,15 @@
-import { runSinglePageQA } from "@/lib/helios/server/runner";
+import { runSinglePageQA } from "@/lib/server/infrastructure/runner/runner";
 import {
   CreateRunSchema,
   GetRunsQuerySchema,
-} from "@/lib/helios/shared/validators";
+} from "@/lib/shared/domain/validators";
 import { revalidateTag } from "next/cache";
 
-import { prisma } from "@/lib/prisma";
-import { createChecksFromRunResult } from "@/lib/helios/shared/checks";
-import { runRecordToLatestRun } from "@/lib/helios/server/run-record";
-import { getErrorMessage } from "@/lib/helios/shared/errors";
-import { transformRawEvidence } from "@/lib/helios/shared/evidence-transformer";
+import { prisma } from "@/lib/server/infrastructure/db/prisma";
+import { createChecksFromRunResult } from "@/lib/shared/domain/checks";
+import { runRecordToLatestRun } from "@/lib/server/infrastructure/runner/run-record";
+import { getErrorMessage } from "@/lib/shared/domain/errors";
+import { transformRawEvidence } from "@/lib/shared/domain/evidence-transformer";
 import { Prisma } from "@/generated/prisma/client";
 
 type CreateRunRequest = {

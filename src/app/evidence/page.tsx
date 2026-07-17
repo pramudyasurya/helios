@@ -1,10 +1,10 @@
-import { prisma } from "@/lib/prisma";
-import { AppHeader } from "@/components/helios/layout/app-header";
+import { prisma } from "@/lib/server/infrastructure/db/prisma";
+import { AppHeader } from "@/components/shared/app-header";
 import {
   GlobalEvidenceBoard,
   type BoardEvidenceItem,
-} from "@/components/helios/evidence/global-evidence-board";
-import type { EvidenceType, EvidenceStatus } from "@/lib/helios/shared/types";
+} from "@/components/features/global-evidence-board";
+import type { EvidenceType, EvidenceStatus } from "@/lib/shared/domain/types";
 import { Prisma } from "@/generated/prisma/client";
 
 export const dynamic = "force-dynamic";

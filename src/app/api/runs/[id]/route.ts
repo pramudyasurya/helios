@@ -1,8 +1,8 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/server/infrastructure/db/prisma";
 import { revalidateTag } from "next/cache";
 
-import { runRecordToLatestRun } from "@/lib/helios/server/run-record";
-import { getErrorMessage } from "@/lib/helios/shared/errors";
+import { runRecordToLatestRun } from "@/lib/server/infrastructure/runner/run-record";
+import { getErrorMessage } from "@/lib/shared/domain/errors";
 
 export async function GET(
   _request: Request,

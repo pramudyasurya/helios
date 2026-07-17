@@ -1,9 +1,9 @@
 import { Prisma } from "@/generated/prisma/client";
-import { generateAIReport } from "@/lib/helios/server/ollama";
-import { runRecordToLatestRun } from "@/lib/helios/server/run-record";
-import { getErrorMessage } from "@/lib/helios/shared/errors";
-import { validateAIReport } from "@/lib/helios/shared/validators";
-import { prisma } from "@/lib/prisma";
+import { generateAIReport } from "@/lib/server/infrastructure/ai/ollama";
+import { runRecordToLatestRun } from "@/lib/server/infrastructure/runner/run-record";
+import { getErrorMessage } from "@/lib/shared/domain/errors";
+import { validateAIReport } from "@/lib/shared/domain/validators";
+import { prisma } from "@/lib/server/infrastructure/db/prisma";
 import { NextRequest } from "next/server";
 
 export async function POST(

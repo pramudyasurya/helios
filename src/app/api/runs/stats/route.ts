@@ -1,6 +1,6 @@
-import { getErrorMessage } from "@/lib/helios/shared/errors";
-import { prisma } from "@/lib/prisma";
-import { GetRunsQuerySchema } from "@/lib/helios/shared/validators";
+import { getErrorMessage } from "@/lib/shared/domain/errors";
+import { prisma } from "@/lib/server/infrastructure/db/prisma";
+import { GetRunsQuerySchema } from "@/lib/shared/domain/validators";
 import { Prisma } from "@/generated/prisma/client";
 import { unstable_cache } from "next/cache";
 

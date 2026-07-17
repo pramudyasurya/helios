@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { SearchX } from "lucide-react";
-import { HELIOS_ROUTES } from "@/lib/helios/shared/routes";
-import { AppHeader } from "@/components/helios/layout/app-header";
+import { HELIOS_ROUTES } from "@/lib/shared/domain/routes";
+import { AppHeader } from "@/components/shared/app-header";
 
 export default function NotFound() {
   return (

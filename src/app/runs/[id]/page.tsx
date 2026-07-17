@@ -1,12 +1,12 @@
 import { cache } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/server/infrastructure/db/prisma";
 
-import { AppHeader } from "@/components/helios/layout/app-header";
-import { RunSummaryHeader } from "@/components/helios/run/summary-header";
-import { runRecordToLatestRun } from "@/lib/helios/server/run-record";
-import { RunDetailTabs } from "@/components/helios/run/run-detail-tabs";
+import { AppHeader } from "@/components/shared/app-header";
+import { RunSummaryHeader } from "@/app/runs/[id]/_components/summary-header";
+import { runRecordToLatestRun } from "@/lib/server/infrastructure/runner/run-record";
+import { RunDetailTabs } from "@/app/runs/[id]/_components/run-detail-tabs";
 
 const getRunById = cache(async (id: string) => {
   return prisma.run.findUnique({

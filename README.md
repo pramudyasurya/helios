@@ -51,14 +51,16 @@ Helios is not AI-first at this stage. The first core is a stable dashboard and a
 ## Project Structure
 
 ```txt
-src/lib/helios/
-  client/   Browser/client-side run state, API calls, export, and transforms
-  server/   Playwright runner used by the API route
-  shared/   Types, checks, validators, formatting, constants, and shared helpers
-
-src/components/helios/
-  Dashboard UI components for forms, run metadata, artifacts, evidence,
-  checks, browser trail, status badges, tabs, empty states, and recent runs.
+src/
+├── app/                  Next.js pages, api routes, and colocated leaf components
+├── components/
+│   ├── ui/               Stateless reusable UI primitives (tabs, empty states)
+│   ├── shared/           Global structural templates (app headers)
+│   └── features/         Centralized stateful features (run forms, stats charts)
+└── lib/
+    ├── client/           React state hooks and API callers
+    ├── server/           Server-only infrastructure modules (Playwright runner, AI)
+    └── shared/domain/    Pure business models, checks engine, and validators
 ```
 
 More detail:

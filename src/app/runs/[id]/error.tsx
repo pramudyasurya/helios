@@ -1,6 +1,6 @@
 "use client";
 
-import { AppHeader } from "@/components/helios/layout/app-header";
+import { AppHeader } from "@/components/shared/app-header";
 import { AlertCircle } from "lucide-react";
 import { useEffect } from "react";
 
