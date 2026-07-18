@@ -1,3 +1,4 @@
+import { Prisma } from "@/generated/prisma/client";
 import { type EvidenceStatus } from "@/lib/shared/domain/types";
 import { prisma } from "@/lib/server/infrastructure/db/prisma";
 import { NextResponse } from "next/server";
@@ -36,7 +37,7 @@ export async function PATCH(
   }
 
   try {
-    const updatedResult = await prisma.evidence.updateMany({
+    const updatedEvidence = await prisma.evidence.update({
       where: {
         id: evidenceId,
         runId: id,
@@ -46,19 +47,18 @@ export async function PATCH(
       },
     });
 
-    if (updatedResult.count === 0) {
+    return NextResponse.json(updatedEvidence);
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
       return NextResponse.json(
         { error: "Evidence not found or unauthorized" },
         { status: 404 },
       );
     }
 
-    const updateEvidence = await prisma.evidence.findUnique({
-      where: { id: evidenceId },
-    });
-
-    return NextResponse.json(updateEvidence);
-  } catch (error) {
     console.error("Error updating evidence status:", error);
     return NextResponse.json(
       { error: "Failed to update evidence status" },
