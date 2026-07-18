@@ -15,6 +15,14 @@ type DashboardMetricsProps = {
   isLoading: boolean;
 };
 
+const EMPTY_RUN_STATS: Required<RunStats> = {
+  totalRuns: 0,
+  completedRuns: 0,
+  failedRuns: 0,
+  avgDurationMs: 0,
+  recentDurations: [],
+};
+
 type MetricCardProps = {
   title: string;
   value: React.ReactNode;
@@ -94,11 +102,10 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
     );
   }
 
-  const safeStats = stats || {
-    totalRuns: 0,
-    completedRuns: 0,
-    failedRuns: 0,
-    avgDurationMs: 0,
+  const safeStats: Required<RunStats> = {
+    ...EMPTY_RUN_STATS,
+    ...stats,
+    recentDurations: stats?.recentDurations ?? EMPTY_RUN_STATS.recentDurations,
   };
 
   const completedOrFailed = safeStats.completedRuns + safeStats.failedRuns;
@@ -147,9 +154,7 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
         }
         icon={Clock}
         chart={
-          safeStats.totalRuns > 0 &&
-          safeStats.recentDurations &&
-          safeStats.recentDurations.length > 0 ? (
+          safeStats.totalRuns > 0 && safeStats.recentDurations.length > 0 ? (
             <DurationSparkLine recentDurations={safeStats.recentDurations} />
           ) : null
         }
