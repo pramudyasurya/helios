@@ -12,6 +12,10 @@ export function DashboardHero() {
         Submit a URL to inspect browser trails, screenshots, logs, and QA
         findings.
       </p>
+      <p className="mt-3 text-xs text-muted">
+        Keyboard shortcuts: Alt + R focuses the run URL; Alt + S focuses run
+        history search.
+      </p>
       <div className="mt-5 flex flex-wrap gap-2">
         {heroPills.map((pill) => (
           <span

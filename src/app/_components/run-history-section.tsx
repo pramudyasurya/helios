@@ -1,4 +1,5 @@
 import { useRunHistory } from "@/lib/client/use-run-dashboard";
+import type { RefObject } from "react";
 import { DashboardMetrics } from "@/components/features/dashboard-metrics";
 import { RunSearchBar } from "@/app/_components/run-search-bar";
 import { RecentRunsSkeleton } from "@/app/_components/recent-runs-skeleton";
@@ -6,9 +7,13 @@ import { RecentRunsList } from "@/components/features/recent-runs-list";
 
 type RunHistorySectionProps = {
   refreshTrigger: number;
+  searchInputRef?: RefObject<HTMLInputElement | null>;
 };
 
-export function RunHistorySection({ refreshTrigger }: RunHistorySectionProps) {
+export function RunHistorySection({
+  refreshTrigger,
+  searchInputRef,
+}: RunHistorySectionProps) {
   const {
     recentRuns,
     isHistoryLoading,
@@ -45,6 +50,7 @@ export function RunHistorySection({ refreshTrigger }: RunHistorySectionProps) {
           initialStatus={statusFilter}
           onSearch={handleSearch}
           onStatusChange={handleStatusChange}
+          searchInputRef={searchInputRef}
         />
 
         <div className="mt-4">

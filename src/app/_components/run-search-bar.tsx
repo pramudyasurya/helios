@@ -1,11 +1,12 @@
 import { Search, X } from "lucide-react";
-import { useEffect, useState, useRef, memo } from "react";
+import { useEffect, useState, useRef, memo, type RefObject } from "react";
 
 type RunSearchBarProps = {
   initialQuery?: string;
   initialStatus?: string;
   onSearch: (query: string) => void;
   onStatusChange: (status: string) => void;
+  searchInputRef?: RefObject<HTMLInputElement | null>;
 };
 
 export const RunSearchBar = memo(function RunSearchBar({
@@ -13,6 +14,7 @@ export const RunSearchBar = memo(function RunSearchBar({
   initialStatus = "All",
   onSearch,
   onStatusChange,
+  searchInputRef,
 }: RunSearchBarProps) {
   const [query, setQuery] = useState(initialQuery);
 
@@ -44,13 +46,19 @@ export const RunSearchBar = memo(function RunSearchBar({
         </div>
 
         <input
+          ref={searchInputRef}
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="block w-full rounded-md border border-border bg-background py-2 pl-9 pr-10 text-sm focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground"
           placeholder="Search by URL or title..."
           aria-label="Search runs"
+          aria-keyshortcuts="Alt+S"
+          aria-describedby="run-search-shortcut"
         />
+        <span id="run-search-shortcut" className="sr-only">
+          Press Alt + S to focus search.
+        </span>
         {query.length > 0 && (
           <button
             type="button"
