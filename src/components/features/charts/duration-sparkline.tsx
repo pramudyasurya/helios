@@ -2,7 +2,7 @@
 
 import { useId } from "react";
 import { ResponsiveContainer, AreaChart, Area } from "recharts";
-import { ChartErrorBoundary } from "@/app/_components/charts/chart-error-boundary";
+import { ChartErrorBoundary } from "@/components/features/charts/chart-error-boundary";
 
 interface DurationSparklineProps {
   recentDurations: number[];

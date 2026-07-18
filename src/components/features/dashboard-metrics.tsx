@@ -32,7 +32,10 @@ type MetricCardProps = {
 };
 
 const PassRateDonut = dynamic(
-  () => import("@/app/_components/charts/pass-rate-donut").then((mod) => mod.PassRateDonut),
+  () =>
+    import("@/components/features/charts/pass-rate-donut").then(
+      (mod) => mod.PassRateDonut,
+    ),
   {
     ssr: false,
     loading: () => (
@@ -46,7 +49,9 @@ const PassRateDonut = dynamic(
 
 const DurationSparkLine = dynamic(
   () =>
-    import("@/app/_components/charts/duration-sparkline").then((mod) => mod.DurationSparkline),
+    import("@/components/features/charts/duration-sparkline").then(
+      (mod) => mod.DurationSparkline,
+    ),
   {
     ssr: false,
     loading: () => (

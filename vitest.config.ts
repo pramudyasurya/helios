@@ -14,7 +14,7 @@ export default defineConfig({
         extends: true,
         test: {
           name: "unit",
-          include: ["src/lib/shared/domain/**/*.test.ts"],
+          include: ["src/lib/shared/domain/**/*.test.{ts,tsx}"],
           environment: "node",
         },
       },
@@ -22,7 +22,7 @@ export default defineConfig({
         extends: true,
         test: {
           name: "runner",
-          include: ["src/lib/server/**/*.test.ts"],
+          include: ["src/lib/server/**/*.test.{ts,tsx}"],
           environment: "node",
         },
       },
@@ -30,7 +30,10 @@ export default defineConfig({
         extends: true,
         test: {
           name: "components",
-          include: ["src/components/**/*.test.tsx", "src/app/**/*.test.tsx"],
+          include: [
+                      "src/components/**/*.test.{ts,tsx}",
+                      "src/app/**/*.test.{ts,tsx}",
+                    ],
           environment: "jsdom",
           setupFiles: ["src/lib/shared/domain/vitest-setup.ts"],
         },

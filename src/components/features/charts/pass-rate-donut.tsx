@@ -2,7 +2,7 @@
 
 import React from "react";
 import { PieChart, Pie, ResponsiveContainer } from "recharts";
-import { ChartErrorBoundary } from "@/app/_components/charts/chart-error-boundary";
+import { ChartErrorBoundary } from "@/components/features/charts/chart-error-boundary";
 
 interface PassRateDonutProps {
   passRate: number;
