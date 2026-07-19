@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import { useModalFocus } from "@/lib/client/use-modal-focus";
 
 type Artifacts = {
   desktopScreenshot?: string;
@@ -17,20 +18,17 @@ type TabId = "desktop" | "mobile";
 export function ArtifactViewer({ artifacts }: ArtifactViewerProps) {
   const [activeTab, setActiveTab] = useState<TabId>("desktop");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const closeModal = useCallback(() => setIsModalOpen(false), []);
+
+  useModalFocus(modalRef, isModalOpen, closeModal);
 
   const screenshotUrl =
     activeTab === "desktop"
       ? artifacts.desktopScreenshot
       : artifacts.mobileScreenshot;
 
-  useEffect(() => {
-    if (!isModalOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setIsModalOpen(false);
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isModalOpen]);
+
 
   if (!screenshotUrl) {
     return <p className="text-sm text-muted">No screenshot available.</p>;
@@ -72,12 +70,17 @@ export function ArtifactViewer({ artifacts }: ArtifactViewerProps) {
 
       {isModalOpen ? (
         <div
-          onClick={() => setIsModalOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Artifact preview"
+          ref={modalRef}
+          tabIndex={-1}
+          onClick={closeModal}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
         >
           <button
             type="button"
-            onClick={() => setIsModalOpen(false)}
+            onClick={closeModal}
             className="absolute right-4 top-4 rounded-md border border-border px-3 py-1 text-sm text-foreground cursor-pointer hover:text-muted transition"
             aria-label="Close artifact preview"
           >

@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import { X } from "lucide-react";
 import { COPY_FEEDBACK_TIMEOUT_MS } from "@/lib/shared/domain/constants";
+import { useModalFocus } from "@/lib/client/use-modal-focus";
 import {
   EVIDENCE_STATUSES,
   type EvidenceStatus,
@@ -31,6 +32,9 @@ export function EvidenceDetailModal({
   onStatusChange,
 }: EvidenceDetailModalProps) {
   const [hasCopiedContent, setHasCopiedContent] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useModalFocus(modalRef, true, onClose);
 
   const handleCopyContent = async () => {
     await navigator.clipboard.writeText(evidence.content);
@@ -41,29 +45,15 @@ export function EvidenceDetailModal({
     }, COPY_FEEDBACK_TIMEOUT_MS);
   };
 
-  useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [onClose]);
 
   return (
     <div
       role="dialog"
       aria-modal="true"
       aria-label="Evidence details"
+      ref={modalRef}
+      tabIndex={-1}
       onClick={onClose}
       className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 p-4 backdrop-blur-sm md:p-8"
     >
@@ -73,7 +63,6 @@ export function EvidenceDetailModal({
       >
         <button
           type="button"
-          autoFocus
           aria-label="Close evidence details"
           onClick={onClose}
           className="absolute right-4 top-4 rounded-sm p-1 text-muted transition hover:text-foreground focus:outline-none focus:ring-2 focus:ring-accent"

@@ -1,7 +1,11 @@
 "use client";
 
-import { Suspense, useState, useCallback, useEffect, useRef } from "react";
+import { Suspense, useState, useCallback, useMemo, useRef } from "react";
 import { useRunDashboard } from "@/lib/client/use-run-dashboard";
+import {
+  type KeyboardShortcut,
+  useKeyboardShortcuts,
+} from "@/lib/client/use-keyboard-shortcuts";
 
 import { AppHeader } from "@/components/shared/app-header";
 import { DashboardHero } from "@/app/_components/dashboard-hero";
@@ -22,41 +26,23 @@ export default function Home() {
   const { latestRun, runError, isRunActive, handleSubmit, handleReset } =
     useRunDashboard(handleRunComplete);
 
-  useEffect(() => {
-    const handleShortcut = (event: KeyboardEvent) => {
-      if (
-        event.defaultPrevented ||
-        event.ctrlKey ||
-        event.metaKey ||
-        event.shiftKey ||
-        !event.altKey
-      ) {
-        return;
-      }
+  const keyboardShortcuts = useMemo<KeyboardShortcut[]>(
+    () => [
+      {
+        key: "r",
+        altKey: true,
+        onTrigger: () => runUrlInputRef.current?.focus(),
+      },
+      {
+        key: "s",
+        altKey: true,
+        onTrigger: () => runSearchInputRef.current?.focus(),
+      },
+    ],
+    [],
+  );
 
-      const target = event.target;
-      if (
-        target instanceof HTMLElement &&
-        (target.isContentEditable ||
-          ["INPUT", "SELECT", "TEXTAREA"].includes(target.tagName))
-      ) {
-        return;
-      }
-
-      if (event.key.toLowerCase() === "r") {
-        event.preventDefault();
-        runUrlInputRef.current?.focus();
-      }
-
-      if (event.key.toLowerCase() === "s") {
-        event.preventDefault();
-        runSearchInputRef.current?.focus();
-      }
-    };
-
-    window.addEventListener("keydown", handleShortcut);
-    return () => window.removeEventListener("keydown", handleShortcut);
-  }, []);
+  useKeyboardShortcuts(keyboardShortcuts);
 
   return (
     <main className="min-h-screen bg-background text-foreground">

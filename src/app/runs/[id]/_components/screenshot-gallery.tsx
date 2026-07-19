@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import { useModalFocus } from "@/lib/client/use-modal-focus";
 import { X } from "lucide-react";
 import type { LatestRun } from "@/lib/shared/domain/types";
 import Image from "next/image";
@@ -16,26 +17,10 @@ export function ScreenshotGallery({ artifacts }: ScreenshotGalleryProps) {
     width: number;
     height: number;
   } | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const closeModal = useCallback(() => setZoomedScreenshot(null), []);
 
-  useEffect(() => {
-    if (!zoomedScreenshot) return;
-
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setZoomedScreenshot(null);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [zoomedScreenshot]);
+  useModalFocus(modalRef, Boolean(zoomedScreenshot), closeModal);
 
   if (!artifacts) return null;
 
@@ -103,14 +88,15 @@ export function ScreenshotGallery({ artifacts }: ScreenshotGalleryProps) {
           role="dialog"
           aria-modal="true"
           aria-label="Screenshot preview"
+          ref={modalRef}
+          tabIndex={-1}
           className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 p-4 backdrop-blur-sm md:p-8"
-          onClick={() => setZoomedScreenshot(null)}
+          onClick={closeModal}
         >
           <button
             type="button"
-            autoFocus
             className="absolute right-6 top-6 text-muted transition-colors hover:text-foreground focus:outline-none focus:ring-2 focus:ring-accent rounded-sm"
-            onClick={() => setZoomedScreenshot(null)}
+            onClick={closeModal}
           >
             <X className="w-8 h-8" />
             <span className="sr-only">Close</span>
