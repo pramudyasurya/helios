@@ -34,6 +34,7 @@ model Run {
   failedRequests Json?
   loadMetrics    Json?
   evidence       Evidence[]
+  pageResults    PageResult[]
 
   updatedAt DateTime @default(now()) @updatedAt
 }
@@ -61,4 +62,26 @@ model Evidence {
   status      EvidenceStatus @default(open)
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
+}
+
+model PageResult {
+  id             String  @id @default(uuid())
+  runId          String
+  run            Run     @relation(fields: [runId], references: [id], onDelete: Cascade)
+  url            String
+  depth          Int
+  status         String
+  statusCode     Int?
+  finalUrl       String?
+  title          String?
+  description    String?
+  durationMs     Int?
+  artifacts      Json?
+  brokenImages   Json?
+  consoleErrors  Json?
+  failedRequests Json?
+  loadMetrics    Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

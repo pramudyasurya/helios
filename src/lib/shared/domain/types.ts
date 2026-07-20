@@ -22,6 +22,31 @@ export type LoadMetrics = {
   loadEventMs: number;
 };
 
+export type PageResult = {
+  id: string;
+  url: string;
+  depth: number;
+  status: string;
+  statusCode?: number;
+
+  finalUrl?: string;
+  title?: string;
+  description?: string;
+  durationMs?: number;
+
+  artifacts?: {
+    desktopScreenshot: string;
+    mobileScreenshot: string;
+  };
+  brokenImages?: string[];
+  consoleErrors?: string[];
+  failedRequests?: string[];
+  loadMetrics?: LoadMetrics;
+
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type LatestRun = {
   id: string;
   startingUrl: string;
@@ -45,6 +70,7 @@ export type LatestRun = {
   consoleErrors?: string[];
   failedRequests?: string[];
   loadMetrics?: LoadMetrics;
+  pageResults?: PageResult[];
   evidence?: RunEvidence[];
   report?: AIReport;
 };
