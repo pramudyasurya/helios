@@ -19,23 +19,39 @@ export function validateAIReport(data: unknown): AIReport | null {
   return result.success ? result.data : null;
 }
 
-export const CreateRunSchema = z.object({
-  url: z.url({ error: "Format URL salah" }).refine(
-    (val) => {
-      try {
-        const parsed = new URL(val);
+const HttpUrlSchema = z.url({ error: "Format URL salah" }).refine(
+  (val) => {
+    try {
+      const parsed = new URL(val);
 
-        if (parsed.protocol !== "http:" && parsed.protocol !== "https:")
-          return false;
-
-        return !isIpPrivate(parsed.hostname);
-      } catch {
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:")
         return false;
-      }
-    },
-    { message: "Invalid URL or local address not allowed (SSRF protection)" },
-  ),
-});
+
+      return !isIpPrivate(parsed.hostname);
+    } catch {
+      return false;
+    }
+  },
+  { message: "Invalid URL or local address not allowed (SSRF protection)" },
+);
+
+export const CreateRunSchema = z
+  .object({
+    url: HttpUrlSchema,
+    mode: z.enum(["single", "manual", "crawl"]).default("single"),
+    routes: z.array(HttpUrlSchema).max(4).default([]),
+    maxPages: z.coerce.number().int().min(1).max(5).default(5),
+    maxDepth: z.coerce.number().int().min(0).max(2).default(2),
+  })
+  .superRefine(({ mode, routes }, context) => {
+    if (mode === "manual" && routes.length === 0) {
+      context.addIssue({
+        code: "custom",
+        path: ["routes"],
+        message: "At least one route is required in manual mode.",
+      });
+    }
+  });
 
 const VALID_QUERY_STATUSES = [
   "Idle",

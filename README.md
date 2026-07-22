@@ -9,10 +9,10 @@ Helios is a QA observability dashboard for browser-based website checks. Its goa
 ## Core Loop
 
 1. The user submits a starting URL.
-2. Helios creates a QA run.
-3. The browser runner opens the target page.
+2. Helios persists a queued QA run and publishes a background job.
+3. The QA worker opens the target page in a browser.
 4. The system collects screenshots, console logs, network failures, and trail steps.
-5. The dashboard displays the summary, findings, artifacts, and inspectable evidence.
+5. The dashboard polls the run status and displays the summary, findings, artifacts, and inspectable evidence.
 
 Helios is not AI-first at this stage. The first core is a stable dashboard and automation pipeline. Once the evidence layer is strong, AI can be added to generate reports and suggested next actions.
 
@@ -46,6 +46,7 @@ Helios is not AI-first at this stage. The first core is a stable dashboard and a
 - Playwright
 - Prisma
 - PostgreSQL
+- pg-boss for durable background QA jobs
 - Vitest
 
 ## Project Structure
@@ -88,6 +89,21 @@ More detail:
    ```bash
    npm run dev
    ```
+5. In a separate terminal, start the QA worker:
+   ```bash
+   npm run worker:qa
+   ```
+
+### Background QA Worker
+
+Helios uses [pg-boss](https://github.com/timgit/pg-boss), backed by the same
+PostgreSQL database as the application, to run browser QA outside the API
+request lifecycle. This lets `POST /api/runs` return quickly while the worker
+processes queued Playwright jobs.
+
+The worker requires a reachable `DATABASE_URL` and must run alongside the
+Next.js development server. On first startup, pg-boss creates its own queue
+tables in PostgreSQL.
 
 ### Commands
 
@@ -97,4 +113,5 @@ More detail:
 | `npm test` | Run Vitest unit tests |
 | `npm run build` | Build Next.js production bundle |
 | `npm run lint` | Run ESLint linter |
+| `npm run worker:qa` | Start the pg-boss QA worker |
 | `npx prisma studio` | Open Prisma Studio GUI |

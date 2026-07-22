@@ -75,6 +75,11 @@ export type LatestRun = {
   report?: AIReport;
 };
 
+export type CreateQueuedRunResponse = {
+  id: string;
+  status: "queued";
+};
+
 export type CreateRunResponse = {
   id: string;
   startingUrl: string;

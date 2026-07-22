@@ -95,7 +95,7 @@ export function ScreenshotGallery({ artifacts }: ScreenshotGalleryProps) {
         >
           <button
             type="button"
-            className="absolute right-6 top-6 text-muted transition-colors hover:text-foreground focus:outline-none focus:ring-2 focus:ring-accent rounded-sm"
+            className="absolute right-6 top-6 z-10 rounded-sm text-muted transition-colors hover:text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
             onClick={closeModal}
           >
             <X className="w-8 h-8" />

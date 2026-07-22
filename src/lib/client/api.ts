@@ -1,5 +1,5 @@
 import type {
-  CreateRunResponse,
+  CreateQueuedRunResponse,
   EvidenceStatus,
   LatestRun,
   PaginatedResponse,
@@ -13,7 +13,7 @@ export type ApiErrorResponse = {
   message: string;
 };
 
-export async function createRun(url: string): Promise<CreateRunResponse> {
+export async function createRun(url: string): Promise<CreateQueuedRunResponse> {
   const response = await fetch("/api/runs", {
     method: "POST",
     headers: {
@@ -23,14 +23,14 @@ export async function createRun(url: string): Promise<CreateRunResponse> {
   });
 
   const result = (await response.json()) as
-    | CreateRunResponse
+    | CreateQueuedRunResponse
     | ApiErrorResponse;
 
   if (!response.ok) {
     throw result;
   }
 
-  return result as CreateRunResponse;
+  return result as CreateQueuedRunResponse;
 }
 
 export async function getRuns(params?: {

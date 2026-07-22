@@ -5,21 +5,24 @@ import type { Page } from "playwright";
 
 type CaptureRunScreenshotsProps = {
   runId: string;
+  pageId?: string;
   desktopPage: Page;
   mobilePage: Page;
 };
 
 export async function captureRunScreenshots({
   runId,
+  pageId,
   desktopPage,
   mobilePage,
 }: CaptureRunScreenshotsProps) {
+  const artifactPath = pageId ? [runId, pageId] : [runId];
   const artifactDir = path.join(
     process.cwd(),
     "public",
     "artifacts",
     "runs",
-    runId,
+    ...artifactPath,
   );
 
   await mkdir(artifactDir, { recursive: true });
@@ -37,8 +40,10 @@ export async function captureRunScreenshots({
     fullPage: true,
   });
 
+  const publicArtifactPath = artifactPath.join("/");
+
   return {
-    desktopScreenshot: `/artifacts/runs/${runId}/desktop.png`,
-    mobileScreenshot: `/artifacts/runs/${runId}/mobile.png`,
+    desktopScreenshot: `/artifacts/runs/${publicArtifactPath}/desktop.png`,
+    mobileScreenshot: `/artifacts/runs/${publicArtifactPath}/mobile.png`,
   };
 }

@@ -4,6 +4,7 @@ import type {
   Evidence,
   EvidenceStatus,
   EvidenceType,
+  PageResult as PrismaPageResult,
 } from "@/generated/prisma/client";
 import type {
   CheckResult,
@@ -20,7 +21,7 @@ function jsonStringArray(value: unknown): string[] {
 }
 
 export function runRecordToLatestRun(
-  run: Run & { evidence?: Evidence[] },
+  run: Run & { evidence?: Evidence[]; pageResults?: PrismaPageResult[] },
 ): LatestRun {
   return {
     id: run.id,
@@ -40,6 +41,24 @@ export function runRecordToLatestRun(
     consoleErrors: run.consoleErrors as LatestRun["consoleErrors"],
     failedRequests: run.failedRequests as LatestRun["failedRequests"],
     loadMetrics: run.loadMetrics as LatestRun["loadMetrics"],
+    pageResults: run.pageResults?.map((pageResult) => ({
+      id: pageResult.id,
+      url: pageResult.url,
+      depth: pageResult.depth,
+      status: pageResult.status,
+      statusCode: pageResult.statusCode ?? undefined,
+      finalUrl: pageResult.finalUrl ?? undefined,
+      title: pageResult.title ?? undefined,
+      description: pageResult.description ?? undefined,
+      durationMs: pageResult.durationMs ?? undefined,
+      artifacts: pageResult.artifacts as LatestRun["artifacts"],
+      brokenImages: pageResult.brokenImages as string[] | undefined,
+      consoleErrors: pageResult.consoleErrors as string[] | undefined,
+      failedRequests: pageResult.failedRequests as string[] | undefined,
+      loadMetrics: pageResult.loadMetrics as LatestRun["loadMetrics"],
+      createdAt: pageResult.createdAt.toISOString(),
+      updatedAt: pageResult.updatedAt.toISOString(),
+    })),
     report: run.report
       ? (validateAIReport(run.report) ?? undefined)
       : undefined,

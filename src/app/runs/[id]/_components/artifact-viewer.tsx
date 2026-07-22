@@ -81,7 +81,7 @@ export function ArtifactViewer({ artifacts }: ArtifactViewerProps) {
           <button
             type="button"
             onClick={closeModal}
-            className="absolute right-4 top-4 rounded-md border border-border px-3 py-1 text-sm text-foreground cursor-pointer hover:text-muted transition"
+            className="absolute right-4 top-4 z-10 cursor-pointer rounded-md border border-border px-3 py-1 text-sm text-foreground transition hover:text-muted"
             aria-label="Close artifact preview"
           >
             Close

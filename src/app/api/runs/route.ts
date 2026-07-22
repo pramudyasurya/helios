@@ -1,4 +1,3 @@
-import { runSinglePageQA } from "@/lib/server/infrastructure/runner/runner";
 import {
   CreateRunSchema,
   GetRunsQuerySchema,
@@ -6,14 +5,17 @@ import {
 import { revalidateTag } from "next/cache";
 
 import { prisma } from "@/lib/server/infrastructure/db/prisma";
-import { createChecksFromRunResult } from "@/lib/shared/domain/checks";
+import { enqueueQARun } from "@/lib/server/infrastructure/queue/qa-jobs";
 import { runRecordToLatestRun } from "@/lib/server/infrastructure/runner/run-record";
 import { getErrorMessage } from "@/lib/shared/domain/errors";
-import { transformRawEvidence } from "@/lib/shared/domain/evidence-transformer";
 import { Prisma } from "@/generated/prisma/client";
 
 type CreateRunRequest = {
   url?: string;
+  mode?: "single" | "manual" | "crawl";
+  routes?: string[];
+  maxPages?: number;
+  maxDepth?: number;
 };
 
 export async function POST(request: Request) {
@@ -36,45 +38,63 @@ export async function POST(request: Request) {
   if (!validation.success) {
     return Response.json(
       {
-        error: "Invalid URL",
+        error: "Invalid run configuration",
         message:
-          validation.error.issues[0]?.message || "Please submit a valid URL.",
+          validation.error.issues[0]?.message ||
+          "Please submit a valid run configuration.",
         details: validation.error.issues,
       },
       { status: 400 },
     );
   }
 
-  const submittedUrl = validation.data.url;
-
+  const { url: submittedUrl, mode, routes, maxPages, maxDepth } = validation.data;
   const now = new Date();
   const runId = `run_${now.getTime()}`;
 
-  let result: Awaited<ReturnType<typeof runSinglePageQA>>;
-
   try {
-    result = await runSinglePageQA({
-      submittedUrl,
-      runId,
+    await prisma.run.create({
+      data: {
+        id: runId,
+        startingUrl: submittedUrl,
+        status: "Queued",
+        summary: "Helios queued this browser QA run.",
+        createdAt: now,
+        trail: [
+          {
+            label: "Run queued",
+            detail: `Helios queued a ${mode} browser QA run.`, 
+            timestamp: now.toISOString(),
+          },
+        ],
+        checks: [],
+      },
     });
+
+    await enqueueQARun({
+      runId,
+      submittedUrl,
+      mode,
+      routes,
+      maxPages,
+      maxDepth,
+    });
+    revalidateTag("run-stats", "max");
+
+    return Response.json({ id: runId, status: "queued" }, { status: 202 });
   } catch (error) {
-    const message = getErrorMessage(error, "Unknown Playwright error.");
-    const failedAt = new Date();
+    const message = getErrorMessage(error, "Unable to queue the browser QA run.");
 
     try {
-      await prisma.run.create({
+      await prisma.run.update({
+        where: { id: runId },
         data: {
-          id: runId,
-          startingUrl: submittedUrl,
           status: "Failed",
-          summary: "Helios could not complete the browser QA run.",
-          createdAt: now,
-          finishedAt: failedAt,
-          durationMs: failedAt.getTime() - now.getTime(),
-          trail: [],
+          summary: "Helios could not queue the browser QA run.",
+          finishedAt: new Date(),
           checks: [
             {
-              title: "Browser run failed",
+              title: "Run queueing failed",
               detail: message,
               status: "failed",
               severity: "high",
@@ -83,68 +103,18 @@ export async function POST(request: Request) {
         },
       });
       revalidateTag("run-stats", "max");
-    } catch (dbError) {
-      console.error("Failed to persist failed run:", dbError);
+    } catch (updateError) {
+      console.error("Failed to persist queueing failure:", updateError);
     }
 
     return Response.json(
       {
-        error: "Browser run failed",
+        error: "Unable to queue browser run",
         message,
       },
-      { status: 500 },
+      { status: 503 },
     );
   }
-  const checks = createChecksFromRunResult(result);
-  const structuredEvidence = transformRawEvidence({
-    runId: result.id,
-    capturedAt: result.finishedAt ?? result.createdAt,
-    pageUrl: result.finalUrl ?? result.startingUrl,
-    brokenImages: result.brokenImages,
-    consoleErrors: result.consoleErrors,
-    failedRequests: result.failedRequests,
-  });
-
-  try {
-    await prisma.run.create({
-      data: {
-        id: result.id,
-        startingUrl: result.startingUrl,
-        status: result.status,
-        summary: result.summary,
-        createdAt: new Date(result.createdAt),
-        finishedAt: new Date(result.finishedAt),
-        durationMs: result.durationMs,
-        finalUrl: result.finalUrl,
-        title: result.title,
-        description: result.description,
-        trail: result.trail,
-        checks,
-        artifacts: result.artifacts,
-        brokenImages: result.brokenImages,
-        consoleErrors: result.consoleErrors,
-        failedRequests: result.failedRequests,
-        loadMetrics: result.loadMetrics,
-        evidence:
-          structuredEvidence.length > 0
-            ? {
-                create: structuredEvidence.map((item) => ({
-                  type: item.type,
-                  content: item.content,
-                  pageUrl: item.pageUrl,
-                  resourceUrl: item.resourceUrl,
-                  status: item.status,
-                })),
-              }
-            : undefined,
-      },
-    });
-    revalidateTag("run-stats", "max");
-  } catch (dbError) {
-    console.error("Failed to persist completed run:", dbError);
-  }
-
-  return Response.json(result);
 }
 
 export async function GET(request: Request) {

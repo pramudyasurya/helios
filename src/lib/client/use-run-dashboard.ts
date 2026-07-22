@@ -8,18 +8,12 @@ import {
   createRun,
   getRuns,
   getRunStats,
+  getRunDetail,
   clearRecentRuns,
   deleteRun,
 } from "@/lib/client/api";
-import {
-  RUNNING_STATE_DELAY_MS,
-  createQueuedRunState,
-  markRunRunning,
-} from "@/lib/client/run-state";
-import {
-  createCompletedRunState,
-  createFailedRunState,
-} from "@/lib/client/run-transformer";
+import { createQueuedRunState } from "@/lib/client/run-state";
+import { createFailedRunState } from "@/lib/client/run-transformer";
 
 export function useRunDashboard(onRunComplete?: () => void) {
   const [latestRun, setLatestRun] = useState<LatestRun | null>(null);
@@ -27,6 +21,43 @@ export function useRunDashboard(onRunComplete?: () => void) {
 
   const isRunActive =
     latestRun?.status === "Queued" || latestRun?.status === "Running";
+  const activeRunId = isRunActive ? latestRun?.id : undefined;
+
+  useEffect(() => {
+    if (!activeRunId) return;
+
+    let active = true;
+
+    const pollRun = async () => {
+      try {
+        const run = await getRunDetail(activeRunId);
+        if (!active) return;
+
+        setLatestRun(run);
+
+        if (run.status === "Completed" || run.status === "Failed") {
+          onRunComplete?.();
+        }
+      } catch (error) {
+        if (!active) return;
+
+        const message = getRunErrorMessage(error);
+        setRunError(message);
+        setLatestRun((currentRun) =>
+          currentRun ? createFailedRunState(currentRun, message) : currentRun,
+        );
+        onRunComplete?.();
+      }
+    };
+
+    void pollRun();
+    const intervalId = window.setInterval(() => void pollRun(), 2_000);
+
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
+  }, [activeRunId, onRunComplete]);
 
   const handleSubmit: React.ComponentProps<"form">["onSubmit"] = async (e) => {
     e.preventDefault();
@@ -40,32 +71,19 @@ export function useRunDashboard(onRunComplete?: () => void) {
       return;
     }
 
-    const { run } = createQueuedRunState(url);
-    const runId = run.id;
-
-    setLatestRun(run);
-
-    setTimeout(() => {
-      setLatestRun((prev) => {
-        if (!prev || prev.id !== runId || prev.status !== "Queued") return prev;
-        return markRunRunning(prev);
-      });
-    }, RUNNING_STATE_DELAY_MS);
-
     try {
       const result = await createRun(url);
-      const completedRun = createCompletedRunState(run, result);
+      const { run } = createQueuedRunState(url);
 
-      setLatestRun(completedRun);
-
+      setLatestRun({ ...run, id: result.id });
       onRunComplete?.();
     } catch (error) {
       const message = getRunErrorMessage(error);
       console.warn("Failed to call run API", message);
       setRunError(message);
 
-      const failedRun = createFailedRunState(run, message);
-      setLatestRun(failedRun);
+      const { run } = createQueuedRunState(url);
+      setLatestRun(createFailedRunState(run, message));
 
       onRunComplete?.();
     }
