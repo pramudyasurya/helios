@@ -16,6 +16,7 @@ import { BrowserTrail } from "@/app/runs/[id]/_components/browser-trail";
 import { RunFindingsSummary } from "@/app/runs/[id]/_components/run-findings-summary";
 import { getFindingsFromChecks } from "@/lib/shared/domain/findings";
 import { AIReportPanel } from "@/components/features/ai-report-panel";
+import { PageResultsTab } from "@/app/runs/[id]/_components/page-results-tab";
 
 type RunDetailTabsProps = {
   run: LatestRun;
@@ -78,6 +79,8 @@ export function RunDetailTabs({ run }: RunDetailTabsProps) {
     }
   };
 
+  const pageResultsCount = run.pageResults?.length ?? 0;
+
   const tabs: TabItem[] = [
     {
       id: "overview",
@@ -96,6 +99,11 @@ export function RunDetailTabs({ run }: RunDetailTabsProps) {
       id: "ai-report",
       label: "AI Report",
       content: <AIReportPanel runId={run.id} initialReport={run.report} />,
+    },
+    {
+      id: "pages",
+      label: formatTabLabel("Page Crawl", pageResultsCount),
+      content: <PageResultsTab pageResults={run.pageResults} />,
     },
     {
       id: "findings",

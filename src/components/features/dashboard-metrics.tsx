@@ -1,5 +1,4 @@
 import dynamic from "next/dynamic";
-import { formatDurationMs } from "@/lib/shared/domain/format";
 import { RunStats } from "@/lib/shared/domain/types";
 import {
   Activity,
@@ -27,6 +26,7 @@ type MetricCardProps = {
   title: string;
   value: React.ReactNode;
   icon: LucideIcon;
+  unit?: string;
   subValue?: React.ReactNode;
   chart?: React.ReactNode;
 };
@@ -67,23 +67,35 @@ function MetricCard({
   title,
   value,
   icon: Icon,
+  unit,
   subValue,
   chart,
 }: MetricCardProps) {
   return (
-    <div className="rounded-lg border border-border bg-panel p-5">
+    <div className="rounded-lg border border-border bg-panel p-5 transition hover:border-accent/40">
       <div className="flex items-center gap-2 text-sm font-medium text-muted">
-        <Icon className="h-4 w-4" />
-        {title}
+        <Icon className="h-4 w-4 shrink-0" />
+        <span className="truncate">{title}</span>
       </div>
-      <div className="mt-3 flex items-center justify-between gap-4">
-        <div className="flex items-baseline gap-2">
-          <span className="text-3xl font-semibold tracking-tight text-foreground">
-            {value}
-          </span>
-          {subValue && <span className="text-sm text-muted">{subValue}</span>}
+      <div className="mt-3 flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-baseline whitespace-nowrap">
+            <span className="text-3xl font-semibold tracking-tight text-foreground">
+              {value}
+            </span>
+            {unit && (
+              <span className="ml-1 text-sm font-medium text-muted">
+                {unit}
+              </span>
+            )}
+          </div>
+          {subValue && (
+            <p className="mt-1 text-xs font-medium text-muted truncate">
+              {subValue}
+            </p>
+          )}
         </div>
-        {chart}
+        {chart && <div className="shrink-0 min-w-fit self-center">{chart}</div>}
       </div>
     </div>
   );
@@ -136,7 +148,7 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
         icon={CheckCircle}
         subValue={
           completedOrFailed > 0
-            ? `(${safeStats.completedRuns} passed)`
+            ? `${safeStats.completedRuns} passed`
             : undefined
         }
         chart={
@@ -154,12 +166,13 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
         title="Avg Duration"
         value={
           safeStats.avgDurationMs > 0
-            ? formatDurationMs(safeStats.avgDurationMs)
+            ? (safeStats.avgDurationMs / 1000).toFixed(2)
             : "-"
         }
+        unit={safeStats.avgDurationMs > 0 ? "s" : undefined}
         icon={Clock}
         chart={
-          safeStats.totalRuns > 0 && safeStats.recentDurations.length > 0 ? (
+          safeStats.totalRuns > 1 && safeStats.recentDurations.length > 1 ? (
             <DurationSparkLine recentDurations={safeStats.recentDurations} />
           ) : null
         }

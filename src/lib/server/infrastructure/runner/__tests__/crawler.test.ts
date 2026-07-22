@@ -20,6 +20,15 @@ describe("canonicalizeUrl", () => {
     );
   });
 
+  it("normalizes standard ports", () => {
+    expect(canonicalizeUrl("https://example.com:443/docs#section")).toBe(
+      "https://example.com/docs",
+    );
+    expect(canonicalizeUrl("http://example.com:80/about#top")).toBe(
+      "http://example.com/about",
+    );
+  });
+
   it("resolves relative URLs against the supplied base URL", () => {
     expect(canonicalizeUrl("guides/intro", "https://example.com/docs/")).toBe(
       "https://example.com/docs/guides/intro",
@@ -94,9 +103,9 @@ describe("crawl queue", () => {
 
   it("returns an empty queue for an invalid URL or a zero page limit", () => {
     expect(createCrawlQueue("not a URL").pending).toEqual([]);
-    expect(createCrawlQueue("https://example.com", { maxPages: 0 }).pending).toEqual(
-      [],
-    );
+    expect(
+      createCrawlQueue("https://example.com", { maxPages: 0 }).pending,
+    ).toEqual([]);
   });
 
   it("processes pages breadth-first and preserves the visited URLs", () => {

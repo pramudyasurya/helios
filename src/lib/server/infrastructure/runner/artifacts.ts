@@ -1,5 +1,5 @@
 import "server-only";
-import { mkdir } from "node:fs/promises";
+import { mkdir, rm } from "node:fs/promises";
 import path from "node:path";
 import type { Page } from "playwright";
 
@@ -46,4 +46,25 @@ export async function captureRunScreenshots({
     desktopScreenshot: `/artifacts/runs/${publicArtifactPath}/desktop.png`,
     mobileScreenshot: `/artifacts/runs/${publicArtifactPath}/mobile.png`,
   };
+}
+
+export async function clearRunArtifacts(runId: string): Promise<void> {
+  const artifactDir = path.join(
+    process.cwd(),
+    "public",
+    "artifacts",
+    "runs",
+    runId,
+  );
+  await rm(artifactDir, { recursive: true, force: true });
+}
+
+export async function clearAllRunArtifacts(): Promise<void> {
+  const runsArtifactDir = path.join(
+    process.cwd(),
+    "public",
+    "artifacts",
+    "runs",
+  );
+  await rm(runsArtifactDir, { recursive: true, force: true });
 }

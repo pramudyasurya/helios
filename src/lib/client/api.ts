@@ -13,13 +13,25 @@ export type ApiErrorResponse = {
   message: string;
 };
 
-export async function createRun(url: string): Promise<CreateQueuedRunResponse> {
+export type CreateRunOptions = {
+  url: string;
+  mode?: "single" | "manual" | "crawl";
+  routes?: string[];
+  maxPages?: number;
+  maxDepth?: number;
+};
+
+export async function createRun(
+  options: string | CreateRunOptions,
+): Promise<CreateQueuedRunResponse> {
+  const payload = typeof options === "string" ? { url: options } : options;
+
   const response = await fetch("/api/runs", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ url }),
+    body: JSON.stringify(payload),
   });
 
   const result = (await response.json()) as

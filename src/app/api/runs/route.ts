@@ -7,6 +7,7 @@ import { revalidateTag } from "next/cache";
 import { prisma } from "@/lib/server/infrastructure/db/prisma";
 import { enqueueQARun } from "@/lib/server/infrastructure/queue/qa-jobs";
 import { runRecordToLatestRun } from "@/lib/server/infrastructure/runner/run-record";
+import { clearAllRunArtifacts } from "@/lib/server/infrastructure/runner/artifacts";
 import { getErrorMessage } from "@/lib/shared/domain/errors";
 import { Prisma } from "@/generated/prisma/client";
 
@@ -212,6 +213,7 @@ export async function GET(request: Request) {
 export async function DELETE() {
   try {
     await prisma.run.deleteMany();
+    await clearAllRunArtifacts();
     revalidateTag("run-stats", "max");
     return Response.json({ success: true });
   } catch (error) {

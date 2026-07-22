@@ -13,6 +13,7 @@ const getRunById = cache(async (id: string) => {
     where: { id },
     include: {
       evidence: true,
+      pageResults: true,
     },
   });
 });

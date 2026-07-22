@@ -59,21 +59,25 @@ export function useRunDashboard(onRunComplete?: () => void) {
     };
   }, [activeRunId, onRunComplete]);
 
-  const handleSubmit: React.ComponentProps<"form">["onSubmit"] = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (url: string, config?: { mode?: "single" | "manual" | "crawl"; routes?: string[]; maxPages?: number; maxDepth?: number }) => {
     setRunError(undefined);
 
-    const formData = new FormData(e.currentTarget);
-    const url = formData.get("url")?.toString().trim() ?? "";
+    const trimmedUrl = url.trim();
 
-    if (!isValidHttpUrl(url)) {
+    if (!isValidHttpUrl(trimmedUrl)) {
       setRunError("Please enter a valid HTTP or HTTPS URL.");
       return;
     }
 
     try {
-      const result = await createRun(url);
-      const { run } = createQueuedRunState(url);
+      const result = await createRun({
+        url: trimmedUrl,
+        mode: config?.mode,
+        routes: config?.routes,
+        maxPages: config?.maxPages,
+        maxDepth: config?.maxDepth,
+      });
+      const { run } = createQueuedRunState(trimmedUrl);
 
       setLatestRun({ ...run, id: result.id });
       onRunComplete?.();
@@ -82,7 +86,7 @@ export function useRunDashboard(onRunComplete?: () => void) {
       console.warn("Failed to call run API", message);
       setRunError(message);
 
-      const { run } = createQueuedRunState(url);
+      const { run } = createQueuedRunState(trimmedUrl);
       setLatestRun(createFailedRunState(run, message));
 
       onRunComplete?.();

@@ -2,6 +2,7 @@ import { prisma } from "@/lib/server/infrastructure/db/prisma";
 import { revalidateTag } from "next/cache";
 
 import { runRecordToLatestRun } from "@/lib/server/infrastructure/runner/run-record";
+import { clearRunArtifacts } from "@/lib/server/infrastructure/runner/artifacts";
 import { getErrorMessage } from "@/lib/shared/domain/errors";
 
 export async function GET(
@@ -45,6 +46,7 @@ export async function DELETE(
     await prisma.run.deleteMany({
       where: { id },
     });
+    await clearRunArtifacts(id);
     revalidateTag("run-stats", "max");
 
     return new Response(null, { status: 204 });
