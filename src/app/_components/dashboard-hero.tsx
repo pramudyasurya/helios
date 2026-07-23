@@ -1,31 +1,26 @@
 export function DashboardHero() {
-  const heroPills = ["Single-page QA", "Replayable Trail", "Evidence-first"];
+  const heroPills = ["Single-Page QA", "Multi-Route Crawl", "Replayable Evidence"];
   return (
-    <header className="max-w-3xl">
-      <p className="text-sm font-medium text-accent">
-        QA observability prototype
-      </p>
-      <h1 className="mt-3 text-4xl font-semibold tracking-tight">
-        Run evidence-backed QA checks
-      </h1>
-      <p className="mt-3 max-w-2xl text-muted">
-        Submit a URL to inspect browser trails, screenshots, logs, and QA
-        findings.
-      </p>
-      <p className="mt-3 text-xs text-muted">
-        Keyboard shortcuts: Alt + R focuses the run URL; Alt + S focuses run
-        history search.
-      </p>
-      <div className="mt-5 flex flex-wrap gap-2">
+    <header className="mb-6">
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="inline-flex items-center rounded-full border border-accent/30 bg-accent/10 px-2.5 py-0.5 text-xs font-semibold text-accent">
+          QA Observability Platform
+        </span>
         {heroPills.map((pill) => (
           <span
             key={pill}
-            className="rounded-full border border-border bg-card px-3 py-1 text-xs text-muted"
+            className="rounded-full border border-border bg-card/80 px-2.5 py-0.5 text-xs text-muted backdrop-blur-sm"
           >
             {pill}
           </span>
         ))}
       </div>
+      <h1 className="mt-2.5 text-2xl font-bold tracking-tight sm:text-3xl text-foreground">
+        Run Evidence-Backed QA Checks
+      </h1>
+      <p className="mt-1 text-sm text-muted max-w-xl">
+        Inspect live Playwright browser runs, network failures, console stack traces, and screenshots in real time.
+      </p>
     </header>
   );
 }

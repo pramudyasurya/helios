@@ -84,6 +84,7 @@ export async function POST(request: Request) {
 
     return Response.json({ id: runId, status: "queued" }, { status: 202 });
   } catch (error) {
+    console.error("[POST /api/runs Error]:", error);
     const message = getErrorMessage(error, "Unable to queue the browser QA run.");
 
     try {

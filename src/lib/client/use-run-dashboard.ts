@@ -82,8 +82,8 @@ export function useRunDashboard(onRunComplete?: () => void) {
       setLatestRun({ ...run, id: result.id });
       onRunComplete?.();
     } catch (error) {
+      console.error("[Run API Error Detail]:", error);
       const message = getRunErrorMessage(error);
-      console.warn("Failed to call run API", message);
       setRunError(message);
 
       const { run } = createQueuedRunState(trimmedUrl);

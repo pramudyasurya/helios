@@ -105,14 +105,14 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
   if (isLoading) {
     return (
       <section
-        className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+        className="grid grid-cols-1 gap-3.5 sm:grid-cols-2"
         aria-busy="true"
         aria-label="Loading dashboard metrics"
       >
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="h-24 animate-pulse rounded-lg border border-border bg-panel p-5"
+            className="h-24 animate-pulse rounded-xl border border-border bg-panel p-4"
           />
         ))}
       </section>
@@ -133,7 +133,7 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
 
   return (
     <section
-      className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+      className="grid grid-cols-1 gap-3.5 sm:grid-cols-2"
       aria-label="Dashboard metrics"
     >
       <MetricCard

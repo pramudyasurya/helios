@@ -1,18 +1,21 @@
 import { useRunHistory } from "@/lib/client/use-run-dashboard";
-import type { RefObject } from "react";
+import type { RefObject, ReactNode } from "react";
 import { DashboardMetrics } from "@/components/features/dashboard-metrics";
 import { RunSearchBar } from "@/app/_components/run-search-bar";
 import { RecentRunsSkeleton } from "@/app/_components/recent-runs-skeleton";
 import { RecentRunsList } from "@/components/features/recent-runs-list";
+import type { RunStats } from "@/lib/shared/domain/types";
 
 type RunHistorySectionProps = {
   refreshTrigger: number;
   searchInputRef?: RefObject<HTMLInputElement | null>;
+  renderMetrics?: (stats: RunStats | null, isStatsLoading: boolean) => ReactNode;
 };
 
 export function RunHistorySection({
   refreshTrigger,
   searchInputRef,
+  renderMetrics,
 }: RunHistorySectionProps) {
   const {
     recentRuns,
@@ -31,17 +34,29 @@ export function RunHistorySection({
     handleDeleteRun,
   } = useRunHistory(refreshTrigger);
 
+  const metricsContent = renderMetrics ? (
+    renderMetrics(stats, isStatsLoading)
+  ) : (
+    <div className="mt-8">
+      <DashboardMetrics stats={stats} isLoading={isStatsLoading} />
+    </div>
+  );
+
   return (
     <>
-      <div className="mt-8">
-        <DashboardMetrics stats={stats} isLoading={isStatsLoading} />
-      </div>
+      {renderMetrics ? metricsContent : null}
 
-      <div className="mt-10 border-t border-border pt-8">
+      {!renderMetrics && (
+        <div className="mt-8">
+          <DashboardMetrics stats={stats} isLoading={isStatsLoading} />
+        </div>
+      )}
+
+      <div className="mt-10 border-t border-border/80 pt-8">
         <div className="mb-4">
-          <h2 className="text-lg font-medium text-foreground">Run History</h2>
+          <h2 className="text-lg font-semibold text-foreground">Run History</h2>
           <p className="text-xs text-muted">
-            Search, filter, and paginate through past QA reports.
+            Search, filter, and inspect past QA runs and evidence reports.
           </p>
         </div>
 
