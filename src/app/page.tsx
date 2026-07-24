@@ -17,6 +17,9 @@ import { DashboardMetrics } from "@/components/features/dashboard-metrics";
 
 export default function Home() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [dbConnectedState, setDbConnectedState] = useState<boolean | null>(
+    null,
+  );
   const runUrlInputRef = useRef<HTMLInputElement>(null);
   const runSearchInputRef = useRef<HTMLInputElement>(null);
 
@@ -50,40 +53,49 @@ export default function Home() {
       <AppHeader />
 
       <div className="py-8 px-4 sm:px-6 mx-auto max-w-7xl">
-        <DashboardHero />
+        <DashboardHero
+          isRunActive={isRunActive}
+          isDbConnected={dbConnectedState}
+        />
 
         <Suspense fallback={<RecentRunsSkeleton />}>
           <RunHistorySection
             refreshTrigger={refreshTrigger}
             searchInputRef={runSearchInputRef}
-            renderMetrics={(stats, isLoading) => (
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                <div className="lg:col-span-7 space-y-6">
-                  <RunForm
-                    onSubmit={handleSubmit}
-                    isDisabled={isRunActive}
-                    error={runError}
-                    urlInputRef={runUrlInputRef}
-                  />
+            renderMetrics={(stats, isLoading) => {
+              return (
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                  <div className="lg:col-span-7 space-y-6">
+                    <RunForm
+                      onSubmit={handleSubmit}
+                      isDisabled={isRunActive}
+                      error={runError}
+                      urlInputRef={runUrlInputRef}
+                    />
 
-                  <LatestRunPanel latestRun={latestRun} onReset={handleReset} />
-                </div>
+                    <LatestRunPanel
+                      latestRun={latestRun}
+                      onReset={handleReset}
+                    />
+                  </div>
 
-                <div className="lg:col-span-5">
-                  <div className="rounded-xl border border-border/80 bg-panel/90 p-5 shadow-sm">
-                    <div className="mb-3.5 flex items-center justify-between">
-                      <h2 className="text-sm font-semibold text-foreground">
-                        Observability Metrics
-                      </h2>
-                      <span className="text-[11px] font-medium text-muted">
-                        Real-time Summary
-                      </span>
+                  <div className="lg:col-span-5">
+                    <div className="rounded-xl border border-border/80 bg-panel/90 p-5 shadow-sm">
+                      <div className="mb-3.5 flex items-center justify-between">
+                        <h2 className="text-sm font-semibold text-foreground">
+                          Observability Metrics
+                        </h2>
+                        <span className="text-[11px] font-medium text-muted">
+                          Real-time Summary
+                        </span>
+                      </div>
+                      <DashboardMetrics stats={stats} isLoading={isLoading} />
                     </div>
-                    <DashboardMetrics stats={stats} isLoading={isLoading} />
                   </div>
                 </div>
-              </div>
-            )}
+              );
+            }}
+            onDatabaseConnectionChange={setDbConnectedState}
           />
         </Suspense>
       </div>

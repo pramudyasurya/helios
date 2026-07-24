@@ -7,7 +7,6 @@ import type {
   EvidenceType,
   LatestRun,
 } from "@/lib/shared/domain/types";
-import { type TabItem, Tabs } from "@/components/ui/tabs";
 import { RunOverview } from "@/components/features/run-overview";
 import { RunEvidenceList } from "@/app/runs/[id]/_components/run-evidence-list";
 import { type EvidenceFilter } from "@/lib/shared/domain/evidence-sections";
@@ -17,6 +16,10 @@ import { RunFindingsSummary } from "@/app/runs/[id]/_components/run-findings-sum
 import { getFindingsFromChecks } from "@/lib/shared/domain/findings";
 import { AIReportPanel } from "@/components/features/ai-report-panel";
 import { PageResultsTab } from "@/app/runs/[id]/_components/page-results-tab";
+import {
+  RunDetailSidebar,
+  type RunDetailSectionId,
+} from "@/app/runs/[id]/_components/run-detail-sidebar";
 
 type RunDetailTabsProps = {
   run: LatestRun;
@@ -28,12 +31,8 @@ const evidenceFilterByType: Record<EvidenceType, EvidenceFilter> = {
   network: "network",
 };
 
-function formatTabLabel(label: string, count: number) {
-  return count > 0 ? `${label} (${count})` : label;
-}
-
 export function RunDetailTabs({ run }: RunDetailTabsProps) {
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeSection, setActiveSection] = useState<RunDetailSectionId>("overview");
   const [activeEvidenceFilter, setActiveEvidenceFilter] =
     useState<EvidenceFilter>("all");
   const [scrollTarget, setScrollTarget] = useState<EvidenceFilter | null>(null);
@@ -42,12 +41,13 @@ export function RunDetailTabs({ run }: RunDetailTabsProps) {
   const evidenceCount = evidence.length;
   const checksCount = run.checks.length;
   const trailCount = run.trail.length;
+  const pageResultsCount = run.pageResults?.length ?? 0;
 
   const handleViewEvidence = (evidenceType: EvidenceType) => {
     const filter = evidenceFilterByType[evidenceType];
     setActiveEvidenceFilter(filter);
     setScrollTarget(filter);
-    setActiveTab("evidence");
+    setActiveSection("evidence");
   };
 
   const handleScrollComplete = () => {
@@ -79,80 +79,78 @@ export function RunDetailTabs({ run }: RunDetailTabsProps) {
     }
   };
 
-  const pageResultsCount = run.pageResults?.length ?? 0;
-
-  const tabs: TabItem[] = [
-    {
-      id: "overview",
-      label: "Overview",
-      content: (
-        <div className="space-y-4">
-          <RunOverview run={run} />
+  const renderActiveSection = () => {
+    switch (activeSection) {
+      case "overview":
+        return (
+          <div className="space-y-4">
+            <RunOverview run={run} />
+            <RunFindingsSummary
+              checks={run.checks}
+              onViewEvidence={handleViewEvidence}
+            />
+          </div>
+        );
+      case "ai-report":
+        return <AIReportPanel runId={run.id} initialReport={run.report} />;
+      case "pages":
+        return <PageResultsTab pageResults={run.pageResults} />;
+      case "findings":
+        return (
           <RunFindingsSummary
             checks={run.checks}
             onViewEvidence={handleViewEvidence}
+            showEmptyState
           />
-        </div>
-      ),
-    },
-    {
-      id: "ai-report",
-      label: "AI Report",
-      content: <AIReportPanel runId={run.id} initialReport={run.report} />,
-    },
-    {
-      id: "pages",
-      label: formatTabLabel("Page Crawl", pageResultsCount),
-      content: <PageResultsTab pageResults={run.pageResults} />,
-    },
-    {
-      id: "findings",
-      label: formatTabLabel("Findings", findingCount),
-      content: (
-        <RunFindingsSummary
-          checks={run.checks}
-          onViewEvidence={handleViewEvidence}
-          showEmptyState
-        />
-      ),
-    },
-    {
-      id: "evidence",
-      label: formatTabLabel("Evidence", evidenceCount),
-      content: (
-        <RunEvidenceList
-          key={activeEvidenceFilter}
-          evidence={evidence}
-          onStatusChange={handleUpdateEvidenceStatus}
-          activeFilter={activeEvidenceFilter}
-          onFilterChange={(filter) => setActiveEvidenceFilter(filter)}
-          scrollTarget={scrollTarget}
-          onScrollComplete={handleScrollComplete}
-        />
-      ),
-    },
-    {
-      id: "checks",
-      label: formatTabLabel("QA Checks", checksCount),
-      content: (
-        <RunChecksList
-          checks={run.checks}
-          onViewEvidence={handleViewEvidence}
-        />
-      ),
-    },
-    {
-      id: "trail",
-      label: formatTabLabel("Trail", trailCount),
-      content: <BrowserTrail trail={run.trail} />,
-    },
-  ];
+        );
+      case "evidence":
+        return (
+          <RunEvidenceList
+            key={activeEvidenceFilter}
+            evidence={evidence}
+            onStatusChange={handleUpdateEvidenceStatus}
+            activeFilter={activeEvidenceFilter}
+            onFilterChange={(filter) => setActiveEvidenceFilter(filter)}
+            scrollTarget={scrollTarget}
+            onScrollComplete={handleScrollComplete}
+          />
+        );
+      case "checks":
+        return (
+          <RunChecksList
+            checks={run.checks}
+            onViewEvidence={handleViewEvidence}
+          />
+        );
+      case "trail":
+        return <BrowserTrail trail={run.trail} />;
+      default:
+        return null;
+    }
+  };
 
   return (
-    <Tabs
-      tabs={tabs}
-      activeTab={activeTab}
-      onTabChange={(tabId) => setActiveTab(tabId)}
-    />
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+      <div className="md:col-span-3 md:sticky md:top-20 self-start z-10">
+        <RunDetailSidebar
+          activeSection={activeSection}
+          onSelectSection={(id) => setActiveSection(id)}
+          counts={{
+            pageResults: pageResultsCount,
+            findings: findingCount,
+            evidence: evidenceCount,
+            checks: checksCount,
+            trail: trailCount,
+          }}
+          hasReport={Boolean(run.report)}
+        />
+      </div>
+
+      <div className="md:col-span-9 min-w-0">
+        <div className="rounded-xl border border-border/80 bg-panel/90 p-5 shadow-sm">
+          {renderActiveSection()}
+        </div>
+      </div>
+    </div>
   );
 }

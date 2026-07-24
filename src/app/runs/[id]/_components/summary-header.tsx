@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { LatestRun } from "@/lib/shared/domain/types";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Clock, Calendar, Hash } from "lucide-react";
 
 import { StatusBadge } from "@/app/runs/[id]/_components/status-badge";
 import { ExportRunButton } from "@/app/runs/[id]/_components/export-run-button";
@@ -16,15 +16,16 @@ export function RunSummaryHeader({ run }: RunSummaryHeaderProps) {
   const displayTitle = run.title ?? run.startingUrl;
 
   return (
-    <div className="mb-8">
-      <div className="mb-4 flex items-center justify-between">
+    <div className="mb-6 rounded-xl border border-border/80 bg-linear-to-r from-panel/90 via-panel/70 to-card/60 p-5 sm:p-6 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3 mb-4">
         <Link
           href={HELIOS_ROUTES.dashboard}
-          className="inline-flex items-center gap-2 text-sm text-muted hover:text-foreground transition"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted hover:text-foreground transition rounded-md border border-border/60 bg-card px-2.5 py-1"
         >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
           Back to dashboard
         </Link>
+
         <div className="flex items-center gap-2">
           <StatusBadge status={run.status} />
           {isFinished && <ExportRunButton run={run} />}
@@ -32,29 +33,40 @@ export function RunSummaryHeader({ run }: RunSummaryHeaderProps) {
       </div>
 
       <div className="mb-4">
-        <h1 className="text-2xl font-semibold text-foreground break-all">
+        <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-foreground break-all">
           {displayTitle}
         </h1>
         {run.title && (
-          <p className="mt-1 text-sm text-muted break-all">{run.startingUrl}</p>
+          <p className="mt-1 text-xs sm:text-sm text-muted font-mono break-all">
+            {run.startingUrl}
+          </p>
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted border-b border-border pb-6">
-        <div>
-          Started:{" "}
-          <span className="text-foreground">
+      <div className="flex flex-wrap items-center gap-4 text-xs text-muted border-t border-border/60 pt-3">
+        <div className="flex items-center gap-1.5">
+          <Calendar className="h-3.5 w-3.5 text-muted" />
+          <span>Started:</span>
+          <span className="font-medium text-foreground">
             {formatTimestamp(run.createdAt)}
           </span>
         </div>
+
         {run.durationMs !== undefined && (
-          <div>
-            Duration:{" "}
-            <span className="text-foreground">
+          <div className="flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5 text-muted" />
+            <span>Duration:</span>
+            <span className="font-semibold text-foreground font-mono">
               {formatDurationMs(run.durationMs)}
             </span>
           </div>
         )}
+
+        <div className="flex items-center gap-1.5">
+          <Hash className="h-3.5 w-3.5 text-muted" />
+          <span>ID:</span>
+          <span className="font-mono text-[11px] text-muted">{run.id}</span>
+        </div>
       </div>
     </div>
   );

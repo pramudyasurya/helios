@@ -56,9 +56,9 @@ export default async function RunDetailPage({
   return (
     <main className="min-h-screen bg-background text-foreground">
       <AppHeader />
-      <div className="py-10 px-6 mx-auto max-w-5xl">
+      <div className="py-8 px-4 sm:px-6 mx-auto max-w-7xl">
         <RunSummaryHeader run={run} />
-        <div className="rounded-lg border border-border bg-panel p-5">
+        <div className="mt-6">
           <RunDetailTabs run={run} />
         </div>
       </div>
