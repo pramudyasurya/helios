@@ -4,13 +4,13 @@ import { MAX_VISIBLE_EVIDENCE_ITEMS } from "@/lib/shared/domain/constants";
 import type { RunEvidence, EvidenceStatus } from "@/lib/shared/domain/types";
 
 export const STATUS_STYLES: Record<EvidenceStatus, string> = {
-  open: "border-amber-500/40 text-amber-300 bg-amber-500/10",
-  resolved: "border-emerald-500/40 text-emerald-300 bg-emerald-500/10",
-  ignored: "border-border text-muted bg-card",
+  open: "border-amber-500/30 text-amber-400 bg-amber-500/5",
+  resolved: "border-emerald-500/30 text-emerald-400 bg-emerald-500/5",
+  ignored: "border-border/70 text-muted bg-card/40",
 };
 
 export const INACTIVE_STYLE =
-  "border-border/30 bg-transparent text-muted hover:text-foreground hover:bg-card/30";
+  "border-border/40 bg-transparent text-muted/70 hover:text-foreground hover:bg-card/40";
 
 export type EvidenceFilter = "all" | "images" | "console" | "network";
 

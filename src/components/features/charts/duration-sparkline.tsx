@@ -30,14 +30,14 @@ function DurationSparklineInner({ recentDurations }: DurationSparklineProps) {
         >
           <defs>
             <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="var(--accent)" stopOpacity={0} />
+              <stop offset="5%" stopColor="var(--muted)" stopOpacity={0.2} />
+              <stop offset="95%" stopColor="var(--muted)" stopOpacity={0} />
             </linearGradient>
           </defs>
           <Area
             type={"monotone"}
             dataKey={"duration"}
-            stroke="var(--accent)"
+            stroke="var(--muted)"
             strokeWidth={1.5}
             fillOpacity={1}
             fill={`url(#${gradientId})`}

@@ -124,12 +124,12 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const rawParams = Object.fromEntries(searchParams);
 
-    if (rawParams.status === "All" || rawParams.status === "") {
-      delete rawParams.status;
-    }
-
     for (const [key, value] of Object.entries(rawParams)) {
-      if (value === "" || (key === "status" && value === "All")) {
+      if (
+        value === "" ||
+        (key === "status" &&
+          (value === "All" || value.toLowerCase() === "all"))
+      ) {
         delete rawParams[key];
       }
     }

@@ -38,36 +38,39 @@ export function RunMetricsGrid({ run }: RunMetricsGridProps) {
       label: "Findings",
       value: findingCount,
       icon: ListChecks,
-      color: findingCount > 0 ? "text-accent" : "text-green-500",
+      color: findingCount > 0 ? "text-accent font-bold" : "text-muted/70",
     },
     {
       label: "Console Errors",
       value: consoleErrorCount,
       icon: AlertCircle,
-      color: consoleErrorCount > 0 ? "text-yellow-500" : "text-green-500",
+      color: consoleErrorCount > 0 ? "text-danger font-bold" : "text-muted/70",
     },
     {
       label: "Failed Requests",
       value: failedRequestCount,
       icon: Network,
-      color: failedRequestCount > 0 ? "text-yellow-500" : "text-green-500",
+      color: failedRequestCount > 0 ? "text-danger font-bold" : "text-muted/70",
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-5">
       {metrics.map((m) => (
         <div
           key={m.label}
-          className="bg-card border border-border rounded-lg p-4 flex flex-col"
+          className="rounded-xl border border-border/80 bg-card/80 p-3.5 flex flex-col justify-between min-h-22 shadow-2xs transition hover:border-accent/40"
         >
-          <div className="flex items-center gap-2 mb-2 text-muted">
-            <m.icon className={`w-4 h-4 ${m.color}`} />
-            <span className="text-xs font-medium uppercase tracking-wider">
+          <div className="flex items-center gap-1.5 text-muted mb-2">
+            <m.icon className={`w-3.5 h-3.5 shrink-0 ${m.color}`} />
+            <span
+              className="text-[11px] font-semibold uppercase tracking-wider text-muted truncate"
+              title={m.label}
+            >
               {m.label}
             </span>
           </div>
-          <span className="text-xl font-semibold text-foreground">
+          <span className="text-xl font-semibold tracking-tight text-foreground mt-auto">
             {m.value}
           </span>
         </div>

@@ -9,7 +9,7 @@ interface PassRateDonutProps {
 }
 
 function PassRateDonutInner({ passRate }: PassRateDonutProps) {
-  const COLORS = ["var(--success)", "var(--border)"];
+  const COLORS = ["#10b981", "var(--border)"];
   const data = [
     {
       name: "Passed",

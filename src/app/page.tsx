@@ -64,34 +64,35 @@ export default function Home() {
             searchInputRef={runSearchInputRef}
             renderMetrics={(stats, isLoading) => {
               return (
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                  <div className="lg:col-span-7 space-y-6">
-                    <RunForm
-                      onSubmit={handleSubmit}
-                      isDisabled={isRunActive}
-                      error={runError}
-                      urlInputRef={runUrlInputRef}
-                    />
+                <div className="space-y-6">
+                  {/* Top Row */}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                    <div className="lg:col-span-7">
+                      <RunForm
+                        onSubmit={handleSubmit}
+                        isDisabled={isRunActive}
+                        error={runError}
+                        urlInputRef={runUrlInputRef}
+                      />
+                    </div>
 
-                    <LatestRunPanel
-                      latestRun={latestRun}
-                      onReset={handleReset}
-                    />
-                  </div>
-
-                  <div className="lg:col-span-5">
-                    <div className="rounded-xl border border-border/80 bg-panel/90 p-5 shadow-sm">
-                      <div className="mb-3.5 flex items-center justify-between">
-                        <h2 className="text-sm font-semibold text-foreground">
-                          Observability Metrics
-                        </h2>
-                        <span className="text-[11px] font-medium text-muted">
-                          Real-time Summary
-                        </span>
+                    <div className="lg:col-span-5">
+                      <div className="h-full rounded-xl border border-border/80 bg-panel/90 p-5 shadow-sm flex flex-col justify-between">
+                        <div className="mb-3.5 flex items-center justify-between">
+                          <h2 className="text-sm font-semibold text-foreground">
+                            Observability Metrics
+                          </h2>
+                          <span className="text-[11px] font-medium text-muted">
+                            Real-time Summary
+                          </span>
+                        </div>
+                        <DashboardMetrics stats={stats} isLoading={isLoading} />
                       </div>
-                      <DashboardMetrics stats={stats} isLoading={isLoading} />
                     </div>
                   </div>
+
+                  {/* Middle Row */}
+                  <LatestRunPanel latestRun={latestRun} onReset={handleReset} />
                 </div>
               );
             }}

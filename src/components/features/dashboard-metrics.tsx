@@ -72,7 +72,7 @@ function MetricCard({
   chart,
 }: MetricCardProps) {
   return (
-    <div className="rounded-lg border border-border bg-panel p-5 transition hover:border-accent/40">
+    <div className="rounded-xl border border-border/80 bg-card/80 p-4 transition hover:border-accent/40 shadow-2xs">
       <div className="flex items-center gap-2 text-sm font-medium text-muted">
         <Icon className="h-4 w-4 shrink-0" />
         <span className="truncate">{title}</span>
@@ -112,7 +112,7 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="h-24 animate-pulse rounded-xl border border-border bg-panel p-4"
+            className="h-24 animate-pulse rounded-xl border border-border/80 bg-card/80 p-4"
           />
         ))}
       </section>

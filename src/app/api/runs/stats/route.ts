@@ -79,7 +79,11 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const rawParams = Object.fromEntries(url.searchParams);
   for (const [key, value] of Object.entries(rawParams)) {
-    if (value === "" || (key === "status" && value === "All")) {
+    if (
+      value === "" ||
+      (key === "status" &&
+        (value === "All" || value.toLowerCase() === "all"))
+    ) {
       delete rawParams[key];
     }
   }

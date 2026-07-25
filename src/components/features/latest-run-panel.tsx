@@ -17,9 +17,9 @@ export function LatestRunPanel({ latestRun, onReset }: LatestRunPanelProps) {
     latestRun?.status === "Completed" || latestRun?.status === "Failed";
 
   return (
-    <section className="mt-6 rounded-lg border border-border bg-panel p-5">
-      <header className="text-base font-medium flex items-center justify-between">
-        <h2>Latest run</h2>
+    <section className="rounded-xl border border-border/80 bg-panel/90 p-5 shadow-sm">
+      <header className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-foreground">Latest Run</h2>
         <div className="flex items-center gap-2">
           <StatusBadge status={latestRun?.status ?? "Idle"} />
           {latestRun ? (
@@ -55,14 +55,14 @@ export function LatestRunPanel({ latestRun, onReset }: LatestRunPanelProps) {
         </div>
       </header>
 
-      <div className="mt-6">
+      <div className="mt-4">
         {latestRun ? (
           <div className="space-y-6">
             <RunSummaryCard summary={latestRun.summary} />
             <RunMetricsGrid run={latestRun} />
           </div>
         ) : (
-          <div className="rounded-md border border-dashed border-border bg-card p-4">
+          <div className="rounded-lg border border-dashed border-border/70 bg-card/60 p-4">
             <p className="text-sm font-medium text-foreground">
               No QA runs yet
             </p>

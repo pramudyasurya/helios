@@ -19,12 +19,14 @@ export function RunSummaryCard({ summary }: RunSummaryCardProps) {
   }
 
   return (
-    <div className="bg-accent/5 border border-accent/20 rounded-xl p-6">
-      <div className="flex items-center gap-2 mb-3">
-        <Sparkles className="w-5 h-5 text-accent" />
-        <h2 className="text-lg font-semibold text-foreground">Agent Summary</h2>
+    <div className="rounded-xl border border-border/70 bg-card/40 p-4 sm:p-5">
+      <div className="flex items-center gap-2 mb-2">
+        <Sparkles className="w-4 h-4 text-muted/80" />
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
+          Agent Summary
+        </h3>
       </div>
-      <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap">
+      <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap">
         {summary}
       </p>
     </div>

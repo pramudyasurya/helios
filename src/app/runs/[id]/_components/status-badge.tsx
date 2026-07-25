@@ -1,15 +1,16 @@
 import type { RunStatus } from "@/lib/shared/domain/types";
 
 const statusBadgeClasses: Record<RunStatus, string> = {
-  Idle: "border-border text-muted",
-  Queued: "border-accent text-accent",
-  Running: "border-accent text-accent",
-  Completed: "border-success text-success",
-  Failed: "border-danger text-danger",
+  Idle: "border-border/60 text-muted/80 bg-card/30",
+  Queued: "border-amber-500/25 text-amber-300/80 bg-amber-500/5",
+  Running: "border-amber-500/25 text-amber-300/80 bg-amber-500/5",
+  Completed: "border-emerald-500/25 text-emerald-400/80 bg-emerald-500/5",
+  Failed: "border-rose-500/25 text-rose-400/80 bg-rose-500/5",
 };
 
 export function StatusBadge({ status }: { status: RunStatus }) {
   const badgeClass =
-    "rounded-full border px-2 py-1 text-xs " + statusBadgeClasses[status];
+    "inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition " +
+    statusBadgeClasses[status];
   return <span className={badgeClass}>{status}</span>;
 }

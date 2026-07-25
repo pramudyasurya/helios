@@ -78,15 +78,16 @@ export default async function EvidencePage({
     <main className="min-h-screen bg-background text-foreground">
       <AppHeader />
 
-      <div className="mx-auto max-w-5xl px-6 py-10">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8">
+        <header className="mb-6 rounded-xl border border-border/80 bg-linear-to-r from-panel/90 via-panel/70 to-card/60 px-6 py-5 shadow-xs">
+          <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl text-foreground">
             Global Evidence Board
           </h1>
-          <p className="mt-1 text-sm text-muted">
-            Review and manage issues detected across all test runs.
+          <p className="mt-1.5 text-xs sm:text-sm text-muted leading-relaxed max-w-2xl">
+            Review and manage issues, console stack traces, network egress
+            failures, and visual evidence detected across all QA runs.
           </p>
-        </div>
+        </header>
         <GlobalEvidenceBoard
           items={boardItems}
           activeStatus={activeStatus}

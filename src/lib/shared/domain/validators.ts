@@ -63,7 +63,14 @@ const VALID_QUERY_STATUSES = [
 
 export const GetRunsQuerySchema = z.object({
   q: z.string().trim().optional().default(""),
-  status: z.enum(VALID_QUERY_STATUSES).optional(),
+  status: z
+    .preprocess(
+      (val) =>
+        typeof val === "string" && (val === "" || val.toLowerCase() === "all")
+          ? undefined
+          : val,
+      z.enum(VALID_QUERY_STATUSES).optional(),
+    ),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),
 });

@@ -129,19 +129,27 @@ export function GlobalEvidenceBoard({
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border border-border bg-panel p-4">
+        <div className="rounded-xl border border-border/80 bg-panel/90 p-4 shadow-sm">
           <p className="text-xs font-medium text-muted">Open Issues</p>
-          <p className="mt-1 text-2xl font-semibold text-amber-500">
+          <p
+            className={`mt-1 text-2xl font-semibold ${
+              counts.open > 0 ? "text-amber-400 font-bold" : "text-muted"
+            }`}
+          >
             {counts.open}
           </p>
         </div>
-        <div className="rounded-lg border border-border bg-panel p-4">
+        <div className="rounded-xl border border-border/80 bg-panel/90 p-4 shadow-sm">
           <p className="text-xs font-medium text-muted">Resolved Issues</p>
-          <p className="mt-1 text-2xl font-semibold text-emerald-500">
+          <p
+            className={`mt-1 text-2xl font-semibold ${
+              counts.resolved > 0 ? "text-emerald-400 font-bold" : "text-muted"
+            }`}
+          >
             {counts.resolved}
           </p>
         </div>
-        <div className="rounded-lg border border-border bg-panel p-4">
+        <div className="rounded-xl border border-border/80 bg-panel/90 p-4 shadow-sm">
           <p className="text-xs font-medium text-muted">Ignored Issues</p>
           <p className="mt-1 text-2xl font-semibold text-muted">
             {counts.ignored}
@@ -149,7 +157,7 @@ export function GlobalEvidenceBoard({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-panel p-4">
+      <div className="flex flex-wrap items-center gap-4 rounded-xl border border-border/80 bg-panel/90 p-4 shadow-sm">
         <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
           <label
             htmlFor="status-filter"
@@ -190,7 +198,7 @@ export function GlobalEvidenceBoard({
         </div>
       </div>
 
-      <div className="rounded-lg border border-border bg-panel overflow-hidden">
+      <div className="rounded-xl border border-border/80 bg-panel/90 shadow-sm overflow-hidden">
         <ul className="divide-y divide-border">
           {optimisticItems.map((item) => {
             return (
@@ -248,7 +256,7 @@ export function GlobalEvidenceBoard({
                       Run:{" "}
                       <Link
                         href={HELIOS_ROUTES.runDetail(item.runId)}
-                        className="font-medium text-accent hover:underline inline-block align-bottom truncate max-w-[200px]"
+                        className="font-medium text-accent hover:underline inline-block align-bottom truncate max-w-50"
                         title={item.runTitle}
                       >
                         {item.runTitle}

@@ -1,6 +1,13 @@
 "use client";
 
-import { Database, Cpu } from "lucide-react";
+import {
+  Terminal,
+  Cpu,
+  Database,
+  ShieldCheck,
+  Activity,
+  AlertTriangle,
+} from "lucide-react";
 
 type DashboardHeroProps = {
   isRunActive?: boolean;
@@ -14,20 +21,22 @@ export function DashboardHero({
   const systemStatus = isRunActive
     ? {
         label: "Executing QA Check",
-        color: "border-accent/40 bg-accent/10 text-accent",
-        dot: "bg-accent",
+        icon: Activity,
+        iconColor: "text-accent animate-pulse",
       }
     : isDbConnected === false
       ? {
           label: "System Degraded",
-          color: "border-danger/40 bg-danger/10 text-danger",
-          dot: "bg-danger",
+          icon: AlertTriangle,
+          iconColor: "text-danger",
         }
       : {
           label: "System Operational",
-          color: "border-emerald-500/30 bg-emerald-500/10 text-emerald-500",
-          dot: "bg-emerald-500",
+          icon: ShieldCheck,
+          iconColor: "text-muted/80",
         };
+
+  const StatusIcon = systemStatus.icon;
 
   const dbStatusText =
     isDbConnected === null
@@ -39,45 +48,7 @@ export function DashboardHero({
   const workerStatusText = isRunActive ? "Executing Check..." : "Ready";
 
   return (
-    <header className="mb-6 rounded-xl border border-border/80 bg-gradient-to-r from-panel/90 via-panel/70 to-card/60 px-6 py-5 shadow-xs">
-      <div className="flex flex-wrap items-center gap-2 mb-2.5">
-        {/* Dynamic Main Operational Badge */}
-        <span
-          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold transition ${systemStatus.color}`}
-        >
-          <span
-            className={`h-1.5 w-1.5 rounded-full animate-pulse ${systemStatus.dot}`}
-          />
-          {systemStatus.label}
-        </span>
-
-        {/* Dynamic Database Badge */}
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card/90 px-2.5 py-0.5 text-[11px] font-medium text-muted">
-          <Database className="h-3 w-3 text-muted" />
-          <span>PostgreSQL:</span>
-          <span
-            className={`font-semibold ${
-              isDbConnected === false ? "text-danger" : "text-foreground"
-            }`}
-          >
-            {dbStatusText}
-          </span>
-        </span>
-
-        {/* Dynamic Playwright Worker Badge */}
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card/90 px-2.5 py-0.5 text-[11px] font-medium text-muted">
-          <Cpu className="h-3 w-3 text-muted" />
-          <span>Playwright Worker:</span>
-          <span
-            className={`font-semibold ${
-              isRunActive ? "text-accent" : "text-foreground"
-            }`}
-          >
-            {workerStatusText}
-          </span>
-        </span>
-      </div>
-
+    <header className="mb-6 rounded-xl border border-border/80 bg-linear-to-r from-panel/90 via-panel/70 to-card/60 px-6 py-5 sm:py-6 shadow-xs">
       <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl text-foreground">
         See What Your Browser Saw
       </h1>
@@ -87,6 +58,49 @@ export function DashboardHero({
         mobile screenshots, console stack traces, network egress failures, and
         AI-assisted reports.
       </p>
+
+      {/* CLI Status Log Snippet */}
+      <div className="mt-4 inline-flex flex-col sm:flex-row sm:items-center gap-2 rounded-lg border border-border/80 bg-background/90 px-3.5 py-2 font-mono text-[11px] text-muted shadow-2xs">
+        <div className="flex items-center gap-2 shrink-0 text-muted/70">
+          <Terminal className="h-3.5 w-3.5 text-accent" />
+          <span className="text-foreground font-semibold">
+            $ helios status --live
+          </span>
+        </div>
+        <span className="hidden sm:inline text-border/80" aria-hidden="true">
+          │
+        </span>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span className="inline-flex items-center gap-1.5">
+            <StatusIcon className={`h-3 w-3 ${systemStatus.iconColor}`} />
+            <span className="text-foreground">{systemStatus.label}</span>
+          </span>
+          <span className="text-muted/40">·</span>
+          <span>
+            postgres:{" "}
+            <span
+              className={
+                isDbConnected === false
+                  ? "text-danger font-semibold"
+                  : "text-foreground"
+              }
+            >
+              {dbStatusText}
+            </span>
+          </span>
+          <span className="text-muted/40">·</span>
+          <span>
+            worker:{" "}
+            <span
+              className={
+                isRunActive ? "text-accent font-semibold" : "text-foreground"
+              }
+            >
+              {workerStatusText}
+            </span>
+          </span>
+        </div>
+      </div>
     </header>
   );
 }

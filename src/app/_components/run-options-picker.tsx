@@ -72,7 +72,6 @@ export function RunOptionsPicker({
         </span>
       </div>
 
-      {/* Visual Mode Selector Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
         {modeCards.map((card) => {
           const Icon = card.icon;
@@ -86,19 +85,19 @@ export function RunOptionsPicker({
               onClick={() => setMode(card.id)}
               className={`flex flex-col text-left rounded-lg p-3 border transition ${
                 isSelected
-                  ? "border-accent bg-accent/10 shadow-xs"
-                  : "border-border/60 bg-background/80 hover:border-border hover:bg-card"
+                  ? "border-foreground/50 bg-card text-foreground shadow-xs ring-1 ring-border/80"
+                  : "border-border/50 bg-background/50 text-muted hover:border-border hover:bg-card/60"
               } disabled:opacity-60 disabled:cursor-not-allowed`}
             >
               <div className="flex items-center justify-between">
                 <Icon
                   className={`h-4 w-4 ${
-                    isSelected ? "text-accent" : "text-muted"
+                    isSelected ? "text-foreground" : "text-muted/70"
                   }`}
                 />
                 <span
                   className={`h-2 w-2 rounded-full ${
-                    isSelected ? "bg-accent" : "bg-border"
+                    isSelected ? "bg-foreground" : "bg-border/60"
                   }`}
                 />
               </div>
@@ -117,10 +116,10 @@ export function RunOptionsPicker({
         })}
       </div>
 
-      {/* Mode Configurations */}
       {mode === "single" && (
         <p className="mt-3 text-xs text-muted">
-          Evaluates the specified URL only. Standard single-page Playwright check.
+          Evaluates the specified URL only. Standard single-page Playwright
+          check.
         </p>
       )}
 
@@ -149,7 +148,6 @@ export function RunOptionsPicker({
 
       {mode === "crawl" && (
         <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Borderless Editable Max Pages Stepper Input */}
           <div>
             <label
               htmlFor="max-pages"
@@ -198,7 +196,6 @@ export function RunOptionsPicker({
             </p>
           </div>
 
-          {/* Borderless Editable Max Depth Stepper Input */}
           <div>
             <label
               htmlFor="max-depth"
