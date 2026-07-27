@@ -32,7 +32,7 @@ export function RunMetricsGrid({ run }: RunMetricsGridProps) {
         ? formatDomLoadMetric(run.loadMetrics.domContentLoadedMs)
         : "-",
       icon: Activity,
-      color: "text-accent",
+      color: "text-muted",
     },
     {
       label: "Findings",

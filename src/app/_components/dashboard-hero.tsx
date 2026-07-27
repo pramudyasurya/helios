@@ -45,7 +45,12 @@ export function DashboardHero({
         ? "Offline"
         : "Connected";
 
-  const workerStatusText = isRunActive ? "Executing Check..." : "Ready";
+  const workerStatusText =
+    isDbConnected === false
+      ? "Offline (DB Disconnected)"
+      : isRunActive
+        ? "Executing Check..."
+        : "Ready";
 
   return (
     <header className="mb-6 rounded-xl border border-border/80 bg-linear-to-r from-panel/90 via-panel/70 to-card/60 px-6 py-5 sm:py-6 shadow-xs">
@@ -93,7 +98,11 @@ export function DashboardHero({
             worker:{" "}
             <span
               className={
-                isRunActive ? "text-accent font-semibold" : "text-foreground"
+                isDbConnected === false
+                  ? "text-danger font-semibold"
+                  : isRunActive
+                    ? "text-accent font-semibold"
+                    : "text-foreground"
               }
             >
               {workerStatusText}

@@ -92,8 +92,12 @@ async function main() {
 }
 
 void main().catch(async (error) => {
-  console.error("QA worker failed to start:", error);
-  await stopQABoss();
-  await prisma.$disconnect();
+  const message = getErrorMessage(error, "QA Worker initialization failed.");
+  console.error("QA worker failed to start:", message);
+  console.error(
+    "Please verify PostgreSQL is running, DATABASE_URL is configured, and Playwright dependencies are installed.",
+  );
+  await stopQABoss().catch(() => {});
+  await prisma.$disconnect().catch(() => {});
   process.exit(1);
 });

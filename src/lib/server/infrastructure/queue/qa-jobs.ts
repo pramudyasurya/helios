@@ -1,8 +1,8 @@
 import "server-only";
 
 import { PgBoss } from "pg-boss";
-
 import type { RunMode } from "@/lib/server/infrastructure/runner/runner";
+import { getErrorMessage } from "@/lib/shared/domain/errors";
 
 export const QA_RUN_JOB_NAME = "qa-run";
 
@@ -62,7 +62,12 @@ export async function stopQABoss(): Promise<void> {
 }
 
 function getQABoss(): Promise<PgBoss> {
-  bossPromise ??= createQABoss();
+  if (!bossPromise) {
+    bossPromise = createQABoss().catch((error) => {
+      bossPromise = undefined;
+      throw error;
+    });
+  }
   return bossPromise;
 }
 
@@ -70,20 +75,31 @@ async function createQABoss(): Promise<PgBoss> {
   const connectionString = process.env.DATABASE_URL;
 
   if (!connectionString) {
-    throw new Error("DATABASE_URL must be configured before starting the QA queue.");
+    throw new Error(
+      "DATABASE_URL must be configured before starting the QA queue.",
+    );
   }
 
-  const boss = new PgBoss(connectionString);
-  boss.on("error", (error) => {
-    console.error("QA queue error:", error);
-  });
-  await boss.start();
-  await boss.createQueue(QA_RUN_JOB_NAME, {
-    expireInSeconds: 30 * 60,
-    retryLimit: 2,
-    retryDelay: 30,
-    retryBackoff: true,
-  });
+  try {
+    const boss = new PgBoss(connectionString);
+    boss.on("error", (error) => {
+      console.error("QA queue error:", error);
+    });
+    await boss.start();
+    await boss.createQueue(QA_RUN_JOB_NAME, {
+      expireInSeconds: 30 * 60,
+      retryLimit: 2,
+      retryDelay: 30,
+      retryBackoff: true,
+    });
 
-  return boss;
+    return boss;
+  } catch (error) {
+    throw new Error(
+      `QA Worker queue failed to initialize: ${getErrorMessage(
+        error,
+        "Database connection failed",
+      )}`,
+    );
+  }
 }

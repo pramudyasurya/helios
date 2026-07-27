@@ -114,8 +114,8 @@ export function RunDetailSidebar({
               onClick={() => onSelectSection(item.id)}
               className={`flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium transition ${
                 isActive
-                  ? "bg-accent text-background font-semibold shadow-sm"
-                  : "text-muted hover:bg-card hover:text-foreground"
+                  ? "border border-foreground/30 bg-card text-foreground font-semibold shadow-2xs"
+                  : "border border-transparent text-muted hover:bg-card/60 hover:text-foreground"
               }`}
             >
               <div className="flex items-center gap-2.5 min-w-0">
@@ -126,7 +126,7 @@ export function RunDetailSidebar({
                 <span
                   className={`ml-2 rounded-full px-2 py-0.5 text-[10px] font-mono ${
                     isActive
-                      ? "bg-background/20 text-background"
+                      ? "bg-foreground/10 text-foreground font-semibold"
                       : "bg-card border border-border/60 text-muted"
                   }`}
                 >
@@ -150,8 +150,8 @@ export function RunDetailSidebar({
               onClick={() => onSelectSection(item.id)}
               className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition ${
                 isActive
-                  ? "bg-accent text-background font-semibold"
-                  : "bg-card border border-border/80 text-muted"
+                  ? "border border-foreground/30 bg-card text-foreground font-semibold shadow-2xs"
+                  : "bg-card/50 border border-border/80 text-muted hover:text-foreground"
               }`}
             >
               <Icon className="h-3.5 w-3.5" />

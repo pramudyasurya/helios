@@ -111,8 +111,8 @@ export async function POST(request: Request) {
 
     return Response.json(
       {
-        error: "Unable to queue browser run",
-        message,
+        error: "QA Worker Unavailable",
+        message: `QA worker queue is unavailable (${message}). Please verify PostgreSQL and the QA worker process are running.`,
       },
       { status: 503 },
     );
