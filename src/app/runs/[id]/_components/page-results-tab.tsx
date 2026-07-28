@@ -68,7 +68,7 @@ export function PageResultsTab({ pageResults = [] }: PageResultsTabProps) {
                       {page.statusCode}
                     </span>
                   )}
-                  <StatusBadge status={page.status?.toLowerCase() === "completed" ? "Completed" : "Failed"} />
+                  <StatusBadge status={page.status} />
                 </div>
               </div>
 

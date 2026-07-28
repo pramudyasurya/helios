@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { updateEvidenceStatus } from "@/lib/client/api";
 import type {
   EvidenceStatus,
@@ -32,11 +33,25 @@ const evidenceFilterByType: Record<EvidenceType, EvidenceFilter> = {
 };
 
 export function RunDetailTabs({ run }: RunDetailTabsProps) {
+  const router = useRouter();
   const [activeSection, setActiveSection] = useState<RunDetailSectionId>("overview");
   const [activeEvidenceFilter, setActiveEvidenceFilter] =
     useState<EvidenceFilter>("all");
   const [scrollTarget, setScrollTarget] = useState<EvidenceFilter | null>(null);
   const [evidence, setEvidence] = useState(run.evidence ?? []);
+
+  useEffect(() => {
+    if (run.status !== "Queued" && run.status !== "Running") {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      router.refresh();
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [run.status, router]);
+
   const findingCount = getFindingsFromChecks(run.checks).length;
   const evidenceCount = evidence.length;
   const checksCount = run.checks.length;

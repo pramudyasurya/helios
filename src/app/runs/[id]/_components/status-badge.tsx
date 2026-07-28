@@ -1,4 +1,5 @@
 import type { RunStatus } from "@/lib/shared/domain/types";
+import { normalizeRunStatus } from "@/lib/shared/domain/format";
 
 const statusBadgeClasses: Record<RunStatus, string> = {
   Idle: "border-border/60 text-muted/80 bg-card/30",
@@ -8,9 +9,10 @@ const statusBadgeClasses: Record<RunStatus, string> = {
   Failed: "border-rose-500/25 text-rose-400/80 bg-rose-500/5",
 };
 
-export function StatusBadge({ status }: { status: RunStatus }) {
+export function StatusBadge({ status }: { status: string }) {
+  const normalized = normalizeRunStatus(status);
   const badgeClass =
     "inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition " +
-    statusBadgeClasses[status];
-  return <span className={badgeClass}>{status}</span>;
+    statusBadgeClasses[normalized];
+  return <span className={badgeClass}>{normalized}</span>;
 }

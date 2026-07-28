@@ -15,3 +15,22 @@ export function formatLabel(value: string) {
 export function formatDurationMs(durationMs: number) {
   return `${(durationMs / 1000).toFixed(2)} s`;
 }
+
+export function normalizeRunStatus(status?: string) {
+  if (!status) return "Idle";
+  const normalized = status.toLowerCase();
+  switch (normalized) {
+    case "completed":
+      return "Completed";
+    case "failed":
+      return "Failed";
+    case "running":
+      return "Running";
+    case "queued":
+      return "Queued";
+    case "idle":
+      return "Idle";
+    default:
+      return "Idle";
+  }
+}

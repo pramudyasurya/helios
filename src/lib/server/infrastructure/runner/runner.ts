@@ -6,6 +6,7 @@ import { randomUUID } from "node:crypto";
 import type {
   CreateRunResponse,
   PageResult,
+  TrailStep,
 } from "@/lib/shared/domain/types";
 
 import { PAGE_GOTO_TIMEOUT_MS } from "@/lib/shared/domain/constants";
@@ -54,6 +55,7 @@ export type MultiRouteRunResult = {
   durationMs: number;
   pageResults: PageResult[];
   summary: string;
+  trail: TrailStep[];
 };
 
 async function handleRoute(
@@ -278,6 +280,13 @@ export async function runMultiRouteQA({
 
   const dnsCache = new Map<string, boolean>();
   const pageResults: PageResult[] = [];
+  const trail: TrailStep[] = [
+    createTrailStep({
+      label: "Browser launched",
+      detail: "Playwright launched a Chromium browser instance.",
+      timestamp: startedAt.toISOString(),
+    }),
+  ];
   let browser: Browser | undefined;
 
   try {
@@ -296,6 +305,16 @@ export async function runMultiRouteQA({
         dnsCache,
       });
       pageResults.push(pageResult);
+
+      trail.push(
+        createTrailStep({
+          label: `Inspected page (Depth ${pageResult.depth})`,
+          detail: `Evaluated ${pageResult.url} with status ${pageResult.status}${
+            pageResult.statusCode ? ` (${pageResult.statusCode})` : ""
+          }.`,
+          timestamp: pageResult.updatedAt,
+        }),
+      );
 
       if (mode === "crawl" && pageResult.status === "Completed") {
         queue = enqueueCrawlLinks({
@@ -334,6 +353,18 @@ export async function runMultiRouteQA({
     const failedPageCount = pageResults.filter(
       (pageResult) => pageResult.status === "Failed",
     ).length;
+    const summary =
+      failedPageCount === 0
+        ? `Helios completed QA for ${pageResults.length} page(s).`
+        : `Helios completed QA for ${pageResults.length} page(s) with ${failedPageCount} failed page(s).`;
+
+    trail.push(
+      createTrailStep({
+        label: "Run completed",
+        detail: summary,
+        timestamp: finishedAt.toISOString(),
+      }),
+    );
 
     return {
       id: runId,
@@ -342,10 +373,8 @@ export async function runMultiRouteQA({
       finishedAt: finishedAt.toISOString(),
       durationMs: finishedAt.getTime() - startedAt.getTime(),
       pageResults,
-      summary:
-        failedPageCount === 0
-          ? `Helios completed QA for ${pageResults.length} page(s).`
-          : `Helios completed QA for ${pageResults.length} page(s) with ${failedPageCount} failed page(s).`,
+      summary,
+      trail,
     };
   } finally {
     await browser?.close();

@@ -35,14 +35,42 @@ const HttpUrlSchema = z.url({ error: "Format URL salah" }).refine(
   { message: "Invalid URL or local address not allowed (SSRF protection)" },
 );
 
+export function resolveRelativeRoute(route: string, baseUrl: string): string {
+  try {
+    if (route.startsWith("http://") || route.startsWith("https://")) {
+      return route;
+    }
+    return new URL(route, baseUrl).toString();
+  } catch {
+    return route;
+  }
+}
+
 export const CreateRunSchema = z
-  .object({
+  .preprocess((data) => {
+    if (
+      typeof data === "object" &&
+      data !== null &&
+      "url" in data &&
+      typeof (data as Record<string, unknown>).url === "string" &&
+      "routes" in data &&
+      Array.isArray((data as Record<string, unknown>).routes)
+    ) {
+      const payload = data as Record<string, unknown>;
+      const baseUrl = payload.url as string;
+      const resolvedRoutes = (payload.routes as unknown[]).map((route) =>
+        typeof route === "string" ? resolveRelativeRoute(route, baseUrl) : route,
+      );
+      return { ...payload, routes: resolvedRoutes };
+    }
+    return data;
+  }, z.object({
     url: HttpUrlSchema,
     mode: z.enum(["single", "manual", "crawl"]).default("single"),
     routes: z.array(HttpUrlSchema).max(4).default([]),
     maxPages: z.coerce.number().int().min(1).max(5).default(5),
     maxDepth: z.coerce.number().int().min(0).max(2).default(2),
-  })
+  }))
   .superRefine(({ mode, routes }, context) => {
     if (mode === "manual" && routes.length === 0) {
       context.addIssue({

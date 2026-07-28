@@ -2,8 +2,6 @@
 
 import {
   Terminal,
-  Cpu,
-  Database,
   ShieldCheck,
   Activity,
   AlertTriangle,

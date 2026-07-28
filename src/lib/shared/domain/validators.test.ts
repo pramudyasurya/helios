@@ -3,9 +3,21 @@ import {
   CreateRunSchema,
   GetRunsQuerySchema,
   isValidHttpUrl,
+  resolveRelativeRoute,
   UpdateEvidenceStatusSchema,
   validateAIReport,
 } from "@/lib/shared/domain/validators";
+
+describe("resolveRelativeRoute", () => {
+  it("resolves relative path against base URL", () => {
+    expect(resolveRelativeRoute("/login", "https://example.com")).toBe("https://example.com/login");
+    expect(resolveRelativeRoute("about", "https://example.com/home")).toBe("https://example.com/about");
+  });
+
+  it("returns full http/https URLs unchanged", () => {
+    expect(resolveRelativeRoute("https://other.com/page", "https://example.com")).toBe("https://other.com/page");
+  });
+});
 
 describe("isValidHttpUrl", () => {
   it("accepts http and https URL", () => {

@@ -33,6 +33,15 @@ async function processQARun(job: QARunJob): Promise<void> {
     });
     const primaryResult = result.pageResults[0];
 
+    const existingRun = await prisma.run.findUnique({
+      where: { id: job.runId },
+      select: { trail: true },
+    });
+    const existingTrail = Array.isArray(existingRun?.trail)
+      ? (existingRun.trail as unknown[])
+      : [];
+    const fullTrail = [...existingTrail, ...result.trail];
+
     await prisma.run.update({
       where: { id: job.runId },
       data: {
@@ -48,11 +57,38 @@ async function processQARun(job: QARunJob): Promise<void> {
         consoleErrors: primaryResult?.consoleErrors,
         failedRequests: primaryResult?.failedRequests,
         loadMetrics: primaryResult?.loadMetrics,
+        trail: fullTrail,
       },
     });
   } catch (error) {
     const failedAt = new Date();
     const message = getErrorMessage(error, "Unknown browser QA error.");
+
+    let failureTrail: unknown[] = [];
+    try {
+      const existingRun = await prisma.run.findUnique({
+        where: { id: job.runId },
+        select: { trail: true },
+      });
+      failureTrail = [
+        ...(Array.isArray(existingRun?.trail)
+          ? (existingRun.trail as unknown[])
+          : []),
+        {
+          label: "Run failed",
+          detail: message,
+          timestamp: failedAt.toISOString(),
+        },
+      ];
+    } catch {
+      failureTrail = [
+        {
+          label: "Run failed",
+          detail: message,
+          timestamp: failedAt.toISOString(),
+        },
+      ];
+    }
 
     await prisma.run.update({
       where: { id: job.runId },
@@ -61,6 +97,7 @@ async function processQARun(job: QARunJob): Promise<void> {
         summary: "Helios could not complete the browser QA run.",
         finishedAt: failedAt,
         durationMs: failedAt.getTime() - startedAt.getTime(),
+        trail: failureTrail,
         checks: [
           {
             title: "Browser run failed",
