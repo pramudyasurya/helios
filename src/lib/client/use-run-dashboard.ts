@@ -245,7 +245,14 @@ export function useRunHistory(refreshTrigger?: number) {
       setRecentRuns([]);
       setTotalPages(1);
       setCurrentPage(1);
-      refreshStats();
+      setStats({
+        totalRuns: 0,
+        completedRuns: 0,
+        failedRuns: 0,
+        avgDurationMs: 0,
+        recentDurations: [],
+      });
+      await refreshStats();
     } catch (error) {
       console.error("Failed to clear runs from database:", error);
       throw error;
