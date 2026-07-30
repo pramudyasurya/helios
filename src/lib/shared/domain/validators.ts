@@ -19,13 +19,15 @@ export function validateAIReport(data: unknown): AIReport | null {
   return result.success ? result.data : null;
 }
 
-const HttpUrlSchema = z.url({ error: "Format URL salah" }).refine(
+const HttpUrlSchema = z.string().trim().url({ message: "Format URL salah" }).refine(
   (val) => {
     try {
       const parsed = new URL(val);
 
       if (parsed.protocol !== "http:" && parsed.protocol !== "https:")
         return false;
+
+      if (parsed.username || parsed.password) return false;
 
       return !isIpPrivate(parsed.hostname);
     } catch {
@@ -36,13 +38,36 @@ const HttpUrlSchema = z.url({ error: "Format URL salah" }).refine(
 );
 
 export function resolveRelativeRoute(route: string, baseUrl: string): string {
+  if (typeof route !== "string") return route;
+  const trimmed = route.trim();
+  if (!trimmed) return "";
+
+  if (trimmed.startsWith("//")) {
+    return "";
+  }
+
   try {
-    if (route.startsWith("http://") || route.startsWith("https://")) {
-      return route;
+    if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) {
+      const parsed = new URL(trimmed);
+      if (
+        (parsed.protocol !== "http:" && parsed.protocol !== "https:") ||
+        parsed.username ||
+        parsed.password
+      ) {
+        return "";
+      }
+      return trimmed;
     }
-    return new URL(route, baseUrl).toString();
+
+    const baseOrigin = new URL(baseUrl.trim()).origin;
+    const relPath = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+    const resolved = new URL(relPath, baseOrigin);
+    if (resolved.username || resolved.password) {
+      return "";
+    }
+    return resolved.toString();
   } catch {
-    return route;
+    return "";
   }
 }
 
@@ -52,16 +77,18 @@ export const CreateRunSchema = z
       typeof data === "object" &&
       data !== null &&
       "url" in data &&
-      typeof (data as Record<string, unknown>).url === "string" &&
-      "routes" in data &&
-      Array.isArray((data as Record<string, unknown>).routes)
+      typeof (data as Record<string, unknown>).url === "string"
     ) {
       const payload = data as Record<string, unknown>;
-      const baseUrl = payload.url as string;
-      const resolvedRoutes = (payload.routes as unknown[]).map((route) =>
-        typeof route === "string" ? resolveRelativeRoute(route, baseUrl) : route,
-      );
-      return { ...payload, routes: resolvedRoutes };
+      const rawUrl = (payload.url as string).trim();
+      if ("routes" in data && Array.isArray((data as Record<string, unknown>).routes)) {
+        const resolvedRoutes = ((data as Record<string, unknown>).routes as unknown[]).map(
+          (route) =>
+            typeof route === "string" ? resolveRelativeRoute(route, rawUrl) : route,
+        );
+        return { ...payload, url: rawUrl, routes: resolvedRoutes };
+      }
+      return { ...payload, url: rawUrl };
     }
     return data;
   }, z.object({

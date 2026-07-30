@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/server/infrastructure/db/prisma";
+import type { Prisma } from "@/generated/prisma/client";
 import {
   startQARunWorker,
   stopQABoss,
@@ -57,7 +58,7 @@ async function processQARun(job: QARunJob): Promise<void> {
         consoleErrors: primaryResult?.consoleErrors,
         failedRequests: primaryResult?.failedRequests,
         loadMetrics: primaryResult?.loadMetrics,
-        trail: fullTrail,
+        trail: fullTrail as unknown as Prisma.InputJsonValue,
       },
     });
   } catch (error) {
@@ -97,7 +98,7 @@ async function processQARun(job: QARunJob): Promise<void> {
         summary: "Helios could not complete the browser QA run.",
         finishedAt: failedAt,
         durationMs: failedAt.getTime() - startedAt.getTime(),
-        trail: failureTrail,
+        trail: failureTrail as unknown as Prisma.InputJsonValue,
         checks: [
           {
             title: "Browser run failed",

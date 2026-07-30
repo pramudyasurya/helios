@@ -9,13 +9,25 @@ import {
 } from "@/lib/shared/domain/validators";
 
 describe("resolveRelativeRoute", () => {
-  it("resolves relative path against base URL", () => {
-    expect(resolveRelativeRoute("/login", "https://example.com")).toBe("https://example.com/login");
+  it("resolves relative path against base URL origin", () => {
+    expect(resolveRelativeRoute("/login", "https://example.com/sub/dir")).toBe("https://example.com/login");
     expect(resolveRelativeRoute("about", "https://example.com/home")).toBe("https://example.com/about");
+    expect(resolveRelativeRoute("  /dashboard  ", "https://example.com")).toBe("https://example.com/dashboard");
   });
 
   it("returns full http/https URLs unchanged", () => {
     expect(resolveRelativeRoute("https://other.com/page", "https://example.com")).toBe("https://other.com/page");
+  });
+
+  it("preserves absolute HTTP(S) routes regardless of scheme casing", () => {
+    expect(resolveRelativeRoute("HTTPS://other.com/page", "https://example.com")).toBe("HTTPS://other.com/page");
+  });
+
+  it("returns empty string for invalid/dangerous relative values", () => {
+    expect(resolveRelativeRoute("//evil.com/path", "https://example.com")).toBe("");
+    expect(resolveRelativeRoute("javascript:alert(1)", "https://example.com")).toBe("");
+    expect(resolveRelativeRoute("http://user:pass@example.com", "https://example.com")).toBe("");
+    expect(resolveRelativeRoute("   ", "https://example.com")).toBe("");
   });
 });
 
@@ -241,6 +253,68 @@ describe("CreateRunSchema (SSRF Protection)", () => {
     expect(testExpandedCompat.success).toBe(false);
     expect(testExpandedMapped.success).toBe(false);
     expect(testExpandedMapped0.success).toBe(false);
+  });
+
+  it("normalizes root-relative, bare-relative, and absolute manual routes correctly", () => {
+    const res = CreateRunSchema.safeParse({
+      url: "https://example.com/base/path",
+      mode: "manual",
+      routes: ["/login", "about", "  /dashboard  ", "https://other.com/docs"],
+    });
+
+    expect(res.success).toBe(true);
+    if (res.success) {
+      expect(res.data.routes).toEqual([
+        "https://example.com/login",
+        "https://example.com/about",
+        "https://example.com/dashboard",
+        "https://other.com/docs",
+      ]);
+    }
+  });
+
+  it("rejects manual mode when routes list is empty", () => {
+    const res = CreateRunSchema.safeParse({
+      url: "https://example.com",
+      mode: "manual",
+      routes: [],
+    });
+    expect(res.success).toBe(false);
+  });
+
+  it("rejects relative routes that normalize to SSRF / private IP targets", () => {
+    const res = CreateRunSchema.safeParse({
+      url: "http://127.0.0.1",
+      mode: "manual",
+      routes: ["/admin"],
+    });
+    expect(res.success).toBe(false);
+  });
+
+  it("rejects invalid or dangerous relative route inputs", () => {
+    expect(
+      CreateRunSchema.safeParse({
+        url: "https://example.com",
+        mode: "manual",
+        routes: ["//evil.com"],
+      }).success,
+    ).toBe(false);
+
+    expect(
+      CreateRunSchema.safeParse({
+        url: "https://example.com",
+        mode: "manual",
+        routes: ["javascript:alert(1)"],
+      }).success,
+    ).toBe(false);
+
+    expect(
+      CreateRunSchema.safeParse({
+        url: "https://example.com",
+        mode: "manual",
+        routes: ["http://user:pass@example.com"],
+      }).success,
+    ).toBe(false);
   });
 });
 

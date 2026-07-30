@@ -1,3 +1,5 @@
+import type { RunStatus } from "@/lib/shared/domain/types";
+
 export function formatTimestamp(timestamp: string) {
   return new Intl.DateTimeFormat("en", {
     dateStyle: "medium",
@@ -16,9 +18,9 @@ export function formatDurationMs(durationMs: number) {
   return `${(durationMs / 1000).toFixed(2)} s`;
 }
 
-export function normalizeRunStatus(status?: string) {
+export function normalizeRunStatus(status?: string): RunStatus {
   if (!status) return "Idle";
-  const normalized = status.toLowerCase();
+  const normalized = status.trim().toLowerCase();
   switch (normalized) {
     case "completed":
       return "Completed";

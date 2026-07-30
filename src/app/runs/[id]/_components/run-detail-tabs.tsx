@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateEvidenceStatus } from "@/lib/client/api";
 import type {
@@ -8,6 +8,7 @@ import type {
   EvidenceType,
   LatestRun,
 } from "@/lib/shared/domain/types";
+import { normalizeRunStatus } from "@/lib/shared/domain/format";
 import { RunOverview } from "@/components/features/run-overview";
 import { RunEvidenceList } from "@/app/runs/[id]/_components/run-evidence-list";
 import { type EvidenceFilter } from "@/lib/shared/domain/evidence-sections";
@@ -32,8 +33,11 @@ const evidenceFilterByType: Record<EvidenceType, EvidenceFilter> = {
   network: "network",
 };
 
+const RUN_DETAIL_REFRESH_INTERVAL_MS = 3_000;
+
 export function RunDetailTabs({ run }: RunDetailTabsProps) {
   const router = useRouter();
+  const [isRefreshPending, startRefreshTransition] = useTransition();
   const [activeSection, setActiveSection] = useState<RunDetailSectionId>("overview");
   const [activeEvidenceFilter, setActiveEvidenceFilter] =
     useState<EvidenceFilter>("all");
@@ -41,16 +45,49 @@ export function RunDetailTabs({ run }: RunDetailTabsProps) {
   const [evidence, setEvidence] = useState(run.evidence ?? []);
 
   useEffect(() => {
-    if (run.status !== "Queued" && run.status !== "Running") {
+    const normalized = normalizeRunStatus(run.status);
+    if (normalized !== "Queued" && normalized !== "Running") {
       return;
     }
 
-    const interval = setInterval(() => {
-      router.refresh();
-    }, 3000);
+    let timerId: ReturnType<typeof setTimeout> | null = null;
 
-    return () => clearInterval(interval);
-  }, [run.status, router]);
+    const scheduleNext = () => {
+      if (timerId) clearTimeout(timerId);
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+        return;
+      }
+
+      timerId = setTimeout(() => {
+        if (isRefreshPending) {
+          scheduleNext();
+          return;
+        }
+
+        startRefreshTransition(() => router.refresh());
+      }, RUN_DETAIL_REFRESH_INTERVAL_MS);
+    };
+
+    const handleVisibilityChange = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        scheduleNext();
+      } else if (timerId) {
+        clearTimeout(timerId);
+      }
+    };
+
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", handleVisibilityChange);
+    }
+    scheduleNext();
+
+    return () => {
+      if (timerId) clearTimeout(timerId);
+      if (typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+      }
+    };
+  }, [isRefreshPending, run.id, run.status, router, startRefreshTransition]);
 
   const findingCount = getFindingsFromChecks(run.checks).length;
   const evidenceCount = evidence.length;

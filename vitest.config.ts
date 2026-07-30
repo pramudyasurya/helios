@@ -14,7 +14,10 @@ export default defineConfig({
         extends: true,
         test: {
           name: "unit",
-          include: ["src/lib/shared/domain/**/*.test.{ts,tsx}"],
+          include: [
+            "src/lib/shared/domain/**/*.test.{ts,tsx}",
+            "src/lib/client/**/*.test.{ts,tsx}",
+          ],
           environment: "node",
         },
       },

@@ -21,6 +21,76 @@ export type CreateRunOptions = {
   maxDepth?: number;
 };
 
+export async function parseJsonResponse<T>(response: Response): Promise<T> {
+  const contentType = response.headers.get("content-type") || "";
+  let data: unknown;
+
+  try {
+    const text = await response.text();
+    const trimmedText = text.trim();
+
+    if (!trimmedText) {
+      if (!response.ok) {
+        throw {
+          error: `HTTP ${response.status}`,
+          message: `Request failed with status ${response.status}`,
+        } satisfies ApiErrorResponse;
+      }
+      throw {
+        error: "Invalid Response",
+        message: "Server returned an empty response body",
+      } satisfies ApiErrorResponse;
+    }
+
+    if (
+      contentType.includes("application/json") ||
+      trimmedText.startsWith("{") ||
+      trimmedText.startsWith("[")
+    ) {
+      data = JSON.parse(trimmedText);
+    } else {
+      throw {
+        error: `HTTP ${response.status}`,
+        message: `Request failed with status ${response.status}`,
+      } satisfies ApiErrorResponse;
+    }
+  } catch (err) {
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "error" in err &&
+      "message" in err
+    ) {
+      throw err;
+    }
+    throw {
+      error: response.ok ? "Parse Error" : `HTTP ${response.status}`,
+      message: response.ok
+        ? "Failed to parse JSON response"
+        : `Request failed with status ${response.status}`,
+    } satisfies ApiErrorResponse;
+  }
+
+  if (!response.ok) {
+    if (
+      typeof data === "object" &&
+      data !== null &&
+      "error" in data &&
+      "message" in data
+    ) {
+      throw data as ApiErrorResponse;
+    }
+    throw {
+      error: `HTTP ${response.status}`,
+      message:
+        (data as Record<string, string>)?.message ||
+        `Request failed with status ${response.status}`,
+    } satisfies ApiErrorResponse;
+  }
+
+  return data as T;
+}
+
 export async function createRun(
   options: string | CreateRunOptions,
 ): Promise<CreateQueuedRunResponse> {
@@ -34,15 +104,7 @@ export async function createRun(
     body: JSON.stringify(payload),
   });
 
-  const result = (await response.json()) as
-    | CreateQueuedRunResponse
-    | ApiErrorResponse;
-
-  if (!response.ok) {
-    throw result;
-  }
-
-  return result as CreateQueuedRunResponse;
+  return parseJsonResponse<CreateQueuedRunResponse>(response);
 }
 
 export async function getRuns(params?: {
@@ -63,13 +125,7 @@ export async function getRuns(params?: {
   const url = queryString ? `/api/runs?${queryString}` : "/api/runs";
 
   const response = await fetch(url);
-  const result = await response.json();
-
-  if (!response.ok) {
-    throw result;
-  }
-
-  return result as PaginatedResponse<LatestRun>;
+  return parseJsonResponse<PaginatedResponse<LatestRun>>(response);
 }
 
 export async function getRunStats(filters?: {
@@ -92,24 +148,12 @@ export async function getRunStats(filters?: {
     : "/api/runs/stats";
 
   const response = await fetch(url);
-  const result = await response.json();
-
-  if (!response.ok) {
-    throw result;
-  }
-
-  return result as RunStats;
+  return parseJsonResponse<RunStats>(response);
 }
 
 export async function getRunDetail(id: string): Promise<LatestRun> {
   const response = await fetch(`/api/runs/${id}`);
-  const result = await response.json();
-
-  if (!response.ok) {
-    throw result;
-  }
-
-  return result as LatestRun;
+  return parseJsonResponse<LatestRun>(response);
 }
 
 export async function deleteRun(id: string): Promise<void> {
@@ -118,8 +162,9 @@ export async function deleteRun(id: string): Promise<void> {
   });
 
   if (!response.ok) {
-    const result = await response.json();
-    throw result;
+    throw await parseJsonResponse<ApiErrorResponse>(response).catch(
+      (err) => err,
+    );
   }
 }
 
@@ -129,8 +174,9 @@ export async function clearRecentRuns(): Promise<void> {
   });
 
   if (!response.ok) {
-    const result = await response.json();
-    throw result;
+    throw await parseJsonResponse<ApiErrorResponse>(response).catch(
+      (err) => err,
+    );
   }
 }
 
@@ -147,13 +193,7 @@ export async function updateEvidenceStatus(
     body: JSON.stringify({ status }),
   });
 
-  const result = await response.json();
-
-  if (!response.ok) {
-    throw result;
-  }
-
-  return result as RunEvidence;
+  return parseJsonResponse<RunEvidence>(response);
 }
 
 export async function generateReport(runId: string): Promise<AIReport> {
@@ -161,11 +201,5 @@ export async function generateReport(runId: string): Promise<AIReport> {
     method: "POST",
   });
 
-  const result = await response.json();
-
-  if (!response.ok) {
-    throw result;
-  }
-
-  return result as AIReport;
+  return parseJsonResponse<AIReport>(response);
 }
