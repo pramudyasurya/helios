@@ -1,6 +1,6 @@
 import "server-only";
 
-import { PgBoss } from "pg-boss";
+import { PgBoss, type JobWithMetadata } from "pg-boss";
 import type { RunMode } from "@/lib/server/infrastructure/runner/runner";
 import { getErrorMessage } from "@/lib/shared/domain/errors";
 
@@ -35,17 +35,29 @@ export async function enqueueQARun(job: QARunJob): Promise<string> {
   return jobId;
 }
 
+export type QARunJobMeta = {
+  retryCount: number;
+  retryLimit: number;
+};
+
+export function getQARunJobMeta(
+  job: Pick<JobWithMetadata<QARunJob>, "retryCount" | "retryLimit">,
+): QARunJobMeta {
+  return { retryCount: job.retryCount, retryLimit: job.retryLimit };
+}
+
 export async function startQARunWorker(
-  handler: (job: QARunJob) => Promise<void>,
+  handler: (job: QARunJob, meta: QARunJobMeta) => Promise<void>,
 ): Promise<PgBoss> {
   const boss = await getQABoss();
 
   await boss.work<QARunJob>(
     QA_RUN_JOB_NAME,
-    { localConcurrency: 1 },
+    { localConcurrency: 1, includeMetadata: true },
     async (jobs) => {
-      for (const job of jobs) {
-        await handler(job.data);
+      const typedJobs = jobs as unknown as JobWithMetadata<QARunJob>[];
+      for (const job of typedJobs) {
+        await handler(job.data, getQARunJobMeta(job));
       }
     },
   );

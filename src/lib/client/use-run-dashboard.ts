@@ -27,26 +27,42 @@ export function useRunDashboard(onRunComplete?: () => void) {
     if (!activeRunId) return;
 
     let active = true;
+    let requestSequence = 0;
+    let pendingRequest = false;
 
     const pollRun = async () => {
+      if (pendingRequest) return;
+      pendingRequest = true;
+      const currentRequestId = ++requestSequence;
+
       try {
         const run = await getRunDetail(activeRunId);
-        if (!active) return;
+        if (!active || currentRequestId < requestSequence) return;
 
-        setLatestRun(run);
+        setLatestRun((prevRun) => {
+          if (
+            prevRun &&
+            prevRun.id === run.id &&
+            Array.isArray(prevRun.trail) &&
+            Array.isArray(run.trail) &&
+            run.trail.length < prevRun.trail.length &&
+            (run.status === "Queued" || run.status === "Running")
+          ) {
+            return { ...run, trail: prevRun.trail };
+          }
+          return run;
+        });
 
         if (run.status === "Completed" || run.status === "Failed") {
           onRunComplete?.();
         }
       } catch (error) {
-        if (!active) return;
+        if (!active || currentRequestId < requestSequence) return;
 
         const message = getRunErrorMessage(error);
-        setRunError(message);
-        setLatestRun((currentRun) =>
-          currentRun ? createFailedRunState(currentRun, message) : currentRun,
-        );
-        onRunComplete?.();
+        console.warn("[Run Dashboard Polling Warning]:", message);
+      } finally {
+        pendingRequest = false;
       }
     };
 
@@ -59,7 +75,15 @@ export function useRunDashboard(onRunComplete?: () => void) {
     };
   }, [activeRunId, onRunComplete]);
 
-  const handleSubmit = async (url: string, config?: { mode?: "single" | "manual" | "crawl"; routes?: string[]; maxPages?: number; maxDepth?: number }) => {
+  const handleSubmit = async (
+    url: string,
+    config?: {
+      mode?: "single" | "manual" | "crawl";
+      routes?: string[];
+      maxPages?: number;
+      maxDepth?: number;
+    },
+  ) => {
     setRunError(undefined);
 
     const trimmedUrl = url.trim();

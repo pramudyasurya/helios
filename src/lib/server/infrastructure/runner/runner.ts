@@ -20,7 +20,14 @@ import {
 } from "@/lib/server/infrastructure/runner/evidence";
 import { captureRunScreenshots } from "@/lib/server/infrastructure/runner/artifacts";
 import { waitForPageToSettle } from "@/lib/server/infrastructure/runner/navigation";
-import { createTrailStep, getRunTimestamp } from "@/lib/server/infrastructure/runner/trail";
+import {
+  createTrailStep,
+  createTerminalRunTrailStep,
+  getTerminalRunOutcome,
+  getRunTimestamp,
+  appendRunTrailStep,
+  formatDisplayUrl,
+} from "@/lib/server/infrastructure/runner/trail";
 import { isIpPrivate } from "@/lib/shared/domain/validators";
 import {
   createCrawlQueue,
@@ -291,6 +298,14 @@ export async function runMultiRouteQA({
 
   try {
     browser = await chromium.launch();
+    await appendRunTrailStep({
+      runId,
+      step: {
+        label: "Browser launched",
+        detail: "Playwright launched a Chromium browser instance.",
+        timestamp: startedAt.toISOString(),
+      },
+    });
 
     while (queue.pending.length > 0) {
       const next = takeNextCrawlPage(queue);
@@ -306,15 +321,15 @@ export async function runMultiRouteQA({
       });
       pageResults.push(pageResult);
 
-      trail.push(
-        createTrailStep({
-          label: `Inspected page (Depth ${pageResult.depth})`,
-          detail: `Evaluated ${pageResult.url} with status ${pageResult.status}${
-            pageResult.statusCode ? ` (${pageResult.statusCode})` : ""
-          }.`,
-          timestamp: pageResult.updatedAt,
-        }),
-      );
+      const stepInput = {
+        label: `Inspected page (Depth ${pageResult.depth})`,
+        detail: `Evaluated ${formatDisplayUrl(pageResult.url)} with status ${pageResult.status}${
+          pageResult.statusCode ? ` (${pageResult.statusCode})` : ""
+        }.`,
+        timestamp: pageResult.updatedAt,
+      };
+      trail.push(createTrailStep(stepInput));
+      await appendRunTrailStep({ runId, step: stepInput });
 
       if (mode === "crawl" && pageResult.status === "Completed") {
         queue = enqueueCrawlLinks({
@@ -324,6 +339,16 @@ export async function runMultiRouteQA({
           links: discoveredLinks,
           options,
         });
+
+        if (discoveredLinks.length > 0) {
+          const discoveryStep = {
+            label: "Discovered crawl links",
+            detail: `Found ${discoveredLinks.length} candidate link(s) on ${formatDisplayUrl(pageResult.url)}.`,
+            timestamp: new Date().toISOString(),
+          };
+          trail.push(createTrailStep(discoveryStep));
+          await appendRunTrailStep({ runId, step: discoveryStep });
+        }
       }
     }
 
@@ -353,22 +378,22 @@ export async function runMultiRouteQA({
     const failedPageCount = pageResults.filter(
       (pageResult) => pageResult.status === "Failed",
     ).length;
-    const summary =
-      failedPageCount === 0
-        ? `Helios completed QA for ${pageResults.length} page(s).`
-        : `Helios completed QA for ${pageResults.length} page(s) with ${failedPageCount} failed page(s).`;
+    const { status, summary } = getTerminalRunOutcome({
+      totalPages: pageResults.length,
+      failedPages: failedPageCount,
+    });
 
     trail.push(
-      createTrailStep({
-        label: "Run completed",
-        detail: summary,
+      createTerminalRunTrailStep({
+        status,
+        summary,
         timestamp: finishedAt.toISOString(),
       }),
     );
 
     return {
       id: runId,
-      status: failedPageCount === pageResults.length ? "Failed" : "Completed",
+      status,
       createdAt: startedAt.toISOString(),
       finishedAt: finishedAt.toISOString(),
       durationMs: finishedAt.getTime() - startedAt.getTime(),

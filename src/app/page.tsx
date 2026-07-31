@@ -14,6 +14,7 @@ import { LatestRunPanel } from "@/components/features/latest-run-panel";
 import { RunHistorySection } from "@/app/_components/run-history-section";
 import { RecentRunsSkeleton } from "@/app/_components/recent-runs-skeleton";
 import { DashboardMetrics } from "@/components/features/dashboard-metrics";
+import { RunActivityConsole } from "@/components/features/run-activity-console";
 
 export default function Home() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -90,6 +91,12 @@ export default function Home() {
                       </div>
                     </div>
                   </div>
+
+                  {/* Activity Console */}
+                  <RunActivityConsole
+                    status={latestRun?.status}
+                    trail={latestRun?.trail}
+                  />
 
                   {/* Middle Row */}
                   <LatestRunPanel latestRun={latestRun} onReset={handleReset} />
