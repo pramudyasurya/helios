@@ -9,7 +9,8 @@ interface PassRateDonutProps {
 }
 
 function PassRateDonutInner({ passRate }: PassRateDonutProps) {
-  const COLORS = ["#10b981", "var(--border)"];
+  const hasFailures = passRate < 100;
+  const COLORS = ["#10b981", hasFailures ? "var(--danger)" : "var(--border)"];
   const data = [
     {
       name: "Passed",

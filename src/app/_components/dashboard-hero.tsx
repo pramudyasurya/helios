@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Terminal,
   ShieldCheck,
   Activity,
   AlertTriangle,
@@ -62,51 +61,46 @@ export function DashboardHero({
         AI-assisted reports.
       </p>
 
-      {/* CLI Status Log Snippet */}
-      <div className="mt-4 inline-flex flex-col sm:flex-row sm:items-center gap-2 rounded-lg border border-border/80 bg-background/90 px-3.5 py-2 font-mono text-[11px] text-muted shadow-2xs">
-        <div className="flex items-center gap-2 shrink-0 text-muted/70">
-          <Terminal className="h-3.5 w-3.5 text-accent" />
+      {/* Compact System Status Indicator */}
+      <div className="mt-3.5 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] text-muted">
+        <span className="inline-flex items-center gap-1.5">
+          <StatusIcon className={`h-3 w-3 ${systemStatus.iconColor}`} />
           <span className="text-foreground font-semibold">
-            $ helios status --live
+            {systemStatus.label}
           </span>
-        </div>
-        <span className="hidden sm:inline text-border/80" aria-hidden="true">
-          │
         </span>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <span className="inline-flex items-center gap-1.5">
-            <StatusIcon className={`h-3 w-3 ${systemStatus.iconColor}`} />
-            <span className="text-foreground">{systemStatus.label}</span>
+        <span className="text-muted/40" aria-hidden="true">
+          ·
+        </span>
+        <span>
+          postgres:{" "}
+          <span
+            className={
+              isDbConnected === false
+                ? "text-danger font-semibold"
+                : "text-foreground"
+            }
+          >
+            {dbStatusText}
           </span>
-          <span className="text-muted/40">·</span>
-          <span>
-            postgres:{" "}
-            <span
-              className={
-                isDbConnected === false
-                  ? "text-danger font-semibold"
+        </span>
+        <span className="text-muted/40" aria-hidden="true">
+          ·
+        </span>
+        <span>
+          worker:{" "}
+          <span
+            className={
+              isDbConnected === false
+                ? "text-danger font-semibold"
+                : isRunActive
+                  ? "text-accent font-semibold"
                   : "text-foreground"
-              }
-            >
-              {dbStatusText}
-            </span>
+            }
+          >
+            {workerStatusText}
           </span>
-          <span className="text-muted/40">·</span>
-          <span>
-            worker:{" "}
-            <span
-              className={
-                isDbConnected === false
-                  ? "text-danger font-semibold"
-                  : isRunActive
-                    ? "text-accent font-semibold"
-                    : "text-foreground"
-              }
-            >
-              {workerStatusText}
-            </span>
-          </span>
-        </div>
+        </span>
       </div>
     </header>
   );

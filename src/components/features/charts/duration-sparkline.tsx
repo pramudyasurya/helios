@@ -17,10 +17,14 @@ function DurationSparklineInner({ recentDurations }: DurationSparklineProps) {
     duration,
   }));
 
+  const formattedDurations = recentDurations
+    .map((ms) => `${(ms / 1000).toFixed(2)}s`)
+    .join(", ");
+
   return (
     <div
       role="img"
-      aria-label={`Sparkline showing recent run durations: ${recentDurations.join(",")}`}
+      aria-label={`Recent run durations trend: ${formattedDurations}`}
       className="h-8 w-20 shrink-0"
     >
       <ResponsiveContainer width="100%" height="100%">

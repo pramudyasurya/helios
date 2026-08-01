@@ -13,8 +13,6 @@ import { RunForm } from "@/components/features/run-form";
 import { LatestRunPanel } from "@/components/features/latest-run-panel";
 import { RunHistorySection } from "@/app/_components/run-history-section";
 import { RecentRunsSkeleton } from "@/app/_components/recent-runs-skeleton";
-import { DashboardMetrics } from "@/components/features/dashboard-metrics";
-import { RunActivityConsole } from "@/components/features/run-activity-console";
 
 export default function Home() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -53,56 +51,25 @@ export default function Home() {
     <main className="min-h-screen bg-background text-foreground">
       <AppHeader />
 
-      <div className="py-8 px-4 sm:px-6 mx-auto max-w-7xl">
+      <div className="py-8 px-4 sm:px-6 mx-auto max-w-7xl space-y-6">
         <DashboardHero
           isRunActive={isRunActive}
           isDbConnected={dbConnectedState}
         />
 
+        <RunForm
+          onSubmit={handleSubmit}
+          isDisabled={isRunActive}
+          error={runError}
+          urlInputRef={runUrlInputRef}
+        />
+
+        <LatestRunPanel latestRun={latestRun} onReset={handleReset} />
+
         <Suspense fallback={<RecentRunsSkeleton />}>
           <RunHistorySection
             refreshTrigger={refreshTrigger}
             searchInputRef={runSearchInputRef}
-            renderMetrics={(stats, isLoading) => {
-              return (
-                <div className="space-y-6">
-                  {/* Top Row */}
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-                    <div className="lg:col-span-7">
-                      <RunForm
-                        onSubmit={handleSubmit}
-                        isDisabled={isRunActive}
-                        error={runError}
-                        urlInputRef={runUrlInputRef}
-                      />
-                    </div>
-
-                    <div className="lg:col-span-5">
-                      <div className="h-full rounded-xl border border-border/80 bg-panel/90 p-5 shadow-sm flex flex-col justify-between">
-                        <div className="mb-3.5 flex items-center justify-between">
-                          <h2 className="text-sm font-semibold text-foreground">
-                            Observability Metrics
-                          </h2>
-                          <span className="text-[11px] font-medium text-muted">
-                            Real-time Summary
-                          </span>
-                        </div>
-                        <DashboardMetrics stats={stats} isLoading={isLoading} />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Activity Console */}
-                  <RunActivityConsole
-                    status={latestRun?.status}
-                    trail={latestRun?.trail}
-                  />
-
-                  {/* Middle Row */}
-                  <LatestRunPanel latestRun={latestRun} onReset={handleReset} />
-                </div>
-              );
-            }}
             onDatabaseConnectionChange={setDbConnectedState}
           />
         </Suspense>
