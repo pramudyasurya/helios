@@ -10,6 +10,9 @@ export type RunConfig = {
   routes?: string[];
   maxPages?: number;
   maxDepth?: number;
+  projectId?: string;
+  environmentId?: string;
+  origin?: "manual";
 };
 
 type RunOptionsPickerProps = {

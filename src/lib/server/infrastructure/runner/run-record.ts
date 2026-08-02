@@ -21,7 +21,11 @@ function jsonStringArray(value: unknown): string[] {
 }
 
 export function runRecordToLatestRun(
-  run: Run & { evidence?: Evidence[]; pageResults?: PrismaPageResult[] },
+  run: Run & {
+    evidence?: Evidence[];
+    pageResults?: PrismaPageResult[];
+    environment?: { name: string; project?: { name: string } } | null;
+  },
 ): LatestRun {
   return {
     id: run.id,
@@ -82,5 +86,8 @@ export function runRecordToLatestRun(
             consoleErrors: jsonStringArray(run.consoleErrors),
             failedRequests: jsonStringArray(run.failedRequests),
           }),
+    projectName: run.environment?.project?.name,
+    environmentName: run.environment?.name,
+    origin: run.origin ?? "manual",
   };
 }

@@ -19,7 +19,7 @@ export function validateAIReport(data: unknown): AIReport | null {
   return result.success ? result.data : null;
 }
 
-const HttpUrlSchema = z.string().trim().url({ message: "Format URL salah" }).refine(
+const HttpUrlSchema = z.string().trim().url({ message: "Enter a valid URL." }).refine(
   (val) => {
     try {
       const parsed = new URL(val);
@@ -97,8 +97,11 @@ export const CreateRunSchema = z
     routes: z.array(HttpUrlSchema).max(4).default([]),
     maxPages: z.coerce.number().int().min(1).max(5).default(5),
     maxDepth: z.coerce.number().int().min(0).max(2).default(2),
+    projectId: z.string().trim().min(1).optional(),
+    environmentId: z.string().trim().min(1).optional(),
+    origin: z.literal("manual").optional().default("manual"),
   }))
-  .superRefine(({ mode, routes }, context) => {
+  .superRefine(({ mode, routes, projectId, environmentId }, context) => {
     if (mode === "manual" && routes.length === 0) {
       context.addIssue({
         code: "custom",
@@ -106,7 +109,36 @@ export const CreateRunSchema = z
         message: "At least one route is required in manual mode.",
       });
     }
+
+    if (Boolean(projectId) !== Boolean(environmentId)) {
+      context.addIssue({
+        code: "custom",
+        path: [projectId ? "environmentId" : "projectId"],
+        message: "Select both a Project and an Environment, or run without context.",
+      });
+    }
   });
+
+export const CreateProjectSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, "Project name is required.")
+    .max(100, "Project name must be 100 characters or fewer."),
+});
+
+export const CreateEnvironmentSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, "Environment name is required.")
+    .max(100, "Environment name must be 100 characters or fewer."),
+  baseUrl: z
+    .preprocess(
+      (val) => (typeof val === "string" && val.trim() === "" ? undefined : val),
+      HttpUrlSchema.optional(),
+    ),
+});
 
 const VALID_QUERY_STATUSES = [
   "Idle",

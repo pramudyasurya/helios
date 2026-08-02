@@ -19,6 +19,9 @@ export type CreateRunOptions = {
   routes?: string[];
   maxPages?: number;
   maxDepth?: number;
+  projectId?: string;
+  environmentId?: string;
+  origin?: "manual";
 };
 
 export async function parseJsonResponse<T>(response: Response): Promise<T> {

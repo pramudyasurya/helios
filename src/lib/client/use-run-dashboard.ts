@@ -82,6 +82,9 @@ export function useRunDashboard(onRunComplete?: () => void) {
       routes?: string[];
       maxPages?: number;
       maxDepth?: number;
+      projectId?: string;
+      environmentId?: string;
+      origin?: "manual";
     },
   ) => {
     setRunError(undefined);
@@ -100,6 +103,9 @@ export function useRunDashboard(onRunComplete?: () => void) {
         routes: config?.routes,
         maxPages: config?.maxPages,
         maxDepth: config?.maxDepth,
+        projectId: config?.projectId,
+        environmentId: config?.environmentId,
+        origin: config?.origin,
       });
       const { run } = createQueuedRunState(trimmedUrl);
 

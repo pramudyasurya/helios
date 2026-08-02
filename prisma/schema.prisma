@@ -36,7 +36,33 @@ model Run {
   evidence       Evidence[]
   pageResults    PageResult[]
 
+  environmentId String?
+  environment   Environment? @relation(fields: [environmentId], references: [id], onDelete: SetNull)
+  origin        String       @default("manual")
+
   updatedAt DateTime @default(now()) @updatedAt
+}
+
+model Project {
+  id           String        @id @default(uuid())
+  name         String
+  slug         String        @unique
+  environments Environment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Environment {
+  id        String   @id @default(uuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name      String
+  baseUrl   String?
+  runs      Run[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, name])
 }
 
 enum EvidenceType {

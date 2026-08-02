@@ -14,7 +14,11 @@ export async function GET(
   try {
     const run = await prisma.run.findUnique({
       where: { id },
-      include: { evidence: true, pageResults: true },
+      include: {
+        evidence: true,
+        pageResults: true,
+        environment: { include: { project: true } },
+      },
     });
 
     if (!run) {

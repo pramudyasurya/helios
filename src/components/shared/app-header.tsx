@@ -1,8 +1,13 @@
+"use client";
+
 import { HELIOS_ROUTES } from "@/lib/shared/domain/routes";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export function AppHeader() {
+  const pathname = usePathname();
+
   return (
     <header className="sticky top-0 z-20 border-b border-border/80 bg-background/90 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 py-3.5">
@@ -28,15 +33,33 @@ export function AppHeader() {
           <nav className="flex items-center gap-4 text-xs font-medium border-l border-border pl-6">
             <Link
               href={HELIOS_ROUTES.dashboard}
-              className="text-muted hover:text-foreground transition"
+              className={`transition ${
+                pathname === "/"
+                  ? "text-amber-400 font-semibold"
+                  : "text-muted hover:text-foreground"
+              }`}
             >
               Dashboard
             </Link>
             <Link
               href={HELIOS_ROUTES.evidence()}
-              className="text-muted hover:text-foreground transition"
+              className={`transition ${
+                pathname.startsWith("/evidence")
+                  ? "text-amber-400 font-semibold"
+                  : "text-muted hover:text-foreground"
+              }`}
             >
               Evidence Board
+            </Link>
+            <Link
+              href={HELIOS_ROUTES.projects()}
+              className={`transition ${
+                pathname.startsWith("/projects")
+                  ? "text-amber-400 font-semibold"
+                  : "text-muted hover:text-foreground"
+              }`}
+            >
+              Projects
             </Link>
           </nav>
         </div>

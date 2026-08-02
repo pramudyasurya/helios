@@ -47,6 +47,27 @@ export type PageResult = {
   updatedAt: string;
 };
 
+export type Project = {
+  id: string;
+  name: string;
+  slug: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Environment = {
+  id: string;
+  projectId: string;
+  name: string;
+  baseUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ProjectWithEnvironments = Project & {
+  environments: Environment[];
+};
+
 export type LatestRun = {
   id: string;
   startingUrl: string;
@@ -73,6 +94,10 @@ export type LatestRun = {
   pageResults?: PageResult[];
   evidence?: RunEvidence[];
   report?: AIReport;
+
+  projectName?: string;
+  environmentName?: string;
+  origin?: string;
 };
 
 export type CreateQueuedRunResponse = {

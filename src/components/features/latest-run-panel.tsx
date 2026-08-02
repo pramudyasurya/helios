@@ -59,7 +59,15 @@ export function LatestRunPanel({ latestRun, onReset }: LatestRunPanelProps) {
       </div>
 
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold text-foreground">Latest Run</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-semibold text-foreground">Latest Run</h2>
+          {latestRun?.projectName || latestRun?.environmentName ? (
+            <span className="inline-flex items-center gap-1 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-400">
+              {latestRun.projectName ? `${latestRun.projectName} / ` : ""}
+              {latestRun.environmentName}
+            </span>
+          ) : null}
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge status={latestRun?.status ?? "Idle"} />
           {latestRun ? (

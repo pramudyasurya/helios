@@ -49,7 +49,47 @@ export async function POST(request: Request) {
     );
   }
 
-  const { url: submittedUrl, mode, routes, maxPages, maxDepth } = validation.data;
+  const {
+    url: submittedUrl,
+    mode,
+    routes,
+    maxPages,
+    maxDepth,
+    projectId,
+    environmentId,
+    origin,
+  } = validation.data;
+
+  let validEnvId: string | undefined = undefined;
+
+  if (environmentId) {
+    if (!projectId) {
+      return Response.json(
+        {
+          error: "Invalid context",
+          message: "A projectId is required when environmentId is specified.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const env = await prisma.environment.findUnique({
+      where: { id: environmentId },
+    });
+
+    if (!env || env.projectId !== projectId) {
+      return Response.json(
+        {
+          error: "Invalid context",
+          message: "The specified Environment does not belong to the selected Project.",
+        },
+        { status: 400 }
+      );
+    }
+
+    validEnvId = environmentId;
+  }
+
   const now = new Date();
   const runId = `run_${now.getTime()}`;
 
@@ -64,11 +104,13 @@ export async function POST(request: Request) {
         trail: [
           {
             label: "Run queued",
-            detail: `Helios queued a ${mode} browser QA run.`, 
+            detail: `Helios queued a ${mode} browser QA run.`,
             timestamp: now.toISOString(),
           },
         ],
         checks: [],
+        environmentId: validEnvId,
+        origin,
       },
     });
 
@@ -181,6 +223,13 @@ export async function GET(request: Request) {
       prisma.run.count({ where }),
       prisma.run.findMany({
         where,
+        include: {
+          environment: {
+            include: {
+              project: true,
+            },
+          },
+        },
         orderBy: {
           createdAt: "desc",
         },

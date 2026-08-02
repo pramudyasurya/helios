@@ -14,6 +14,7 @@ const getRunById = cache(async (id: string) => {
     include: {
       evidence: true,
       pageResults: true,
+      environment: { include: { project: true } },
     },
   });
 });

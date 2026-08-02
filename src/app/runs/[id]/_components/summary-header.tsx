@@ -27,6 +27,12 @@ export function RunSummaryHeader({ run }: RunSummaryHeaderProps) {
         </Link>
 
         <div className="flex items-center gap-2">
+          {run.projectName || run.environmentName ? (
+            <span className="inline-flex items-center gap-1 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-400">
+              {run.projectName ? `${run.projectName} / ` : ""}
+              {run.environmentName}
+            </span>
+          ) : null}
           <StatusBadge status={run.status} />
           {isFinished && <ExportRunButton run={run} />}
         </div>

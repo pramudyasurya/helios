@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  CreateEnvironmentSchema,
+  CreateProjectSchema,
   CreateRunSchema,
   GetRunsQuerySchema,
   isValidHttpUrl,
@@ -359,6 +361,68 @@ describe("UpdateEvidenceStatusSchema", () => {
   it("rejects invalid evidence status", () => {
     expect(
       UpdateEvidenceStatusSchema.safeParse({ status: "pending" }).success,
+    ).toBe(false);
+  });
+});
+
+describe("CreateProjectSchema and CreateEnvironmentSchema", () => {
+  it("validates project name", () => {
+    expect(CreateProjectSchema.safeParse({ name: "Storefront" }).success).toBe(true);
+    const result = CreateProjectSchema.safeParse({ name: "   " });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.message).toBe("Project name is required.");
+    }
+  });
+
+  it("validates environment name and optional baseUrl", () => {
+    expect(
+      CreateEnvironmentSchema.safeParse({
+        name: "Staging",
+        baseUrl: "https://staging.example.com",
+      }).success
+    ).toBe(true);
+
+    expect(
+      CreateEnvironmentSchema.safeParse({
+        name: "Staging",
+        baseUrl: "",
+      }).success
+    ).toBe(true);
+
+    expect(
+      CreateEnvironmentSchema.safeParse({
+        name: "Staging",
+        baseUrl: "http://localhost:3000",
+      }).success
+    ).toBe(false);
+  });
+});
+
+describe("CreateRunSchema run context", () => {
+  it("accepts an ad-hoc run or a complete Project and Environment context", () => {
+    expect(CreateRunSchema.safeParse({ url: "https://example.com" }).success).toBe(true);
+    expect(
+      CreateRunSchema.safeParse({
+        url: "https://example.com",
+        projectId: "project-1",
+        environmentId: "environment-1",
+      }).success,
+    ).toBe(true);
+  });
+
+  it("rejects partial context and CI origin through the manual run contract", () => {
+    expect(
+      CreateRunSchema.safeParse({
+        url: "https://example.com",
+        projectId: "project-1",
+      }).success,
+    ).toBe(false);
+    expect(
+      CreateRunSchema.safeParse({
+        url: "https://example.com",
+        origin: "ci",
+      }).success,
     ).toBe(false);
   });
 });
