@@ -182,26 +182,22 @@ export function RunDetailTabs({ run }: RunDetailTabsProps) {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-      <div className="md:col-span-3 md:sticky md:top-20 self-start z-10">
-        <RunDetailSidebar
-          activeSection={activeSection}
-          onSelectSection={(id) => setActiveSection(id)}
-          counts={{
-            pageResults: pageResultsCount,
-            findings: findingCount,
-            evidence: evidenceCount,
-            checks: checksCount,
-            trail: trailCount,
-          }}
-          hasReport={Boolean(run.report)}
-        />
-      </div>
+    <div className="space-y-4 w-full">
+      <RunDetailSidebar
+        activeSection={activeSection}
+        onSelectSection={(id) => setActiveSection(id)}
+        counts={{
+          pageResults: pageResultsCount,
+          findings: findingCount,
+          evidence: evidenceCount,
+          checks: checksCount,
+          trail: trailCount,
+        }}
+        hasReport={Boolean(run.report)}
+      />
 
-      <div className="md:col-span-9 min-w-0">
-        <div className="rounded-xl border border-border/80 bg-panel/90 p-5 shadow-sm">
-          {renderActiveSection()}
-        </div>
+      <div className="rounded-xs border border-border/80 bg-panel/90 p-5 shadow-sm">
+        {renderActiveSection()}
       </div>
     </div>
   );

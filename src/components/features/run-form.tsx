@@ -82,10 +82,10 @@ export function RunForm({
   };
 
   return (
-    <section className="rounded-xl border border-border/80 bg-panel/90 p-5 shadow-sm">
+    <section className="rounded-xs border border-border/80 bg-panel/90 p-5 shadow-sm">
       <form aria-label="Create browser run" onSubmit={handleFormSubmit}>
         {/* Project & Environment Target Context Bar */}
-        <div className="mb-4 p-3.5 rounded-xl border border-border/70 bg-card/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="mb-4 p-3.5 rounded-xs border border-border/70 bg-card/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
             <FolderGit2 className="w-4 h-4 text-amber-500 shrink-0" />
             <span>Target Context:</span>
@@ -97,7 +97,7 @@ export function RunForm({
               value={selectedProjectId}
               onChange={(e) => handleProjectChange(e.target.value)}
               disabled={isDisabled}
-              className="px-3 py-1.5 bg-card border border-border rounded-lg text-xs font-medium text-foreground outline-none transition focus:border-amber-500 focus:ring-1 focus:ring-amber-500 disabled:opacity-50 cursor-pointer"
+              className="px-3 py-1.5 bg-card border border-border rounded-xs text-xs font-medium text-foreground outline-none transition focus:border-amber-500 focus:ring-1 focus:ring-amber-500 disabled:opacity-50 cursor-pointer"
             >
               <option value="">No Project (Ad-hoc run)</option>
               {projects.map((p) => (
@@ -113,7 +113,7 @@ export function RunForm({
                 value={selectedEnvironmentId}
                 onChange={(e) => handleEnvironmentChange(e.target.value)}
                 disabled={isDisabled || availableEnvironments.length === 0}
-                className="px-3 py-1.5 bg-card border border-border rounded-lg text-xs font-medium text-foreground outline-none transition focus:border-amber-500 focus:ring-1 focus:ring-amber-500 disabled:opacity-50 cursor-pointer"
+                className="px-3 py-1.5 bg-card border border-border rounded-xs text-xs font-medium text-foreground outline-none transition focus:border-amber-500 focus:ring-1 focus:ring-amber-500 disabled:opacity-50 cursor-pointer"
               >
                 <option value="">Select Environment...</option>
                 {availableEnvironments.map((env) => (
@@ -127,7 +127,7 @@ export function RunForm({
 
           <Link
             href={HELIOS_ROUTES.projects()}
-            className="rounded-full border border-border px-2.5 py-1 text-xs text-muted hover:text-foreground transition flex items-center gap-1 self-end sm:self-auto"
+            className="rounded-xs border border-border px-2.5 py-1 text-xs text-muted hover:text-foreground transition flex items-center gap-1 self-end sm:self-auto"
           >
             <span>Manage projects</span>
             <ExternalLink className="w-3 h-3" />
@@ -140,7 +140,7 @@ export function RunForm({
             className="text-sm font-semibold text-foreground flex items-center gap-2"
           >
             <span>Starting URL</span>
-            <kbd className="rounded border border-border bg-card px-1.5 py-0.5 text-[10px] font-mono text-muted">
+            <kbd className="rounded-xs border border-border bg-card px-1.5 py-0.5 text-[10px] font-mono text-muted">
               Alt + R
             </kbd>
           </label>
@@ -152,7 +152,7 @@ export function RunForm({
                 type="button"
                 onClick={() => setUrl(preset)}
                 disabled={isDisabled}
-                className="rounded border border-border/60 bg-card px-2 py-0.5 text-[11px] text-muted hover:text-foreground hover:border-border transition disabled:opacity-50"
+                className="rounded-xs border border-border/60 bg-card px-2 py-0.5 text-[11px] text-muted hover:text-foreground hover:border-border transition disabled:opacity-50"
               >
                 {preset.replace("https://", "")}
               </button>
@@ -168,7 +168,7 @@ export function RunForm({
             ref={urlInputRef}
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            className="flex-1 w-full rounded-lg border border-border bg-card px-3.5 py-2.5 text-sm text-foreground outline-none transition disabled:cursor-not-allowed disabled:opacity-60 focus:border-accent focus:ring-1 focus:ring-accent"
+            className="flex-1 w-full rounded-xs border border-border bg-card px-3.5 py-2.5 text-sm text-foreground outline-none transition disabled:cursor-not-allowed disabled:opacity-60 focus:border-accent focus:ring-1 focus:ring-accent"
             placeholder="https://example.com"
             disabled={isDisabled}
             aria-invalid={Boolean(error)}
@@ -181,7 +181,7 @@ export function RunForm({
             required
           />
           <button
-            className="rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-background sm:w-auto disabled:cursor-not-allowed disabled:opacity-70 transition hover:opacity-95 active:scale-[0.99] shadow-sm"
+            className="rounded-xs bg-accent px-5 py-2.5 text-sm font-semibold text-background sm:w-auto disabled:cursor-not-allowed disabled:opacity-70 transition hover:opacity-95 active:scale-[0.99] shadow-sm"
             type="submit"
             disabled={isDisabled}
           >
@@ -200,7 +200,7 @@ export function RunForm({
         <div
           id="run-form-error"
           role="alert"
-          className="mt-4 rounded-lg border border-danger/40 bg-danger/10 p-3.5"
+          className="mt-4 rounded-xs border border-danger/40 bg-danger/10 p-3.5"
         >
           <p className="text-sm font-semibold text-danger">Run failed</p>
           <p className="mt-0.5 text-xs text-muted">{error}</p>

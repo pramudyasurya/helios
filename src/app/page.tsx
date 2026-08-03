@@ -7,7 +7,7 @@ import {
   useKeyboardShortcuts,
 } from "@/lib/client/use-keyboard-shortcuts";
 
-import { AppHeader } from "@/components/shared/app-header";
+import { AppShell } from "@/components/shared/app-shell";
 import { DashboardHero } from "@/app/_components/dashboard-hero";
 import { RunForm } from "@/components/features/run-form";
 import { LatestRunPanel } from "@/components/features/latest-run-panel";
@@ -48,10 +48,8 @@ export default function Home() {
   useKeyboardShortcuts(keyboardShortcuts);
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <AppHeader />
-
-      <div className="py-8 px-4 sm:px-6 mx-auto max-w-7xl space-y-6">
+    <AppShell>
+      <main className="py-8 px-4 sm:px-6 mx-auto max-w-7xl space-y-6">
         <DashboardHero
           isRunActive={isRunActive}
           isDbConnected={dbConnectedState}
@@ -73,7 +71,7 @@ export default function Home() {
             onDatabaseConnectionChange={setDbConnectedState}
           />
         </Suspense>
-      </div>
-    </main>
+      </main>
+    </AppShell>
   );
 }

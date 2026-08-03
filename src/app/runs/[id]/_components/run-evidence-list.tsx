@@ -151,9 +151,9 @@ export function RunEvidenceList({
                 type="button"
                 aria-pressed={activeFilter === f.id}
                 onClick={() => handleFilterChange(f.id)}
-                className={`rounded-full border px-2 py-1 text-xs transition ${
+                className={`rounded-xs border px-2 py-1 text-xs transition cursor-pointer ${
                   activeFilter === f.id
-                    ? "border-foreground bg-foreground text-background"
+                    ? "border-foreground bg-foreground text-background font-medium"
                     : "border-border bg-panel text-muted hover:text-foreground"
                 }`}
               >
@@ -168,7 +168,7 @@ export function RunEvidenceList({
             <button
               type="button"
               onClick={handleCopyAllEvidence}
-              className="rounded-full border border-border px-2 py-1 text-xs text-muted transition hover:text-foreground"
+              className="rounded-xs border border-border px-2 py-1 text-xs text-muted transition hover:text-foreground cursor-pointer"
             >
               {hasCopiedAllEvidence ? "Copied!" : "Copy visible"}
             </button>
@@ -178,7 +178,7 @@ export function RunEvidenceList({
             <button
               type="button"
               onClick={() => setShowAllEvidence((current) => !current)}
-              className="rounded-full border border-border px-2 py-1 text-xs text-muted transition hover:text-foreground"
+              className="rounded-xs border border-border px-2 py-1 text-xs text-muted transition hover:text-foreground cursor-pointer"
             >
               {showAllEvidence ? "Show less" : "Show all evidence"}
             </button>
@@ -216,7 +216,7 @@ export function RunEvidenceList({
             <div
               key={section.id}
               id={`evidence-section-${section.id}`}
-              className={`rounded-lg p-2 -m-2 transition-all duration-1000 ${highlightClass}`}
+              className={`rounded-xs p-2 -m-2 transition-all duration-1000 ${highlightClass}`}
             >
               <EvidenceSection
                 title={section.title}

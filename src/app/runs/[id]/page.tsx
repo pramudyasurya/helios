@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/server/infrastructure/db/prisma";
 
-import { AppHeader } from "@/components/shared/app-header";
+import { AppShell } from "@/components/shared/app-shell";
 import { RunSummaryHeader } from "@/app/runs/[id]/_components/summary-header";
 import { runRecordToLatestRun } from "@/lib/server/infrastructure/runner/run-record";
 import { RunDetailTabs } from "@/app/runs/[id]/_components/run-detail-tabs";
@@ -55,14 +55,13 @@ export default async function RunDetailPage({
   const run = runRecordToLatestRun(record);
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <AppHeader />
-      <div className="py-8 px-4 sm:px-6 mx-auto max-w-7xl">
+    <AppShell>
+      <main className="py-8 px-4 sm:px-6 mx-auto max-w-7xl">
         <RunSummaryHeader run={run} />
         <div className="mt-6">
           <RunDetailTabs run={run} />
         </div>
-      </div>
-    </main>
+      </main>
+    </AppShell>
   );
 }

@@ -29,7 +29,7 @@ function getDomain(urlStr: string) {
 }
 
 const PAGINATION_BUTTON_CLASS =
-  "inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background text-muted transition hover:bg-muted hover:text-foreground disabled:opacity-50 disabled:pointer-events-none";
+  "inline-flex h-8 w-8 items-center justify-center rounded-xs border border-border bg-background text-muted transition hover:bg-muted hover:text-foreground disabled:opacity-50 disabled:pointer-events-none cursor-pointer";
 
 export function RecentRunsList({
   runs,
@@ -61,7 +61,7 @@ export function RecentRunsList({
   }
 
   return (
-    <section className="mt-6 rounded-lg border border-border bg-panel p-5">
+    <section className="mt-6 rounded-xs border border-border bg-panel p-5">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-base font-medium text-foreground">Recent runs</h2>
         {confirming ? (
@@ -82,7 +82,7 @@ export function RecentRunsList({
                 }
               }}
               disabled={isClearing}
-              className="rounded-full bg-danger/10 px-3 py-1 text-xs font-medium text-danger transition hover:bg-danger hover:text-background disabled:opacity-50"
+              className="rounded-xs bg-danger/10 px-3 py-1 text-xs font-medium text-danger transition hover:bg-danger hover:text-background disabled:opacity-50 cursor-pointer"
             >
               {isClearing ? "Clearing..." : "Yes, clear"}
             </button>
@@ -93,7 +93,7 @@ export function RecentRunsList({
                 setActionError(null);
               }}
               disabled={isClearing}
-              className="rounded-full border border-border px-3 py-1 text-xs text-muted transition hover:text-foreground disabled:opacity-50"
+              className="rounded-xs border border-border px-3 py-1 text-xs text-muted transition hover:text-foreground disabled:opacity-50 cursor-pointer"
             >
               Cancel
             </button>
@@ -105,7 +105,7 @@ export function RecentRunsList({
               setConfirming(true);
               setActionError(null);
             }}
-            className="rounded-full border border-border px-3 py-1 text-xs text-muted transition hover:text-foreground"
+            className="rounded-xs border border-border px-3 py-1 text-xs text-muted transition hover:text-foreground cursor-pointer"
           >
             Clear History
           </button>
@@ -115,7 +115,7 @@ export function RecentRunsList({
       {actionError && (
         <div
           role="alert"
-          className="mb-4 rounded-md bg-danger/10 px-3 py-2 text-sm text-danger border border-danger/20"
+          className="mb-4 rounded-xs bg-danger/10 px-3 py-2 text-sm text-danger border border-danger/20"
         >
           {actionError}
         </div>
@@ -180,7 +180,7 @@ export function RecentRunsList({
                       }
                     }}
                     disabled={deletingInProgress === run.id}
-                    className="rounded-md bg-danger/10 px-2 py-1 text-xs font-medium text-danger transition hover:bg-danger hover:text-background disabled:opacity-50"
+                    className="rounded-xs bg-danger/10 px-2 py-1 text-xs font-medium text-danger transition hover:bg-danger hover:text-background disabled:opacity-50 cursor-pointer"
                   >
                     {deletingInProgress === run.id ? "Deleting..." : "Delete"}
                   </button>
@@ -190,7 +190,7 @@ export function RecentRunsList({
                       setDeletingId(null);
                       setActionError(null);
                     }}
-                    className="rounded-md px-2 py-1 text-xs text-muted transition hover:bg-muted hover:text-foreground disabled:opacity-50"
+                    className="rounded-xs px-2 py-1 text-xs text-muted transition hover:bg-muted hover:text-foreground disabled:opacity-50 cursor-pointer"
                     disabled={deletingInProgress === run.id}
                   >
                     Cancel
@@ -203,7 +203,7 @@ export function RecentRunsList({
                     setDeletingId(run.id);
                     setActionError(null);
                   }}
-                  className="rounded-md p-1.5 text-muted opacity-100 transition hover:bg-danger/10 hover:text-danger sm:opacity-0 focus:opacity-100 sm:group-hover:opacity-100"
+                  className="rounded-xs p-1.5 text-muted opacity-100 transition hover:bg-danger/10 hover:text-danger sm:opacity-0 focus:opacity-100 sm:group-hover:opacity-100 cursor-pointer"
                   aria-label="Delete run"
                 >
                   <Trash2 className="h-4 w-4" />

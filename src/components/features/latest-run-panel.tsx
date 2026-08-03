@@ -53,7 +53,7 @@ export function LatestRunPanel({ latestRun, onReset }: LatestRunPanelProps) {
     : null;
 
   return (
-    <section className="rounded-xl border border-border/80 bg-panel/90 p-5 shadow-sm">
+    <section className="rounded-xs border border-border/80 bg-panel/90 p-5 shadow-sm">
       <div className="sr-only" aria-live="polite" aria-atomic="true">
         {announcementText}
       </div>
@@ -62,7 +62,7 @@ export function LatestRunPanel({ latestRun, onReset }: LatestRunPanelProps) {
         <div className="flex items-center gap-2">
           <h2 className="text-sm font-semibold text-foreground">Latest Run</h2>
           {latestRun?.projectName || latestRun?.environmentName ? (
-            <span className="inline-flex items-center gap-1 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-400">
+            <span className="inline-flex items-center gap-1 rounded-xs border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-400">
               {latestRun.projectName ? `${latestRun.projectName} / ` : ""}
               {latestRun.environmentName}
             </span>
@@ -79,14 +79,14 @@ export function LatestRunPanel({ latestRun, onReset }: LatestRunPanelProps) {
                   downloadRunJson(latestRun);
                 }}
                 disabled={!canExport}
-                className="rounded-full border border-border px-2.5 py-1 text-xs text-muted transition hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-xs border border-border px-2.5 py-1 text-xs text-muted transition hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
               >
                 Export JSON
               </button>
               {canExport ? (
                 <Link
                   href={HELIOS_ROUTES.runDetail(latestRun.id)}
-                  className="rounded-full border border-border px-2.5 py-1 text-xs text-muted transition hover:text-foreground"
+                  className="rounded-xs border border-border px-2.5 py-1 text-xs text-muted transition hover:text-foreground"
                 >
                   View run
                 </Link>
@@ -94,7 +94,7 @@ export function LatestRunPanel({ latestRun, onReset }: LatestRunPanelProps) {
               <button
                 type="button"
                 onClick={onReset}
-                className="rounded-full border border-border px-2.5 py-1 text-xs text-muted transition hover:text-foreground"
+                className="rounded-xs border border-border px-2.5 py-1 text-xs text-muted transition hover:text-foreground cursor-pointer"
               >
                 Reset
               </button>
@@ -110,7 +110,7 @@ export function LatestRunPanel({ latestRun, onReset }: LatestRunPanelProps) {
               <div
                 role="alert"
                 aria-label="Run Failure Reason"
-                className="rounded-lg border border-danger/40 bg-danger/10 p-4"
+                className="rounded-xs border border-danger/40 bg-danger/10 p-4"
               >
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-danger">
                   <AlertTriangle className="h-4 w-4 shrink-0" />
@@ -138,7 +138,7 @@ export function LatestRunPanel({ latestRun, onReset }: LatestRunPanelProps) {
 
             {/* Collapsible diagnostic trail disclosure for completed or failed runs */}
             {!isActive && trailLength > 0 && (
-              <details className="group rounded-lg border border-border/60 bg-card/40 p-4">
+              <details className="group rounded-xs border border-border/60 bg-card/40 p-4">
                 <summary className="flex cursor-pointer items-center justify-between font-medium text-xs text-muted hover:text-foreground select-none">
                   <span>Execution Activity Log ({trailLength} steps)</span>
                   <span className="text-[11px] text-muted group-open:hidden">
@@ -158,7 +158,7 @@ export function LatestRunPanel({ latestRun, onReset }: LatestRunPanelProps) {
             )}
           </div>
         ) : (
-          <div className="rounded-lg border border-dashed border-border/70 bg-card/60 p-4 text-center sm:text-left">
+          <div className="rounded-xs border border-dashed border-border/70 bg-card/60 p-4 text-center sm:text-left">
             <p className="text-sm font-medium text-foreground">
               No QA runs yet
             </p>

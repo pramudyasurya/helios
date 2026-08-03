@@ -6,7 +6,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export function AppHeader() {
-  const pathname = usePathname();
+  const pathname = usePathname() || "/";
+
+  const isDashboard = pathname === "/";
+  const isEvidence = pathname.startsWith("/evidence");
+  const isProjects = pathname.startsWith("/projects");
 
   return (
     <header className="sticky top-0 z-20 border-b border-border/80 bg-background/90 backdrop-blur-md">
@@ -26,16 +30,17 @@ export function AppHeader() {
             />
             <div>
               <p className="text-sm font-semibold text-foreground">Helios</p>
-              <p className="text-xs text-muted">Web QA Dashboard</p>
+              <p className="text-xs text-muted font-mono">QA Observability</p>
             </div>
           </Link>
 
-          <nav className="flex items-center gap-4 text-xs font-medium border-l border-border pl-6">
+          <nav className="flex items-center gap-2 text-xs font-medium border-l border-border pl-5">
             <Link
               href={HELIOS_ROUTES.dashboard}
-              className={`transition ${
-                pathname === "/"
-                  ? "text-amber-400 font-semibold"
+              aria-current={isDashboard ? "page" : undefined}
+              className={`px-2.5 py-1 rounded-md transition ${
+                isDashboard
+                  ? "text-amber-400 bg-amber-500/10 font-semibold"
                   : "text-muted hover:text-foreground"
               }`}
             >
@@ -43,9 +48,10 @@ export function AppHeader() {
             </Link>
             <Link
               href={HELIOS_ROUTES.evidence()}
-              className={`transition ${
-                pathname.startsWith("/evidence")
-                  ? "text-amber-400 font-semibold"
+              aria-current={isEvidence ? "page" : undefined}
+              className={`px-2.5 py-1 rounded-md transition ${
+                isEvidence
+                  ? "text-amber-400 bg-amber-500/10 font-semibold"
                   : "text-muted hover:text-foreground"
               }`}
             >
@@ -53,9 +59,10 @@ export function AppHeader() {
             </Link>
             <Link
               href={HELIOS_ROUTES.projects()}
-              className={`transition ${
-                pathname.startsWith("/projects")
-                  ? "text-amber-400 font-semibold"
+              aria-current={isProjects ? "page" : undefined}
+              className={`px-2.5 py-1 rounded-md transition ${
+                isProjects
+                  ? "text-amber-400 bg-amber-500/10 font-semibold"
                   : "text-muted hover:text-foreground"
               }`}
             >
@@ -64,7 +71,7 @@ export function AppHeader() {
           </nav>
         </div>
 
-        <span className="rounded-full border border-border px-2 py-1 text-xs text-muted">
+        <span className="rounded-full border border-border px-2.5 py-1 text-[11px] font-mono text-muted">
           Local prototype
         </span>
       </div>

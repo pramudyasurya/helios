@@ -32,7 +32,7 @@ export function EvidenceItem({
             />
           </span>
           <span
-            className={`rounded-full border px-1.5 py-0.5 text-[10px] font-semibold capitalize transition-all ${STATUS_STYLES[evidence.status]}`}
+            className={`rounded-xs border px-1.5 py-0.5 text-[10px] font-semibold capitalize transition-all ${STATUS_STYLES[evidence.status]}`}
           >
             {evidence.status}
           </span>
@@ -42,7 +42,7 @@ export function EvidenceItem({
       <button
         type="button"
         onClick={() => onCopy(evidence.content)}
-        className="shrink-0 whitespace-nowrap self-start rounded-full border border-border px-2 py-1 text-xs text-muted transition hover:text-foreground"
+        className="shrink-0 whitespace-nowrap self-start rounded-xs border border-border px-2 py-1 text-xs text-muted transition hover:text-foreground cursor-pointer"
       >
         {isCopied ? "Copied" : "Copy"}
       </button>

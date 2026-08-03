@@ -129,7 +129,7 @@ export function GlobalEvidenceBoard({
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border border-border/80 bg-panel/90 p-4 shadow-sm">
+        <div className="rounded-xs border border-border/80 bg-panel/90 p-4 shadow-sm">
           <p className="text-xs font-medium text-muted">Open Issues</p>
           <p
             className={`mt-1 text-2xl font-semibold ${
@@ -139,7 +139,7 @@ export function GlobalEvidenceBoard({
             {counts.open}
           </p>
         </div>
-        <div className="rounded-xl border border-border/80 bg-panel/90 p-4 shadow-sm">
+        <div className="rounded-xs border border-border/80 bg-panel/90 p-4 shadow-sm">
           <p className="text-xs font-medium text-muted">Resolved Issues</p>
           <p
             className={`mt-1 text-2xl font-semibold ${
@@ -149,7 +149,7 @@ export function GlobalEvidenceBoard({
             {counts.resolved}
           </p>
         </div>
-        <div className="rounded-xl border border-border/80 bg-panel/90 p-4 shadow-sm">
+        <div className="rounded-xs border border-border/80 bg-panel/90 p-4 shadow-sm">
           <p className="text-xs font-medium text-muted">Ignored Issues</p>
           <p className="mt-1 text-2xl font-semibold text-muted">
             {counts.ignored}
@@ -157,7 +157,7 @@ export function GlobalEvidenceBoard({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-4 rounded-xl border border-border/80 bg-panel/90 p-4 shadow-sm">
+      <div className="flex flex-wrap items-center gap-4 rounded-xs border border-border/80 bg-panel/90 p-4 shadow-sm">
         <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
           <label
             htmlFor="status-filter"
@@ -169,7 +169,7 @@ export function GlobalEvidenceBoard({
             id="status-filter"
             value={activeStatus}
             onChange={(e) => handleFilterChange("status", e.target.value)}
-            className="rounded-md border border-border bg-card px-3 py-1.5 text-xs text-foreground focus:border-accent focus:outline-none"
+            className="rounded-xs border border-border bg-card px-3 py-1.5 text-xs text-foreground focus:border-accent focus:outline-none cursor-pointer"
           >
             <option value="all">All Statuses</option>
             <option value="open">Open</option>
@@ -188,7 +188,7 @@ export function GlobalEvidenceBoard({
             id="type-filter"
             value={activeType}
             onChange={(e) => handleFilterChange("type", e.target.value)}
-            className="rounded-md border border-border bg-card px-3 py-1.5 text-xs text-foreground focus:border-accent focus:outline-none"
+            className="rounded-xs border border-border bg-card px-3 py-1.5 text-xs text-foreground focus:border-accent focus:outline-none cursor-pointer"
           >
             <option value="all">All Types</option>
             <option value="image">Broken Images</option>
@@ -198,7 +198,7 @@ export function GlobalEvidenceBoard({
         </div>
       </div>
 
-      <div className="rounded-xl border border-border/80 bg-panel/90 shadow-sm overflow-hidden">
+      <div className="rounded-xs border border-border/80 bg-panel/90 shadow-sm overflow-hidden">
         <ul className="divide-y divide-border">
           {optimisticItems.map((item) => {
             return (
@@ -226,7 +226,7 @@ export function GlobalEvidenceBoard({
                           key={statusOption}
                           type="button"
                           onClick={() => handleStatusChange(item, statusOption)}
-                          className={`rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider transition-all ${buttonStyle}`}
+                          className={`rounded-xs border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider transition-all cursor-pointer ${buttonStyle}`}
                         >
                           {statusOption}
                         </button>
@@ -270,7 +270,7 @@ export function GlobalEvidenceBoard({
                   <button
                     type="button"
                     onClick={() => setSelectedEvidence(item)}
-                    className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-muted"
+                    className="rounded-xs border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-muted cursor-pointer"
                   >
                     View details
                   </button>

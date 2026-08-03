@@ -50,7 +50,7 @@ export const RunSearchBar = memo(function RunSearchBar({
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="block w-full rounded-md border border-border bg-background py-2 pl-9 pr-10 text-sm focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground"
+          className="block w-full rounded-xs border border-border bg-background py-2 pl-9 pr-10 text-sm focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground"
           placeholder="Search by URL or title..."
           aria-label="Search runs"
           aria-keyshortcuts="Alt+S"
@@ -63,7 +63,7 @@ export const RunSearchBar = memo(function RunSearchBar({
           <button
             type="button"
             onClick={handleClear}
-            className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted hover:text-foreground"
+            className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted hover:text-foreground cursor-pointer"
             aria-label="Clear search"
           >
             <X className="h-4 w-4" />
@@ -76,7 +76,7 @@ export const RunSearchBar = memo(function RunSearchBar({
         <select
           value={initialStatus}
           onChange={(e) => onStatusChange(e.target.value)}
-          className="block w-full rounded-md border border-border bg-background py-2 pl-3 pr-10 text-sm focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground"
+          className="block w-full rounded-xs border border-border bg-background py-2 pl-3 pr-10 text-sm focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground cursor-pointer"
           aria-label="Filter by status"
         >
           <option value="All">All Statuses</option>

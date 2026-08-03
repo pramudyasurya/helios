@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/server/infrastructure/db/prisma";
-import { AppHeader } from "@/components/shared/app-header";
+import { AppShell } from "@/components/shared/app-shell";
 import {
   GlobalEvidenceBoard,
   type BoardEvidenceItem,
@@ -75,11 +75,9 @@ export default async function EvidencePage({
   }));
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <AppHeader />
-
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8">
-        <header className="mb-6 rounded-xl border border-border/80 bg-linear-to-r from-panel/90 via-panel/70 to-card/60 px-6 py-5 shadow-xs">
+    <AppShell>
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 py-8">
+        <header className="mb-6 rounded-xs border border-border/80 bg-linear-to-r from-panel/90 via-panel/70 to-card/60 px-6 py-5 shadow-xs">
           <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl text-foreground">
             Global Evidence Board
           </h1>
@@ -98,7 +96,7 @@ export default async function EvidencePage({
             ignored: ignoredCount,
           }}
         />
-      </div>
-    </main>
+      </main>
+    </AppShell>
   );
 }

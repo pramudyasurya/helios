@@ -50,7 +50,7 @@ export function DashboardHero({
         : "Ready";
 
   return (
-    <header className="mb-6 rounded-xl border border-border/80 bg-linear-to-r from-panel/90 via-panel/70 to-card/60 px-6 py-5 sm:py-6 shadow-xs">
+    <header className="mb-6 rounded-xs border border-border/80 bg-linear-to-r from-panel/90 via-panel/70 to-card/60 px-6 py-5 sm:py-6 shadow-xs">
       <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl text-foreground">
         See What Your Browser Saw
       </h1>

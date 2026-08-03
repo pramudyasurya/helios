@@ -16,11 +16,11 @@ export function RunSummaryHeader({ run }: RunSummaryHeaderProps) {
   const displayTitle = run.title ?? run.startingUrl;
 
   return (
-    <div className="mb-6 rounded-xl border border-border/80 bg-linear-to-r from-panel/90 via-panel/70 to-card/60 p-5 sm:p-6 shadow-sm">
+    <div className="mb-6 rounded-xs border border-border/80 bg-linear-to-r from-panel/90 via-panel/70 to-card/60 p-5 sm:p-6 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3 mb-4">
         <Link
           href={HELIOS_ROUTES.dashboard}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted hover:text-foreground transition rounded-md border border-border/60 bg-card px-2.5 py-1"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted hover:text-foreground transition rounded-xs border border-border/60 bg-card px-2.5 py-1"
         >
           <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
           Back to dashboard
@@ -28,7 +28,7 @@ export function RunSummaryHeader({ run }: RunSummaryHeaderProps) {
 
         <div className="flex items-center gap-2">
           {run.projectName || run.environmentName ? (
-            <span className="inline-flex items-center gap-1 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-400">
+            <span className="inline-flex items-center gap-1 rounded-xs border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-400">
               {run.projectName ? `${run.projectName} / ` : ""}
               {run.environmentName}
             </span>

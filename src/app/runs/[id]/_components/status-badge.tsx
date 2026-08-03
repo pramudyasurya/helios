@@ -12,7 +12,7 @@ const statusBadgeClasses: Record<RunStatus, string> = {
 export function StatusBadge({ status }: { status: string }) {
   const normalized = normalizeRunStatus(status);
   const badgeClass =
-    "inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition " +
+    "inline-flex items-center rounded-xs border px-2.5 py-0.5 text-[11px] font-medium transition " +
     statusBadgeClasses[normalized];
   return <span className={badgeClass}>{normalized}</span>;
 }

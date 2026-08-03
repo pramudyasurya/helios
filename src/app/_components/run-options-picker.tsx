@@ -68,7 +68,7 @@ export function RunOptionsPicker({
   ];
 
   return (
-    <div className="mt-4 rounded-xl border border-border/70 bg-card/40 p-4">
+    <div className="mt-4 rounded-xs border border-border/70 bg-card/40 p-4">
       <div className="flex items-center justify-between mb-2.5">
         <span className="text-xs font-semibold uppercase tracking-wider text-muted">
           Select QA Execution Mode
@@ -86,7 +86,7 @@ export function RunOptionsPicker({
               type="button"
               disabled={isDisabled}
               onClick={() => setMode(card.id)}
-              className={`flex flex-col text-left rounded-lg p-3 border transition ${
+              className={`flex flex-col text-left rounded-xs p-3 border transition ${
                 isSelected
                   ? "border-foreground/50 bg-card text-foreground shadow-xs ring-1 ring-border/80"
                   : "border-border/50 bg-background/50 text-muted hover:border-border hover:bg-card/60"
@@ -141,7 +141,7 @@ export function RunOptionsPicker({
             onChange={(e) => setRoutesText(e.target.value)}
             rows={3}
             placeholder={"/\n/about\n/docs/getting-started"}
-            className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs font-mono text-foreground placeholder:text-muted outline-none focus:ring-1 focus:ring-accent disabled:opacity-60"
+            className="mt-1.5 w-full rounded-xs border border-border bg-background px-3 py-2 text-xs font-mono text-foreground placeholder:text-muted outline-none focus:ring-1 focus:ring-accent disabled:opacity-60"
           />
           <p className="mt-1 text-[11px] text-muted">
             Enter relative paths to evaluate sequentially during the run.
@@ -158,12 +158,12 @@ export function RunOptionsPicker({
             >
               Max Pages (1–20)
             </label>
-            <div className="mt-1.5 flex items-center rounded-lg bg-background/80 p-1">
+            <div className="mt-1.5 flex items-center rounded-xs bg-background/80 p-1">
               <button
                 type="button"
                 disabled={isDisabled || maxPages <= 1}
                 onClick={() => setMaxPages((prev) => Math.max(1, prev - 1))}
-                className="flex h-7 w-7 items-center justify-center rounded-md bg-card/80 text-muted transition hover:bg-card hover:text-foreground active:scale-95 disabled:opacity-40"
+                className="flex h-7 w-7 items-center justify-center rounded-xs bg-card/80 text-muted transition hover:bg-card hover:text-foreground active:scale-95 disabled:opacity-40"
                 aria-label="Decrease max pages"
               >
                 <Minus className="h-3.5 w-3.5" />
@@ -188,7 +188,7 @@ export function RunOptionsPicker({
                 type="button"
                 disabled={isDisabled || maxPages >= 20}
                 onClick={() => setMaxPages((prev) => Math.min(20, prev + 1))}
-                className="flex h-7 w-7 items-center justify-center rounded-md bg-card/80 text-muted transition hover:bg-card hover:text-foreground active:scale-95 disabled:opacity-40"
+                className="flex h-7 w-7 items-center justify-center rounded-xs bg-card/80 text-muted transition hover:bg-card hover:text-foreground active:scale-95 disabled:opacity-40"
                 aria-label="Increase max pages"
               >
                 <Plus className="h-3.5 w-3.5" />
@@ -206,12 +206,12 @@ export function RunOptionsPicker({
             >
               Max Depth (1–5)
             </label>
-            <div className="mt-1.5 flex items-center rounded-lg bg-background/80 p-1">
+            <div className="mt-1.5 flex items-center rounded-xs bg-background/80 p-1">
               <button
                 type="button"
                 disabled={isDisabled || maxDepth <= 1}
                 onClick={() => setMaxDepth((prev) => Math.max(1, prev - 1))}
-                className="flex h-7 w-7 items-center justify-center rounded-md bg-card/80 text-muted transition hover:bg-card hover:text-foreground active:scale-95 disabled:opacity-40"
+                className="flex h-7 w-7 items-center justify-center rounded-xs bg-card/80 text-muted transition hover:bg-card hover:text-foreground active:scale-95 disabled:opacity-40"
                 aria-label="Decrease max depth"
               >
                 <Minus className="h-3.5 w-3.5" />
@@ -236,7 +236,7 @@ export function RunOptionsPicker({
                 type="button"
                 disabled={isDisabled || maxDepth >= 5}
                 onClick={() => setMaxDepth((prev) => Math.min(5, prev + 1))}
-                className="flex h-7 w-7 items-center justify-center rounded-md bg-card/80 text-muted transition hover:bg-card hover:text-foreground active:scale-95 disabled:opacity-40"
+                className="flex h-7 w-7 items-center justify-center rounded-xs bg-card/80 text-muted transition hover:bg-card hover:text-foreground active:scale-95 disabled:opacity-40"
                 aria-label="Increase max depth"
               >
                 <Plus className="h-3.5 w-3.5" />

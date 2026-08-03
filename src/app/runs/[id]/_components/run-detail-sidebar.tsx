@@ -24,6 +24,7 @@ export type RunDetailSectionId =
 export type SectionNavItem = {
   id: RunDetailSectionId;
   label: string;
+  shortLabel: string;
   count?: number;
   icon: LucideIcon;
 };
@@ -51,41 +52,48 @@ export function RunDetailSidebar({
     {
       id: "overview",
       label: "Overview",
+      shortLabel: "Overview",
       icon: LayoutDashboard,
     },
     {
       id: "ai-report",
       label: "AI Report",
+      shortLabel: "Report",
       icon: Sparkles,
       count: hasReport ? 1 : undefined,
     },
     {
       id: "pages",
       label: "Page Crawl",
+      shortLabel: "Crawl",
       icon: Globe,
       count: counts.pageResults,
     },
     {
       id: "findings",
       label: "Findings",
+      shortLabel: "Findings",
       icon: AlertTriangle,
       count: counts.findings,
     },
     {
       id: "evidence",
       label: "Evidence",
+      shortLabel: "Evidence",
       icon: Layers,
       count: counts.evidence,
     },
     {
       id: "checks",
       label: "QA Checks",
+      shortLabel: "Checks",
       icon: CheckCircle2,
       count: counts.checks,
     },
     {
       id: "trail",
       label: "Browser Trail",
+      shortLabel: "Trail",
       icon: ListTree,
       count: counts.trail,
     },
@@ -94,77 +102,40 @@ export function RunDetailSidebar({
   return (
     <nav
       aria-label="Run Detail Sections"
-      className="rounded-xl border border-border/80 bg-panel/90 p-3 shadow-sm"
+      className="border-b border-border/80 flex flex-wrap items-center gap-1 sm:gap-1.5 px-1 pt-1"
     >
-      <div className="hidden md:block mb-2.5 px-3 pt-1">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
-          Navigation
-        </h3>
-      </div>
+      {items.map((item) => {
+        const Icon = item.icon;
+        const isActive = activeSection === item.id;
 
-      {/* Desktop Vertical Menu */}
-      <div className="hidden md:flex flex-col gap-1">
-        {items.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeSection === item.id;
-
-          return (
-            <button
-              key={item.id}
-              onClick={() => onSelectSection(item.id)}
-              className={`flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium transition ${
-                isActive
-                  ? "border border-foreground/30 bg-card text-foreground font-semibold shadow-2xs"
-                  : "border border-transparent text-muted hover:bg-card/60 hover:text-foreground"
-              }`}
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <Icon className="h-4 w-4 shrink-0" />
-                <span className="truncate">{item.label}</span>
-              </div>
-              {typeof item.count === "number" && item.count > 0 && (
-                <span
-                  className={`ml-2 rounded-full px-2 py-0.5 text-[10px] font-mono ${
-                    isActive
-                      ? "bg-foreground/10 text-foreground font-semibold"
-                      : "bg-card border border-border/60 text-muted"
-                  }`}
-                >
-                  {item.count}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Mobile Horizontal Pill Bar */}
-      <div className="flex md:hidden overflow-x-auto gap-1.5 pb-1 no-scrollbar">
-        {items.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeSection === item.id;
-
-          return (
-            <button
-              key={item.id}
-              onClick={() => onSelectSection(item.id)}
-              className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition ${
-                isActive
-                  ? "border border-foreground/30 bg-card text-foreground font-semibold shadow-2xs"
-                  : "bg-card/50 border border-border/80 text-muted hover:text-foreground"
-              }`}
-            >
-              <Icon className="h-3.5 w-3.5" />
-              <span>{item.label}</span>
-              {typeof item.count === "number" && item.count > 0 && (
-                <span className="ml-1 text-[10px] font-mono">
-                  ({item.count})
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+        return (
+          <button
+            key={item.id}
+            onClick={() => onSelectSection(item.id)}
+            title={item.label}
+            className={`flex items-center gap-1.5 sm:gap-2 whitespace-nowrap px-2.5 sm:px-3 py-2 text-xs font-medium border-b-2 transition-all cursor-pointer -mb-px ${
+              isActive
+                ? "border-amber-400 text-amber-400 font-semibold"
+                : "border-transparent text-muted hover:text-foreground hover:border-border/60"
+            }`}
+          >
+            <Icon className={`h-3.5 w-3.5 shrink-0 ${isActive ? "text-amber-400" : "text-muted"}`} />
+            <span className="hidden md:inline">{item.label}</span>
+            <span className="inline md:hidden">{item.shortLabel}</span>
+            {typeof item.count === "number" && item.count > 0 && (
+              <span
+                className={`rounded-xs px-1.5 py-0.2 text-[10px] font-mono ${
+                  isActive
+                    ? "bg-amber-500/20 text-amber-300 font-bold"
+                    : "bg-card border border-border/60 text-muted"
+                }`}
+              >
+                {item.count}
+              </span>
+            )}
+          </button>
+        );
+      })}
     </nav>
   );
 }
