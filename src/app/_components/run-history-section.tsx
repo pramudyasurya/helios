@@ -7,12 +7,16 @@ import { RecentRunsList } from "@/components/features/recent-runs-list";
 
 type RunHistorySectionProps = {
   refreshTrigger: number;
+  projectId?: string;
+  environmentId?: string;
   searchInputRef?: RefObject<HTMLInputElement | null>;
   onDatabaseConnectionChange?: (isConnected: boolean | null) => void;
 };
 
 export function RunHistorySection({
   refreshTrigger,
+  projectId,
+  environmentId,
   searchInputRef,
   onDatabaseConnectionChange,
 }: RunHistorySectionProps) {
@@ -31,7 +35,7 @@ export function RunHistorySection({
     handlePageChange,
     handleClearRecentRuns,
     handleDeleteRun,
-  } = useRunHistory(refreshTrigger);
+  } = useRunHistory(refreshTrigger, projectId, environmentId);
 
   const isDbConnected = isHistoryLoading ? null : !historyError;
 

@@ -72,25 +72,25 @@ function MetricCard({
   chart,
 }: MetricCardProps) {
   return (
-    <div className="rounded-xl border border-border/80 bg-card/80 p-4 transition hover:border-accent/40 shadow-2xs">
-      <div className="flex items-center gap-2 text-sm font-medium text-muted">
-        <Icon className="h-4 w-4 shrink-0" />
+    <div className="rounded-xs border border-border/80 bg-panel/90 p-4 transition hover:bg-card/40 shadow-xs">
+      <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-muted">
+        <Icon className="h-3.5 w-3.5 text-muted shrink-0" />
         <span className="truncate">{title}</span>
       </div>
-      <div className="mt-3 flex items-start justify-between gap-3">
+      <div className="mt-2.5 flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline whitespace-nowrap">
-            <span className="text-3xl font-semibold tracking-tight text-foreground">
+            <span className="text-2xl font-bold tracking-tight text-foreground font-mono">
               {value}
             </span>
             {unit && (
-              <span className="ml-1 text-sm font-medium text-muted">
+              <span className="ml-1 text-xs font-mono text-muted">
                 {unit}
               </span>
             )}
           </div>
           {subValue && (
-            <p className="mt-1 text-xs font-medium text-muted truncate">
+            <p className="mt-1 text-[11px] font-mono text-muted truncate">
               {subValue}
             </p>
           )}
@@ -105,14 +105,14 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
   if (isLoading) {
     return (
       <section
-        className="grid grid-cols-1 gap-3.5 sm:grid-cols-2"
+        className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4"
         aria-busy="true"
         aria-label="Loading dashboard metrics"
       >
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="h-24 animate-pulse rounded-xl border border-border/80 bg-card/80 p-4"
+            className="h-24 animate-pulse rounded-xs border border-border/80 bg-panel/90 p-4"
           />
         ))}
       </section>
@@ -133,7 +133,7 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
 
   return (
     <section
-      className="grid grid-cols-1 gap-3.5 sm:grid-cols-2"
+      className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4"
       aria-label="Dashboard metrics"
     >
       <MetricCard

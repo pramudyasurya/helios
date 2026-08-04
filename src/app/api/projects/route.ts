@@ -66,6 +66,17 @@ export async function POST(request: Request) {
 
     return NextResponse.json(project, { status: 201 });
   } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      (error as { code: string }).code === "P2002"
+    ) {
+      return NextResponse.json(
+        { error: "A project with this name already exists." },
+        { status: 400 }
+      );
+    }
     return NextResponse.json(
       { error: getErrorMessage(error) },
       { status: 500 }

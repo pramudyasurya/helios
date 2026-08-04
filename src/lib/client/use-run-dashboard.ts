@@ -136,7 +136,11 @@ export function useRunDashboard(onRunComplete?: () => void) {
   };
 }
 
-export function useRunHistory(refreshTrigger?: number) {
+export function useRunHistory(
+  refreshTrigger?: number,
+  projectId?: string,
+  environmentId?: string,
+) {
   const [recentRuns, setRecentRuns] = useState<LatestRun[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(true);
   const [historyError, setHistoryError] = useState<string | undefined>();
@@ -175,12 +179,14 @@ export function useRunHistory(refreshTrigger?: number) {
       const fetchedStats = await getRunStats({
         q: searchQuery,
         status: statusFilter,
+        projectId,
+        environmentId,
       });
       setStats(fetchedStats);
     } catch (error) {
       console.warn("Failed to refresh stats:", error);
     }
-  }, [searchQuery, statusFilter]);
+  }, [searchQuery, statusFilter, projectId, environmentId]);
 
   useEffect(() => {
     let active = true;
@@ -189,6 +195,8 @@ export function useRunHistory(refreshTrigger?: number) {
         const fetchedStats = await getRunStats({
           q: searchQuery,
           status: statusFilter,
+          projectId,
+          environmentId,
         });
         if (active) {
           setStats(fetchedStats);
@@ -205,7 +213,7 @@ export function useRunHistory(refreshTrigger?: number) {
     return () => {
       active = false;
     };
-  }, [refreshTrigger, searchQuery, statusFilter]);
+  }, [refreshTrigger, searchQuery, statusFilter, projectId, environmentId]);
 
   useEffect(() => {
     let active = true;
@@ -216,6 +224,8 @@ export function useRunHistory(refreshTrigger?: number) {
           page: currentPage,
           q: searchQuery,
           status: statusFilter,
+          projectId,
+          environmentId,
         });
         if (active) {
           setRecentRuns(response.data);

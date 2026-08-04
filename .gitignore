@@ -46,3 +46,4 @@ next-env.d.ts
 tasks/
 docs/decisions/
 .playwright-mcp/
+.vscode/

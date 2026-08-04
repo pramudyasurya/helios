@@ -13,6 +13,7 @@ type RunFormProps = {
   isDisabled?: boolean;
   error?: string;
   urlInputRef?: RefObject<HTMLInputElement | null>;
+  onTargetContextChange?: (projectId?: string, environmentId?: string) => void;
 };
 
 const PRESET_URLS = [
@@ -25,6 +26,7 @@ export function RunForm({
   isDisabled = false,
   error,
   urlInputRef,
+  onTargetContextChange,
 }: RunFormProps) {
   const [url, setUrl] = useState("");
   const [runConfig, setRunConfig] = useState<RunConfig>({ mode: "single" });
@@ -55,10 +57,12 @@ export function RunForm({
   const handleProjectChange = (projectId: string) => {
     setSelectedProjectId(projectId);
     setSelectedEnvironmentId("");
+    onTargetContextChange?.(projectId || undefined, undefined);
   };
 
   const handleEnvironmentChange = (envId: string) => {
     setSelectedEnvironmentId(envId);
+    onTargetContextChange?.(selectedProjectId || undefined, envId || undefined);
     if (!envId) return;
 
     const env = availableEnvironments.find((e) => e.id === envId);

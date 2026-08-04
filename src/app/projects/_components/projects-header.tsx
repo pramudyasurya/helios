@@ -5,7 +5,7 @@ export function ProjectsHeader() {
         Projects & Environments
       </h1>
       <p className="mt-1.5 text-xs sm:text-sm text-muted leading-relaxed max-w-2xl">
-        Organize browser QA checks under structured projects and target environments.
+        Organize browser QA checks under structured projects, target staging and production environments, and inspect run metrics.
       </p>
     </header>
   );

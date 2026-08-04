@@ -127,6 +127,15 @@ export const CreateProjectSchema = z.object({
     .max(100, "Project name must be 100 characters or fewer."),
 });
 
+export const UpdateProjectSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, "Project name is required.")
+    .max(100, "Project name must be 100 characters or fewer.")
+    .optional(),
+});
+
 export const CreateEnvironmentSchema = z.object({
   name: z
     .string()
@@ -137,6 +146,23 @@ export const CreateEnvironmentSchema = z.object({
     .preprocess(
       (val) => (typeof val === "string" && val.trim() === "" ? undefined : val),
       HttpUrlSchema.optional(),
+    ),
+});
+
+export const UpdateEnvironmentSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, "Environment name is required.")
+    .max(100, "Environment name must be 100 characters or fewer.")
+    .optional(),
+  baseUrl: z
+    .preprocess(
+      (val) =>
+        val === null || (typeof val === "string" && val.trim() === "")
+          ? null
+          : val,
+      HttpUrlSchema.optional().nullable(),
     ),
 });
 
@@ -160,6 +186,8 @@ export const GetRunsQuerySchema = z.object({
     ),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),
+  projectId: z.string().trim().optional(),
+  environmentId: z.string().trim().optional(),
 });
 
 export const UpdateEvidenceStatusSchema = z.object({

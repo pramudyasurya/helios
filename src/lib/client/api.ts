@@ -5,8 +5,18 @@ import type {
   PaginatedResponse,
   RunEvidence,
   RunStats,
+  AIReport,
 } from "@/lib/shared/domain/types";
-import type { AIReport } from "@/lib/shared/domain/types";
+
+export type {
+  CreateQueuedRunResponse,
+  EvidenceStatus,
+  LatestRun,
+  PaginatedResponse,
+  RunEvidence,
+  RunStats,
+  AIReport,
+};
 
 export type ApiErrorResponse = {
   error: string;
@@ -115,6 +125,8 @@ export async function getRuns(params?: {
   limit?: number;
   q?: string;
   status?: string;
+  projectId?: string;
+  environmentId?: string;
 }): Promise<PaginatedResponse<LatestRun>> {
   const searchParams = new URLSearchParams();
   if (params?.page) searchParams.set("page", params.page.toString());
@@ -123,6 +135,8 @@ export async function getRuns(params?: {
   if (params?.status && params.status !== "All") {
     searchParams.set("status", params.status);
   }
+  if (params?.projectId) searchParams.set("projectId", params.projectId);
+  if (params?.environmentId) searchParams.set("environmentId", params.environmentId);
 
   const queryString = searchParams.toString();
   const url = queryString ? `/api/runs?${queryString}` : "/api/runs";
@@ -134,6 +148,8 @@ export async function getRuns(params?: {
 export async function getRunStats(filters?: {
   q?: string;
   status?: string;
+  projectId?: string;
+  environmentId?: string;
 }): Promise<RunStats> {
   const searchParams = new URLSearchParams();
 
@@ -143,6 +159,14 @@ export async function getRunStats(filters?: {
 
   if (filters?.status && filters?.status !== "All") {
     searchParams.set("status", filters?.status);
+  }
+
+  if (filters?.projectId) {
+    searchParams.set("projectId", filters.projectId);
+  }
+
+  if (filters?.environmentId) {
+    searchParams.set("environmentId", filters.environmentId);
   }
 
   const queryString = searchParams.toString();
@@ -205,4 +229,110 @@ export async function generateReport(runId: string): Promise<AIReport> {
   });
 
   return parseJsonResponse<AIReport>(response);
+}
+
+export type EnvironmentDto = {
+  id: string;
+  projectId: string;
+  name: string;
+  baseUrl?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  lastRunStatus?: string | null;
+  lastRunAt?: string | null;
+};
+
+export type ProjectDto = {
+  id: string;
+  name: string;
+  slug: string;
+  environments: EnvironmentDto[];
+  createdAt: string;
+  updatedAt: string;
+  totalRuns?: number;
+  passRate?: number;
+  lastRunAt?: string | null;
+};
+
+export type ProjectDetailDto = ProjectDto & {
+  stats: {
+    totalRuns: number;
+    passedRuns: number;
+    failedRuns: number;
+    passRate: number;
+    lastRunAt: string | null;
+  };
+};
+
+export async function getProjects(params?: { q?: string }): Promise<ProjectDto[]> {
+  const searchParams = new URLSearchParams();
+  if (params?.q) searchParams.set("q", params.q);
+  const url = searchParams.toString() ? `/api/projects?${searchParams.toString()}` : "/api/projects";
+  const response = await fetch(url);
+  return parseJsonResponse<ProjectDto[]>(response);
+}
+
+export async function getProject(id: string): Promise<ProjectDetailDto> {
+  const response = await fetch(`/api/projects/${id}`);
+  return parseJsonResponse<ProjectDetailDto>(response);
+}
+
+export async function createProject(payload: { name: string }): Promise<ProjectDto> {
+  const response = await fetch("/api/projects", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return parseJsonResponse<ProjectDto>(response);
+}
+
+export async function updateProject(id: string, payload: { name: string }): Promise<ProjectDto> {
+  const response = await fetch(`/api/projects/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return parseJsonResponse<ProjectDto>(response);
+}
+
+export async function deleteProject(id: string): Promise<{ success: boolean; deletedId: string }> {
+  const response = await fetch(`/api/projects/${id}`, {
+    method: "DELETE",
+  });
+  return parseJsonResponse<{ success: boolean; deletedId: string }>(response);
+}
+
+export async function createEnvironment(
+  projectId: string,
+  payload: { name: string; baseUrl?: string },
+): Promise<EnvironmentDto> {
+  const response = await fetch(`/api/projects/${projectId}/environments`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return parseJsonResponse<EnvironmentDto>(response);
+}
+
+export async function updateEnvironment(
+  projectId: string,
+  envId: string,
+  payload: { name?: string; baseUrl?: string | null },
+): Promise<EnvironmentDto> {
+  const response = await fetch(`/api/projects/${projectId}/environments/${envId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return parseJsonResponse<EnvironmentDto>(response);
+}
+
+export async function deleteEnvironment(
+  projectId: string,
+  envId: string,
+): Promise<{ success: boolean; deletedId: string }> {
+  const response = await fetch(`/api/projects/${projectId}/environments/${envId}`, {
+    method: "DELETE",
+  });
+  return parseJsonResponse<{ success: boolean; deletedId: string }>(response);
 }
