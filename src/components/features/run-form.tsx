@@ -6,6 +6,7 @@ import {
   type RunConfig,
 } from "@/app/_components/run-options-picker";
 import type { ProjectWithEnvironments } from "@/lib/shared/domain/types";
+import { getProjects } from "@/lib/client/api";
 import { HELIOS_ROUTES } from "@/lib/shared/domain/routes";
 
 type RunFormProps = {
@@ -39,11 +40,8 @@ export function RunForm({
   useEffect(() => {
     async function loadProjects() {
       try {
-        const res = await fetch("/api/projects");
-        if (res.ok) {
-          const data = await res.json();
-          setProjects(data);
-        }
+        const data = await getProjects();
+        setProjects(data.projects as unknown as ProjectWithEnvironments[]);
       } catch {
         // Safe fallback if projects catalog fetch fails
       }

@@ -37,28 +37,32 @@ describe("RunForm project context", () => {
     const onSubmit = vi.fn();
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => [
-          {
-            id: "project-1",
-            name: "Storefront",
-            slug: "storefront",
-            createdAt: "2026-08-02T00:00:00.000Z",
-            updatedAt: "2026-08-02T00:00:00.000Z",
-            environments: [
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            projects: [
               {
-                id: "environment-1",
-                projectId: "project-1",
-                name: "Staging",
-                baseUrl: "https://staging.example.com",
+                id: "project-1",
+                name: "Storefront",
+                slug: "storefront",
                 createdAt: "2026-08-02T00:00:00.000Z",
                 updatedAt: "2026-08-02T00:00:00.000Z",
+                environments: [
+                  {
+                    id: "environment-1",
+                    projectId: "project-1",
+                    name: "Staging",
+                    baseUrl: "https://staging.example.com",
+                    createdAt: "2026-08-02T00:00:00.000Z",
+                    updatedAt: "2026-08-02T00:00:00.000Z",
+                  },
+                ],
               },
             ],
-          },
-        ],
-      }),
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      ),
     );
 
     container = document.createElement("div");

@@ -42,7 +42,7 @@ export default function ProjectsPage() {
       setLoading(true);
       setError(null);
       const data = await getProjects({ q: query });
-      setProjects(data);
+      setProjects(data.projects);
     } catch (err: unknown) {
       const msg =
         typeof err === "object" && err !== null && "message" in err

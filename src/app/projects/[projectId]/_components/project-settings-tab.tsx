@@ -20,10 +20,14 @@ export function ProjectSettingsTab({ project, onRefresh }: ProjectSettingsTabPro
   const [copiedSlug, setCopiedSlug] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  function copySlug() {
-    navigator.clipboard.writeText(project.slug);
-    setCopiedSlug(true);
-    setTimeout(() => setCopiedSlug(false), 1500);
+  async function copySlug() {
+    try {
+      await navigator.clipboard.writeText(project.slug);
+      setCopiedSlug(true);
+      setTimeout(() => setCopiedSlug(false), 1500);
+    } catch {
+      // Clipboard API unavailable in non-secure contexts; no-op fallback.
+    }
   }
 
   async function handleUpdateName(e: React.FormEvent) {

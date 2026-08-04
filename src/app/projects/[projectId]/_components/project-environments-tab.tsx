@@ -29,11 +29,15 @@ export function ProjectEnvironmentsTab({ project, onRefresh }: ProjectEnvironmen
     setIsEnvModalOpen(true);
   }
 
-  function copyUrl(e: React.MouseEvent, url: string) {
+  async function copyUrl(e: React.MouseEvent, url: string) {
     e.stopPropagation();
-    navigator.clipboard.writeText(url);
-    setCopiedUrl(url);
-    setTimeout(() => setCopiedUrl(null), 1500);
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedUrl(url);
+      setTimeout(() => setCopiedUrl(null), 1500);
+    } catch {
+      // Clipboard API unavailable in non-secure contexts; no-op fallback.
+    }
   }
 
   async function handleSaveEnv(data: { name: string; baseUrl?: string | null }) {

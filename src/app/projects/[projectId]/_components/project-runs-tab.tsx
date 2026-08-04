@@ -118,7 +118,7 @@ export function ProjectRunsTab({ project }: ProjectRunsTabProps) {
                     </td>
                     <td className="px-4 py-3">
                       {run.environmentName ? (
-                        <span className="px-2 py-0.5 rounded-xs bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-semibold uppercase tracking-wider">
+                        <span className="px-2 py-0.5 rounded-xs border border-border/60 text-muted text-[10px] font-mono uppercase tracking-wider">
                           {run.environmentName}
                         </span>
                       ) : (
@@ -129,7 +129,7 @@ export function ProjectRunsTab({ project }: ProjectRunsTabProps) {
                       <span
                         className={`px-2 py-0.5 rounded-xs text-[10px] font-semibold uppercase tracking-wider ${
                           run.status === "Completed"
-                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                            ? "border border-emerald-500/30 text-emerald-400 bg-emerald-500/5"
                             : run.status === "Failed"
                               ? "bg-danger/10 text-danger border border-danger/30"
                               : "bg-amber-500/10 text-amber-400 border border-amber-500/20"

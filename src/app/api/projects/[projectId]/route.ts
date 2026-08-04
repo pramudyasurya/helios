@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/server/infrastructure/db/prisma";
 import { UpdateProjectSchema } from "@/lib/shared/domain/validators";
-import { getErrorMessage } from "@/lib/shared/domain/errors";
+import { getErrorMessage, uniqueConstraintResponse } from "@/lib/shared/domain/errors";
 
 export async function GET(
   _request: Request,
@@ -121,9 +121,7 @@ export async function PATCH(
 
     const updated = await prisma.project.update({
       where: { id: projectId },
-      data: {
-        ...(result.data.name ? { name: result.data.name } : {}),
-      },
+      data: { name: result.data.name },
       include: {
         environments: true,
       },
@@ -131,17 +129,12 @@ export async function PATCH(
 
     return NextResponse.json(updated);
   } catch (error) {
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      (error as { code: string }).code === "P2002"
-    ) {
-      return NextResponse.json(
-        { error: "A project with this name already exists." },
-        { status: 400 }
-      );
-    }
+    const uniqueConflict = uniqueConstraintResponse(
+      error,
+      "A project with this name already exists.",
+      400,
+    );
+    if (uniqueConflict) return uniqueConflict;
     return NextResponse.json(
       { error: getErrorMessage(error) },
       { status: 500 },
@@ -160,7 +153,10 @@ export async function DELETE(
     if (!existing) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
-
+    // Cascade delete of environments is enforced at the schema level:
+    // Environment.projectId has onDelete: Cascade (prisma/schema.prisma),
+    // and Run.environmentId has onDelete: SetNull, so runs survive but
+    // lose their environment reference. No explicit transaction needed.
     await prisma.project.delete({ where: { id: projectId } });
 
     return NextResponse.json({ success: true, deletedId: projectId });
