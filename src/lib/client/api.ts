@@ -264,12 +264,14 @@ export type ProjectDetailDto = ProjectDto & {
   };
 };
 
-export async function getProjects(params?: { q?: string }): Promise<ProjectDto[]> {
+export type ProjectsListResponse = { projects: ProjectDto[] };
+
+export async function getProjects(params?: { q?: string }): Promise<ProjectsListResponse> {
   const searchParams = new URLSearchParams();
   if (params?.q) searchParams.set("q", params.q);
   const url = searchParams.toString() ? `/api/projects?${searchParams.toString()}` : "/api/projects";
   const response = await fetch(url);
-  return parseJsonResponse<ProjectDto[]>(response);
+  return parseJsonResponse<ProjectsListResponse>(response);
 }
 
 export async function getProject(id: string): Promise<ProjectDetailDto> {
