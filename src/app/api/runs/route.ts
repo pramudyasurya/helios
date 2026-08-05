@@ -193,13 +193,21 @@ export async function GET(request: Request) {
       );
     }
 
-    const { q, status, page, limit } = validation.data;
+    const { q, status, page, limit, projectId, environmentId } = validation.data;
     const skip = (page - 1) * limit;
 
     const where: Prisma.RunWhereInput = {};
 
     if (status) {
       where.status = status;
+    }
+
+    if (environmentId) {
+      where.environmentId = environmentId;
+    } else if (projectId) {
+      where.environment = {
+        projectId: projectId,
+      };
     }
 
     if (q) {

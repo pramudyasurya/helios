@@ -35,16 +35,18 @@ src/components/
   features/               (Centralized stateful feature components, RSCs, and form-handlers)
 ```
 
-- `ui/`: Reusable primitives shared by all components (e.g. [tabs.tsx](file:///C:/College/pprince/main-project/src/components/ui/tabs.tsx), [empty-state.tsx](file:///C:/College/pprince/main-project/src/components/ui/empty-state.tsx)).
+- `ui/`: Reusable primitives shared by all components (e.g. [tabs.tsx](file:///C:/College/pprince/main-project/src/components/ui/tabs.tsx), [empty-state.tsx](file:///C:/College/pprince/main-project/src/components/ui/empty-state.tsx), [status-badge.tsx](file:///C:/College/pprince/main-project/src/components/ui/status-badge.tsx)).
 - `shared/`: App structural frames like [app-header.tsx](file:///C:/College/pprince/main-project/src/components/shared/app-header.tsx).
 - `features/`: Stateful components, form handlers, mutators, and major server-rendered blocks that form clear security-auditable boundaries:
   - [run-form.tsx](file:///C:/College/pprince/main-project/src/components/features/run-form.tsx): Form inputs, SSRF client validation.
   - [latest-run-panel.tsx](file:///C:/College/pprince/main-project/src/components/features/latest-run-panel.tsx): Dashboard latest run coordinator.
   - [ai-report-panel.tsx](file:///C:/College/pprince/main-project/src/components/features/ai-report-panel.tsx): Ollama AI report wrapper.
-  - [run-overview.tsx](file:///C:/College/pprince/main-project/src/components/features/run-overview.tsx): Compiles details of a run.
   - [recent-runs-list.tsx](file:///C:/College/pprince/main-project/src/components/features/recent-runs-list.tsx): Handles history listings and deletion triggers.
-  - [dashboard-metrics.tsx](file:///C:/College/pprince/main-project/src/components/features/dashboard-metrics.tsx): Displays metrics from the stats API.
   - [global-evidence-board.tsx](file:///C:/College/pprince/main-project/src/components/features/global-evidence-board.tsx): Aggregated evidence view.
+  - [run-options-picker.tsx](file:///C:/College/pprince/main-project/src/components/features/run-options-picker.tsx): Run mode, routes, and crawl options picker.
+  - [run-summary-card.tsx](file:///C:/College/pprince/main-project/src/components/features/run-summary-card.tsx): Agent summary display card.
+  - [run-metrics-grid.tsx](file:///C:/College/pprince/main-project/src/components/features/run-metrics-grid.tsx): Run metrics display grid.
+  - [evidence-detail-modal.tsx](file:///C:/College/pprince/main-project/src/components/features/evidence-detail-modal.tsx): Evidence detail modal dialog.
 
 ## Libraries & Utilities
 
@@ -55,16 +57,19 @@ src/lib/
     infrastructure/
       db/                 (Prisma Client database adapters)
       runner/             (Playwright automation execution engine)
+      queue/              (Job queue setup — pg-boss queue configuration)
       ai/                 (Ollama AI API connection wrapper)
+    workers/              (Background job processors — QA worker, run processor)
   shared/
     domain/               (Pure environment-agnostic business logic, validators, and types)
 ```
 
 - `client/`: Client-side only hooks and API fetch wrappers. Uses `'use client'` where React hooks are bound (e.g. [use-run-dashboard.ts](file:///C:/College/pprince/main-project/src/lib/client/use-run-dashboard.ts)).
-- `server/`: Server-only backend infrastructures. Implements `import "server-only";` compile-time checks in all modules to prevent leakage to the browser:
-  - `db/`: Database configuration (Prisma client instance).
-  - `runner/`: Playwright crawler, screenshot artifacts creator, and page settles.
-  - `ai/`: Ollama report generator and prompt formatting.
+- `db/`: Database configuration (Prisma client instance).
+- `runner/`: Playwright crawler, screenshot artifacts creator, and page settles.
+- `queue/`: Job queue setup using pg-boss for background QA run processing.
+- `ai/`: Ollama report generator and prompt formatting.
+- `workers/`: Background job processors — `qa-worker.ts` starts the worker process, `qa-run-processor.ts` handles individual QA run execution.
 - `shared/domain/`: Pure, environment-agnostic business models, constants, formats, validators, and helpers (e.g., [types.ts](file:///C:/College/pprince/main-project/src/lib/shared/domain/types.ts), [validators.ts](file:///C:/College/pprince/main-project/src/lib/shared/domain/validators.ts)). Safe to import anywhere.
 
 ## Testing Strategy

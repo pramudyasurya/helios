@@ -4,8 +4,9 @@ import { FolderGit2, ExternalLink } from "lucide-react";
 import {
   RunOptionsPicker,
   type RunConfig,
-} from "@/app/_components/run-options-picker";
+} from "@/components/features/run-options-picker";
 import type { ProjectWithEnvironments } from "@/lib/shared/domain/types";
+import { getProjects } from "@/lib/client/api";
 import { HELIOS_ROUTES } from "@/lib/shared/domain/routes";
 
 type RunFormProps = {
@@ -13,6 +14,7 @@ type RunFormProps = {
   isDisabled?: boolean;
   error?: string;
   urlInputRef?: RefObject<HTMLInputElement | null>;
+  onTargetContextChange?: (projectId?: string, environmentId?: string) => void;
 };
 
 const PRESET_URLS = [
@@ -25,6 +27,7 @@ export function RunForm({
   isDisabled = false,
   error,
   urlInputRef,
+  onTargetContextChange,
 }: RunFormProps) {
   const [url, setUrl] = useState("");
   const [runConfig, setRunConfig] = useState<RunConfig>({ mode: "single" });
@@ -37,11 +40,8 @@ export function RunForm({
   useEffect(() => {
     async function loadProjects() {
       try {
-        const res = await fetch("/api/projects");
-        if (res.ok) {
-          const data = await res.json();
-          setProjects(data);
-        }
+        const data = await getProjects();
+        setProjects(data.projects as unknown as ProjectWithEnvironments[]);
       } catch {
         // Safe fallback if projects catalog fetch fails
       }
@@ -55,10 +55,12 @@ export function RunForm({
   const handleProjectChange = (projectId: string) => {
     setSelectedProjectId(projectId);
     setSelectedEnvironmentId("");
+    onTargetContextChange?.(projectId || undefined, undefined);
   };
 
   const handleEnvironmentChange = (envId: string) => {
     setSelectedEnvironmentId(envId);
+    onTargetContextChange?.(selectedProjectId || undefined, envId || undefined);
     if (!envId) return;
 
     const env = availableEnvironments.find((e) => e.id === envId);

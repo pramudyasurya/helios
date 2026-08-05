@@ -6,7 +6,7 @@ import { HELIOS_ROUTES } from "@/lib/shared/domain/routes";
 import { Trash2, ChevronLeft, ChevronRight, Search } from "lucide-react";
 
 import { formatDurationMs, formatTimestamp } from "@/lib/shared/domain/format";
-import { StatusBadge } from "@/app/runs/[id]/_components/status-badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 type RecentRunsListProps = {
   runs: LatestRun[];

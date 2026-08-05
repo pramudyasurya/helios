@@ -1,8 +1,8 @@
 import type { LatestRun } from "@/lib/shared/domain/types";
 
 import { RunAdminDetails } from "@/app/runs/[id]/_components/run-admin-details";
-import { RunMetricsGrid } from "@/app/runs/[id]/_components/run-metrics-grid";
-import { RunSummaryCard } from "@/app/runs/[id]/_components/run-summary-card";
+import { RunMetricsGrid } from "@/components/features/run-metrics-grid";
+import { RunSummaryCard } from "@/components/features/run-summary-card";
 import { ScreenshotGallery } from "@/app/runs/[id]/_components/screenshot-gallery";
 
 type RunOverviewProps = {

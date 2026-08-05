@@ -4,9 +4,9 @@ import type { LatestRun } from "@/lib/shared/domain/types";
 import { HELIOS_ROUTES } from "@/lib/shared/domain/routes";
 import { normalizeRunStatus } from "@/lib/shared/domain/format";
 
-import { RunSummaryCard } from "@/app/runs/[id]/_components/run-summary-card";
-import { RunMetricsGrid } from "@/app/runs/[id]/_components/run-metrics-grid";
-import { StatusBadge } from "@/app/runs/[id]/_components/status-badge";
+import { RunSummaryCard } from "@/components/features/run-summary-card";
+import { RunMetricsGrid } from "@/components/features/run-metrics-grid";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { RunActivityConsole } from "@/components/features/run-activity-console";
 import { downloadRunJson } from "@/lib/client/export";
 

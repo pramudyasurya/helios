@@ -19,12 +19,23 @@ export default function Home() {
   const [dbConnectedState, setDbConnectedState] = useState<boolean | null>(
     null,
   );
+  const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>();
+  const [selectedEnvironmentId, setSelectedEnvironmentId] = useState<string | undefined>();
+
   const runUrlInputRef = useRef<HTMLInputElement>(null);
   const runSearchInputRef = useRef<HTMLInputElement>(null);
 
   const handleRunComplete = useCallback(() => {
     setRefreshTrigger((prev) => prev + 1);
   }, []);
+
+  const handleTargetContextChange = useCallback(
+    (projectId?: string, environmentId?: string) => {
+      setSelectedProjectId(projectId);
+      setSelectedEnvironmentId(environmentId);
+    },
+    [],
+  );
 
   const { latestRun, runError, isRunActive, handleSubmit, handleReset } =
     useRunDashboard(handleRunComplete);
@@ -48,7 +59,7 @@ export default function Home() {
   useKeyboardShortcuts(keyboardShortcuts);
 
   return (
-    <AppShell>
+    <AppShell activeTab="dashboard">
       <main className="py-8 px-4 sm:px-6 mx-auto max-w-7xl space-y-6">
         <DashboardHero
           isRunActive={isRunActive}
@@ -60,6 +71,7 @@ export default function Home() {
           isDisabled={isRunActive}
           error={runError}
           urlInputRef={runUrlInputRef}
+          onTargetContextChange={handleTargetContextChange}
         />
 
         <LatestRunPanel latestRun={latestRun} onReset={handleReset} />
@@ -67,6 +79,8 @@ export default function Home() {
         <Suspense fallback={<RecentRunsSkeleton />}>
           <RunHistorySection
             refreshTrigger={refreshTrigger}
+            projectId={selectedProjectId}
+            environmentId={selectedEnvironmentId}
             searchInputRef={runSearchInputRef}
             onDatabaseConnectionChange={setDbConnectedState}
           />

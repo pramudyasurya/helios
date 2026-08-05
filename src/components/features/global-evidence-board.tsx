@@ -13,7 +13,7 @@ import {
 import { Activity, FileWarning, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 import { useState, useOptimistic, startTransition } from "react";
-import { EvidenceDetailModal } from "@/app/runs/[id]/_components/evidence-detail-modal";
+import { EvidenceDetailModal } from "@/components/features/evidence-detail-modal";
 import { formatTimestamp } from "@/lib/shared/domain/format";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { updateEvidenceStatus } from "@/lib/client/api";

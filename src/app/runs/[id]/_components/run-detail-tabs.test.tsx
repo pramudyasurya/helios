@@ -26,7 +26,7 @@ vi.mock("@/lib/client/api", () => ({
   updateEvidenceStatus: vi.fn(),
 }));
 
-vi.mock("@/components/features/run-overview", () => ({
+vi.mock("@/app/runs/[id]/_components/run-overview", () => ({
   RunOverview: () => null,
 }));
 vi.mock("@/app/runs/[id]/_components/run-evidence-list", () => ({

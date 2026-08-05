@@ -9,7 +9,7 @@ import type { EvidenceStatus, RunEvidence } from "@/lib/shared/domain/types";
 import { EvidenceSection } from "@/app/runs/[id]/_components/evidence-section";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CheckCircle } from "lucide-react";
-import { EvidenceDetailModal } from "@/app/runs/[id]/_components/evidence-detail-modal";
+import { EvidenceDetailModal } from "@/components/features/evidence-detail-modal";
 import {
   type EvidenceFilter,
   getEvidenceSections,

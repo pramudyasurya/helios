@@ -1,3 +1,5 @@
+import { NextResponse } from "next/server";
+
 const INTERNAL_ERROR_PATTERNS = [
   /__TURBOPACK__/i,
   /prisma/i,
@@ -56,4 +58,31 @@ export function getErrorMessage(
     return sanitizeErrorMessage(error.message, fallback);
   }
   return fallback;
+}
+
+/**
+ * Narrows an unknown thrown value to a Prisma unique-constraint violation.
+ * P2002 is the Prisma error code for unique constraint failures.
+ */
+export function isPrismaUniqueConstraintError(error: unknown): error is { code: "P2002"; meta?: unknown } {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code: string }).code === "P2002"
+  );
+}
+
+/**
+ * Returns a 409/400 NextResponse for a Prisma P2002 unique-constraint error,
+ * or null if the error is not a unique-constraint violation. Callers should
+ * fall through to their generic error handler when this returns null.
+ */
+export function uniqueConstraintResponse(
+  error: unknown,
+  message: string,
+  status: 400 | 409 = 409,
+): NextResponse | null {
+  if (!isPrismaUniqueConstraintError(error)) return null;
+  return NextResponse.json({ error: message }, { status });
 }

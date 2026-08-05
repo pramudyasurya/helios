@@ -1,18 +1,22 @@
 import { useRunHistory } from "@/lib/client/use-run-dashboard";
 import { useEffect, type RefObject } from "react";
-import { DashboardMetrics } from "@/components/features/dashboard-metrics";
+import { DashboardMetrics } from "@/app/_components/dashboard-metrics";
 import { RunSearchBar } from "@/app/_components/run-search-bar";
 import { RecentRunsSkeleton } from "@/app/_components/recent-runs-skeleton";
 import { RecentRunsList } from "@/components/features/recent-runs-list";
 
 type RunHistorySectionProps = {
   refreshTrigger: number;
+  projectId?: string;
+  environmentId?: string;
   searchInputRef?: RefObject<HTMLInputElement | null>;
   onDatabaseConnectionChange?: (isConnected: boolean | null) => void;
 };
 
 export function RunHistorySection({
   refreshTrigger,
+  projectId,
+  environmentId,
   searchInputRef,
   onDatabaseConnectionChange,
 }: RunHistorySectionProps) {
@@ -31,7 +35,7 @@ export function RunHistorySection({
     handlePageChange,
     handleClearRecentRuns,
     handleDeleteRun,
-  } = useRunHistory(refreshTrigger);
+  } = useRunHistory(refreshTrigger, projectId, environmentId);
 
   const isDbConnected = isHistoryLoading ? null : !historyError;
 

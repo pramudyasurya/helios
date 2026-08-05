@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/server/infrastructure/db/prisma";
 import { CreateProjectSchema } from "@/lib/shared/domain/validators";
-import { getErrorMessage } from "@/lib/shared/domain/errors";
+import { getErrorMessage, uniqueConstraintResponse } from "@/lib/shared/domain/errors";
 
 function slugify(text: string): string {
   return text
@@ -18,10 +18,85 @@ export async function GET() {
       include: {
         environments: {
           orderBy: { name: "asc" },
+          select: { id: true, name: true, baseUrl: true },
         },
       },
     });
-    return NextResponse.json(projects);
+
+    if (projects.length === 0) {
+      return NextResponse.json({ projects: [] });
+    }
+
+    const projectIds = projects.map((p) => p.id);
+    const envIds = projects.flatMap((p) => p.environments.map((e) => e.id));
+
+    // Single grouped query across all projects' environments — avoids N+1.
+    const statusGroups = await prisma.run.groupBy({
+      by: ["environmentId", "status"],
+      where: { environmentId: { in: envIds } },
+      _count: { _all: true },
+    });
+
+    const lastRuns = await prisma.run.findMany({
+      where: { environmentId: { in: envIds } },
+      orderBy: { createdAt: "desc" },
+      // One latest run per environment via distinct + take.
+      distinct: ["environmentId"],
+      select: { environmentId: true, createdAt: true },
+    });
+
+    const lastRunByEnv = new Map(
+      lastRuns
+        .filter((r): r is { environmentId: string; createdAt: Date } => r.environmentId !== null)
+        .map((r) => [r.environmentId, r.createdAt] as const),
+    );
+
+    // Aggregate counts per environment, then roll up per project.
+    // group.environmentId is string | null (Run.environmentId is nullable),
+    // but the where-clause already restricts to known envIds, so nulls are impossible here.
+    const countsByEnv = new Map<string, { total: number; passed: number }>();
+    for (const group of statusGroups) {
+      if (group.environmentId === null) continue;
+      const entry = countsByEnv.get(group.environmentId) ?? { total: 0, passed: 0 };
+      entry.total += group._count._all;
+      if (group.status === "Completed") entry.passed += group._count._all;
+      countsByEnv.set(group.environmentId, entry);
+    }
+
+    const projectsWithStats = projects.map((project) => {
+      let totalRuns = 0;
+      let passedRuns = 0;
+      let lastRunAt: Date | null = null;
+
+      for (const env of project.environments) {
+        const counts = countsByEnv.get(env.id);
+        if (counts) {
+          totalRuns += counts.total;
+          passedRuns += counts.passed;
+        }
+        const envLastRun = lastRunByEnv.get(env.id);
+        if (envLastRun && (!lastRunAt || envLastRun > lastRunAt)) {
+          lastRunAt = envLastRun;
+        }
+      }
+
+      const passRate =
+        totalRuns > 0 ? Math.round((passedRuns / totalRuns) * 1000) / 10 : 0;
+
+      return {
+        id: project.id,
+        name: project.name,
+        slug: project.slug,
+        environments: project.environments,
+        createdAt: project.createdAt,
+        updatedAt: project.updatedAt,
+        totalRuns,
+        passRate,
+        lastRunAt,
+      };
+    });
+
+    return NextResponse.json({ projects: projectsWithStats });
   } catch (error) {
     return NextResponse.json(
       { error: getErrorMessage(error) },
@@ -66,6 +141,12 @@ export async function POST(request: Request) {
 
     return NextResponse.json(project, { status: 201 });
   } catch (error) {
+    const uniqueConflict = uniqueConstraintResponse(
+      error,
+      "A project with this name already exists.",
+      400,
+    );
+    if (uniqueConflict) return uniqueConflict;
     return NextResponse.json(
       { error: getErrorMessage(error) },
       { status: 500 }

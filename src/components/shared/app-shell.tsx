@@ -6,7 +6,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, FileSearch, FolderGit2 } from "lucide-react";
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export type AppShellProps = {
+  children: React.ReactNode;
+  activeTab?: string;
+};
+
+export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname() || "/";
 
   const isDashboard = pathname === "/";

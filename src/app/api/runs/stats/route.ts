@@ -5,7 +5,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { unstable_cache } from "next/cache";
 
 const getCachedStatsData = unstable_cache(
-  async (q: string, status: string) => {
+  async (q: string, status: string, projectId: string, environmentId: string) => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -17,6 +17,12 @@ const getCachedStatsData = unstable_cache(
 
     if (status) {
       where.status = status;
+    }
+
+    if (environmentId) {
+      where.environmentId = environmentId;
+    } else if (projectId) {
+      where.environment = { projectId };
     }
 
     if (q) {
@@ -102,12 +108,14 @@ export async function GET(request: Request) {
     );
   }
 
-  const { q, status } = validation.data;
+  const { q, status, projectId, environmentId } = validation.data;
 
   try {
     const { statusGroups, durationAggr, recentRuns } = await getCachedStatsData(
       q,
       status || "",
+      projectId || "",
+      environmentId || "",
     );
 
     const recentDurations = recentRuns
