@@ -9,7 +9,7 @@ import type {
   LatestRun,
 } from "@/lib/shared/domain/types";
 import { normalizeRunStatus } from "@/lib/shared/domain/format";
-import { RunOverview } from "@/components/features/run-overview";
+import { RunOverview } from "@/app/runs/[id]/_components/run-overview";
 import { RunEvidenceList } from "@/app/runs/[id]/_components/run-evidence-list";
 import { type EvidenceFilter } from "@/lib/shared/domain/evidence-sections";
 import { RunChecksList } from "@/app/runs/[id]/_components/run-checks-list";

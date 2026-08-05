@@ -4,7 +4,7 @@ import { FolderGit2, ExternalLink } from "lucide-react";
 import {
   RunOptionsPicker,
   type RunConfig,
-} from "@/app/_components/run-options-picker";
+} from "@/components/features/run-options-picker";
 import type { ProjectWithEnvironments } from "@/lib/shared/domain/types";
 import { getProjects } from "@/lib/client/api";
 import { HELIOS_ROUTES } from "@/lib/shared/domain/routes";

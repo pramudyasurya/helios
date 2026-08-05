@@ -8,7 +8,7 @@ import {
   isSameOrigin,
   shouldBlockRequestUrl,
   takeNextCrawlPage,
-} from "../crawler";
+} from "./crawler";
 
 describe("canonicalizeUrl", () => {
   it("normalizes HTTP URLs while preserving query strings", () => {

@@ -3,7 +3,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { RunForm } from "@/components/features/run-form";
 
-vi.mock("@/app/_components/run-options-picker", () => ({
+vi.mock("@/components/features/run-options-picker", () => ({
   RunOptionsPicker: () => null,
 }));
 

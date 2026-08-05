@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { PageResult } from "@/lib/shared/domain/types";
-import { StatusBadge } from "@/app/runs/[id]/_components/status-badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 type PageResultsTabProps = {
   pageResults?: PageResult[];
