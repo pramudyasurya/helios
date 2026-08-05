@@ -19,7 +19,7 @@ export function RunSummaryCard({ summary }: RunSummaryCardProps) {
   }
 
   return (
-    <div className="rounded-xl border border-border/70 bg-card/40 p-4 sm:p-5">
+    <div className="rounded-xs border border-border/70 bg-card/40 p-4 sm:p-5">
       <div className="flex items-center gap-2 mb-2">
         <Sparkles className="w-4 h-4 text-muted/80" />
         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">

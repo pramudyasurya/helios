@@ -47,7 +47,7 @@ export function RunActivityConsole({
   return (
     <section
       aria-label="Run Activity Console"
-      className={`rounded-xl border border-border/80 bg-panel/90 p-5 shadow-sm ${className}`}
+      className={`rounded-xs border border-border/80 bg-panel/90 p-5 shadow-sm ${className}`}
     >
       <div className="mb-3.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -69,7 +69,7 @@ export function RunActivityConsole({
       </div>
 
       {displaySteps.length === 0 ? (
-        <div className="py-6 text-center text-xs text-muted font-mono bg-zinc-950/40 rounded-lg border border-border/40">
+        <div className="py-6 text-center text-xs text-muted font-mono bg-zinc-950/40 rounded-xs border border-border/40">
           {isActive
             ? "Waiting for live activity milestones..."
             : "No activity recorded yet for the latest run."}
@@ -77,7 +77,7 @@ export function RunActivityConsole({
       ) : (
         <ol
           role="list"
-          className="space-y-1.5 max-h-56 overflow-y-auto font-mono text-xs bg-zinc-950/40 p-3 rounded-lg border border-border/40"
+          className="space-y-1.5 max-h-56 overflow-y-auto font-mono text-xs bg-zinc-950/40 p-3 rounded-xs border border-border/40"
         >
           {displaySteps.map((step, idx) => {
             const isLast = idx === displaySteps.length - 1;

@@ -29,7 +29,7 @@ export function EvidenceSection({
         {items.map((evidence) => (
           <li
             key={evidence.id}
-            className="rounded-md border border-border bg-card p-3 text-xs text-muted"
+            className="rounded-xs border border-border bg-card p-3 text-xs text-muted"
           >
             <EvidenceItem
               evidence={evidence}

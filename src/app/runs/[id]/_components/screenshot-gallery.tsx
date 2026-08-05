@@ -2,10 +2,10 @@
 
 import { useCallback, useRef, useState } from "react";
 import { useModalFocus } from "@/lib/client/use-modal-focus";
-import { X } from "lucide-react";
+import { X, ImageIcon } from "lucide-react";
 import type { LatestRun } from "@/lib/shared/domain/types";
 import Image from "next/image";
-
+import { EmptyState } from "@/components/ui/empty-state";
 type ScreenshotGalleryProps = {
   artifacts: LatestRun["artifacts"];
 };
@@ -22,15 +22,23 @@ export function ScreenshotGallery({ artifacts }: ScreenshotGalleryProps) {
 
   useModalFocus(modalRef, Boolean(zoomedScreenshot), closeModal);
 
-  if (!artifacts) return null;
+  if (!artifacts) {
+    return (
+      <EmptyState
+        title="No screenshots"
+        description="No screenshots were captured for this run."
+        icon={ImageIcon}
+      />
+    );
+  }
 
   return (
-    <div className="border-t border-border pt-6">
+    <div className="rounded-xs border border-border/80 bg-card/40 p-4 pt-6">
       <h3 className="mb-4 text-sm font-medium text-foreground">Screenshots</h3>
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="flex flex-col gap-2">
           <span className="text-xs text-muted">Desktop View</span>
-          <div className="overflow-y-auto rounded-md border border-border bg-panel max-h-125">
+          <div className="overflow-y-auto rounded-xs border border-border bg-panel max-h-125">
             <button
               type="button"
               onClick={() =>
@@ -57,7 +65,7 @@ export function ScreenshotGallery({ artifacts }: ScreenshotGalleryProps) {
 
         <div className="flex flex-col gap-2">
           <span className="text-xs text-muted">Mobile View</span>
-          <div className="overflow-y-auto rounded-md border border-border bg-panel max-h-125 lg:w-3/4 mx-auto">
+          <div className="overflow-y-auto rounded-xs border border-border bg-panel max-h-125 lg:w-3/4 mx-auto">
             <button
               type="button"
               onClick={() =>
@@ -103,7 +111,7 @@ export function ScreenshotGallery({ artifacts }: ScreenshotGalleryProps) {
           </button>
 
           <div
-            className="relative h-full w-full max-w-6xl overflow-y-auto rounded-lg border border-border bg-panel"
+            className="relative h-full w-full max-w-6xl overflow-y-auto rounded-xs border border-border bg-panel"
             onClick={(e) => e.stopPropagation()}
           >
             <Image

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import type { PageResult } from "@/lib/shared/domain/types";
 import { StatusBadge } from "@/components/ui/status-badge";
-
+import { EmptyState } from "@/components/ui/empty-state";
+import { Globe } from "lucide-react";
 type PageResultsTabProps = {
   pageResults?: PageResult[];
 };
@@ -13,18 +14,18 @@ export function PageResultsTab({ pageResults = [] }: PageResultsTabProps) {
 
   if (pageResults.length === 0) {
     return (
-      <div className="rounded-lg border border-border bg-card p-8 text-center">
-        <p className="text-sm text-muted">
-          No multi-page crawl results recorded for this run.
-        </p>
-      </div>
+      <EmptyState
+        title="No crawl results"
+        description="No multi-page crawl results recorded for this run."
+        icon={Globe}
+      />
     );
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-foreground">
+        <h3 className="text-sm font-medium text-foreground">
           Crawled Pages ({pageResults.length})
         </h3>
       </div>
@@ -39,7 +40,7 @@ export function PageResultsTab({ pageResults = [] }: PageResultsTabProps) {
           return (
             <div
               key={page.id || index}
-              className="rounded-lg border border-border bg-card p-4 transition hover:border-accent/40"
+              className="rounded-xs border border-border bg-card p-4 transition hover:border-accent/40"
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/60 pb-3">
                 <div className="flex items-center gap-2 overflow-hidden">
@@ -153,7 +154,7 @@ export function PageResultsTab({ pageResults = [] }: PageResultsTabProps) {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
           onClick={() => setSelectedScreenshot(null)}
         >
-          <div className="relative max-w-4xl max-h-[90vh] overflow-auto rounded-lg bg-card p-2">
+          <div className="relative max-w-4xl max-h-[90vh] overflow-auto rounded-xs bg-card p-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={selectedScreenshot}

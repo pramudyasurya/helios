@@ -18,9 +18,9 @@ export function BrowserTrail({ trail }: BrowserTrailProps) {
     );
   }
   return (
-    <div className="mt-5 border-t border-border pt-4">
+    <div className="rounded-xs border border-border/80 bg-card/40 p-4">
       <h3 className="text-sm font-medium text-foreground">Browser trail</h3>
-      <div className="mt-3 max-h-64 overflow-y-auto rounded-md border border-border bg-card p-3">
+      <div className="mt-3 max-h-64 overflow-y-auto rounded-xs border border-border bg-card p-3">
         <ol className="space-y-3 text-sm">
           {trail.map((step, index) => (
             <li

@@ -19,7 +19,7 @@ export default function NotFound() {
         </p>
         <Link
           href={HELIOS_ROUTES.dashboard}
-          className="rounded-md bg-foreground text-background px-4 py-2 text-sm font-medium transition hover:bg-foreground/90"
+          className="rounded-xs bg-foreground text-background px-4 py-2 text-sm font-medium transition hover:bg-foreground/90"
         >
           Back to dashboard
         </Link>

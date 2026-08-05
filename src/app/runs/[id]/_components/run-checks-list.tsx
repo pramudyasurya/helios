@@ -32,9 +32,9 @@ export function RunChecksList({ checks, onViewEvidence }: RunChecksListProps) {
   }
 
   return (
-    <div className="mt-5 border-t border-border pt-4">
+    <section className="space-y-3">
       <h3 className="text-sm font-medium text-foreground">QA checks</h3>
-      <div className="mt-3 max-h-64 overflow-y-auto rounded-md border border-border bg-card p-3">
+      <div className="mt-3 max-h-64 overflow-y-auto rounded-xs border border-border/60 bg-card/30 p-3">
         <ul className="space-y-3 text-sm">
           {checks.map((check, index) => (
             <li
@@ -67,6 +67,6 @@ export function RunChecksList({ checks, onViewEvidence }: RunChecksListProps) {
           ))}
         </ul>
       </div>
-    </div>
+    </section>
   );
 }

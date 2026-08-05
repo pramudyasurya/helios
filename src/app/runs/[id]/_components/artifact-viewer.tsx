@@ -43,7 +43,7 @@ export function ArtifactViewer({ artifacts }: ArtifactViewerProps) {
             type="button"
             onClick={() => setActiveTab(tab)}
             className={
-              "rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition " +
+              "rounded-xs px-3 py-1.5 text-sm font-medium cursor-pointer transition " +
               (activeTab === tab
                 ? "bg-accent text-background"
                 : "bg-card text-muted hover:text-foreground")
@@ -57,7 +57,7 @@ export function ArtifactViewer({ artifacts }: ArtifactViewerProps) {
       <button
         type="button"
         onClick={() => setIsModalOpen(true)}
-        className="relative aspect-video w-full overflow-hidden rounded-md border border-border bg-card cursor-pointer hover:border-accent transition"
+        className="relative aspect-video w-full overflow-hidden rounded-xs border border-border bg-card cursor-pointer hover:border-accent transition"
       >
         <Image
           src={screenshotUrl}
@@ -81,7 +81,7 @@ export function ArtifactViewer({ artifacts }: ArtifactViewerProps) {
           <button
             type="button"
             onClick={closeModal}
-            className="absolute right-4 top-4 z-10 cursor-pointer rounded-md border border-border px-3 py-1 text-sm text-foreground transition hover:text-muted"
+            className="absolute right-4 top-4 z-10 cursor-pointer rounded-xs border border-border px-3 py-1 text-sm text-foreground transition hover:text-muted"
             aria-label="Close artifact preview"
           >
             Close
