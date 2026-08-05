@@ -88,43 +88,45 @@ export function RunForm({
       <form aria-label="Create browser run" onSubmit={handleFormSubmit}>
         {/* Project & Environment Target Context Bar */}
         <div className="mb-4 p-3.5 rounded-xs border border-border/70 bg-card/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
-            <FolderGit2 className="w-4 h-4 text-amber-500 shrink-0" />
-            <span>Target Context:</span>
-          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
+              <FolderGit2 className="w-4 h-4 text-amber-500 shrink-0" />
+              <span>Target Context:</span>
+            </div>
 
-          <div className="flex flex-wrap items-center gap-2 flex-1 max-w-md">
-            <select
-              aria-label="Select Project"
-              value={selectedProjectId}
-              onChange={(e) => handleProjectChange(e.target.value)}
-              disabled={isDisabled}
-              className="px-3 py-1.5 bg-card border border-border rounded-xs text-xs font-medium text-foreground outline-none transition focus:border-amber-500 focus:ring-1 focus:ring-amber-500 disabled:opacity-50 cursor-pointer"
-            >
-              <option value="">No Project (Ad-hoc run)</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-
-            {selectedProjectId && (
+            <div className="flex flex-wrap items-center gap-2 flex-1 max-w-md">
               <select
-                aria-label="Select Environment"
-                value={selectedEnvironmentId}
-                onChange={(e) => handleEnvironmentChange(e.target.value)}
-                disabled={isDisabled || availableEnvironments.length === 0}
+                aria-label="Select Project"
+                value={selectedProjectId}
+                onChange={(e) => handleProjectChange(e.target.value)}
+                disabled={isDisabled}
                 className="px-3 py-1.5 bg-card border border-border rounded-xs text-xs font-medium text-foreground outline-none transition focus:border-amber-500 focus:ring-1 focus:ring-amber-500 disabled:opacity-50 cursor-pointer"
               >
-                <option value="">Select Environment...</option>
-                {availableEnvironments.map((env) => (
-                  <option key={env.id} value={env.id}>
-                    {env.name}
+                <option value="">No Project (Ad-hoc run)</option>
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
                   </option>
                 ))}
               </select>
-            )}
+
+              {selectedProjectId && (
+                <select
+                  aria-label="Select Environment"
+                  value={selectedEnvironmentId}
+                  onChange={(e) => handleEnvironmentChange(e.target.value)}
+                  disabled={isDisabled || availableEnvironments.length === 0}
+                  className="px-3 py-1.5 bg-card border border-border rounded-xs text-xs font-medium text-foreground outline-none transition focus:border-amber-500 focus:ring-1 focus:ring-amber-500 disabled:opacity-50 cursor-pointer"
+                >
+                  <option value="">Select Environment...</option>
+                  {availableEnvironments.map((env) => (
+                    <option key={env.id} value={env.id}>
+                      {env.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
           </div>
 
           <Link

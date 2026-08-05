@@ -23,7 +23,7 @@ export function AppHeader() {
             <Image
               src="/brand/helios-logo.png"
               alt="Helios logo"
-              className="rounded-md"
+              className="rounded-xs"
               width={32}
               height={32}
               loading="eager"
@@ -38,7 +38,7 @@ export function AppHeader() {
             <Link
               href={HELIOS_ROUTES.dashboard}
               aria-current={isDashboard ? "page" : undefined}
-              className={`px-2.5 py-1 rounded-md transition ${
+              className={`px-2.5 py-1 rounded-xs transition ${
                 isDashboard
                   ? "text-amber-400 bg-amber-500/10 font-semibold"
                   : "text-muted hover:text-foreground"
@@ -49,7 +49,7 @@ export function AppHeader() {
             <Link
               href={HELIOS_ROUTES.evidence()}
               aria-current={isEvidence ? "page" : undefined}
-              className={`px-2.5 py-1 rounded-md transition ${
+              className={`px-2.5 py-1 rounded-xs transition ${
                 isEvidence
                   ? "text-amber-400 bg-amber-500/10 font-semibold"
                   : "text-muted hover:text-foreground"
@@ -60,7 +60,7 @@ export function AppHeader() {
             <Link
               href={HELIOS_ROUTES.projects()}
               aria-current={isProjects ? "page" : undefined}
-              className={`px-2.5 py-1 rounded-md transition ${
+              className={`px-2.5 py-1 rounded-xs transition ${
                 isProjects
                   ? "text-amber-400 bg-amber-500/10 font-semibold"
                   : "text-muted hover:text-foreground"

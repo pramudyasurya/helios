@@ -88,7 +88,7 @@ export function AIReportPanel({ runId, initialReport }: AIReportPanelProps) {
         role="status"
         aria-busy="true"
         aria-label="Loading AI report"
-        className="space-y-6 rounded-lg border border-border bg-panel p-6 animate-pulse"
+        className="space-y-6 rounded-xs border border-border bg-panel p-6 animate-pulse"
       >
         <div className="flex items-center gap-3">
           <Brain className="h-6 w-6 text-accent animate-pulse" />
@@ -106,7 +106,7 @@ export function AIReportPanel({ runId, initialReport }: AIReportPanelProps) {
 
   if (!report) {
     return (
-      <section className="rounded-lg border border-border bg-panel p-8 text-center">
+      <section className="rounded-xs border border-border bg-panel p-8 text-center">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent/10">
           <Brain className="h-7 w-7 text-accent" />
         </div>
@@ -121,7 +121,7 @@ export function AIReportPanel({ runId, initialReport }: AIReportPanelProps) {
         {error && (
           <div
             role="alert"
-            className="mx-auto mt-4 max-w-md rounded-md bg-danger/10 p-3 text-xs text-danger border border-danger/20"
+            className="mx-auto mt-4 max-w-md rounded-xs bg-danger/10 p-3 text-xs text-danger border border-danger/20"
           >
             {error}
           </div>
@@ -129,7 +129,7 @@ export function AIReportPanel({ runId, initialReport }: AIReportPanelProps) {
         <button
           type="button"
           onClick={handleGenerate}
-          className="mt-6 inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-xs font-semibold text-black transition hover:bg-accent/90"
+          className="mt-6 inline-flex items-center gap-2 rounded-xs bg-accent px-5 py-2.5 text-xs font-semibold text-black transition hover:bg-accent/90"
         >
           <Sparkles className="h-4 w-4" />
           Generate AI Report
@@ -143,7 +143,7 @@ export function AIReportPanel({ runId, initialReport }: AIReportPanelProps) {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-lg border border-border bg-panel p-5 relative overflow-hidden">
+      <section className="rounded-xs border border-border bg-panel p-5 relative overflow-hidden">
         <div className="absolute top-5 right-5">
           <button
             type="button"
@@ -186,7 +186,7 @@ export function AIReportPanel({ runId, initialReport }: AIReportPanelProps) {
         </h3>
 
         {report.findings.length === 0 ? (
-          <div className="rounded-lg border border-border bg-panel p-5 text-center text-sm text-muted">
+          <div className="rounded-xs border border-border bg-panel p-5 text-center text-sm text-muted">
             No specific issues were identified in this report.
           </div>
         ) : (
@@ -197,7 +197,7 @@ export function AIReportPanel({ runId, initialReport }: AIReportPanelProps) {
               return (
                 <li
                   key={`${finding.title}-${idx}`}
-                  className={`rounded-lg border border-border border-l-4 ${borderCol} p-4 transition-all hover:bg-card/40`}
+                  className={`rounded-xs border border-border border-l-4 ${borderCol} p-4 transition-all hover:bg-card/40`}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <h4 className="text-sm font-medium text-foreground">
@@ -209,7 +209,7 @@ export function AIReportPanel({ runId, initialReport }: AIReportPanelProps) {
                   </div>
 
                   {finding.suggestedFix && (
-                    <div className="mt-3 rounded-md bg-panel border border-border p-3 text-xs">
+                    <div className="mt-3 rounded-xs bg-panel border border-border p-3 text-xs">
                       <p className="font-semibold text-foreground">
                         Suggested Fix:
                       </p>
@@ -241,7 +241,7 @@ export function AIReportPanel({ runId, initialReport }: AIReportPanelProps) {
         )}
       </section>
 
-      <section className="rounded-lg border border-border bg-panel p-5">
+      <section className="rounded-xs border border-border bg-panel p-5">
         <h3 className="text-sm font-semibold text-foreground">
           Suggested Actions
         </h3>

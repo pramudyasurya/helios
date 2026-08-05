@@ -59,7 +59,7 @@ export function RunMetricsGrid({ run }: RunMetricsGridProps) {
       {metrics.map((m) => (
         <div
           key={m.label}
-          className="rounded-xl border border-border/80 bg-card/80 p-3.5 flex flex-col justify-between min-h-22 shadow-2xs transition hover:border-accent/40"
+          className="rounded-xs border border-border/80 bg-card/80 p-3.5 flex flex-col justify-between min-h-22 shadow-2xs transition hover:border-accent/40"
         >
           <div className="flex items-center gap-1.5 text-muted mb-2">
             <m.icon className={`w-3.5 h-3.5 shrink-0 ${m.color}`} />

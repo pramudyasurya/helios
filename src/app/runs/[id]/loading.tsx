@@ -17,7 +17,7 @@ export default function Loading() {
           aria-busy="true"
         >
           <SkeletonBlock className="h-20 w-full" />
-          <div className="rounded-lg border border-border bg-panel p-5">
+          <div className="rounded-xs border border-border bg-panel p-5">
             <div className="mb-5 flex gap-2 overflow-hidden">
               {tabSkeletonWidths.map((width, index) => (
                 <SkeletonBlock

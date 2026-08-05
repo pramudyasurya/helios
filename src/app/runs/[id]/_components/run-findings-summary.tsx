@@ -11,7 +11,7 @@ type RunFindingsSummaryProps = {
 };
 
 const severityClasses = {
-  info: "border-emerald-500/30 text-emerald-400 bg-emerald-500/5",
+  info: "border-border/60 text-muted bg-card/40",
   low: "border-border/60 text-muted bg-card/40",
   medium: "border-amber-500/30 text-amber-400 bg-amber-500/5",
   high: "border-danger/30 text-danger bg-danger/5",
@@ -37,7 +37,7 @@ export function RunFindingsSummary({
   }
 
   return (
-    <section className="rounded-xl border border-border/80 bg-card/80 p-5 shadow-2xs">
+    <section className="space-y-3">
       <h3 className="text-sm font-medium text-foreground">
         Findings to review
       </h3>

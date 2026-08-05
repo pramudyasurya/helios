@@ -5,7 +5,7 @@ type OverviewCardProps = {
 
 export function OverviewCard({ title, description }: OverviewCardProps) {
   return (
-    <div className="rounded-md border border-border bg-card p-4">
+    <div className="rounded-xs border border-border/80 bg-card/40 p-4">
       <h2 className="text-sm font-medium text-foreground">{title}</h2>
       <p className="mt-2 text-sm text-muted">{description}</p>
     </div>
