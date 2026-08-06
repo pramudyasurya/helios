@@ -224,11 +224,23 @@ export async function updateEvidenceStatus(
 }
 
 export async function generateReport(runId: string): Promise<AIReport> {
-  const response = await fetch(`/api/runs/${runId}/report`, {
-    method: "POST",
-  });
+  // AI generation can take 30-60s with slower models (e.g. GLM 5.2 via a
+  // local router). The default browser fetch has no timeout, but dev servers
+  // and proxies often cut idle connections at ~30s. Use an explicit 120s
+  // AbortController so the client outlasts the generation.
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 120_000);
 
-  return parseJsonResponse<AIReport>(response);
+  try {
+    const response = await fetch(`/api/runs/${runId}/report`, {
+      method: "POST",
+      signal: controller.signal,
+    });
+
+    return await parseJsonResponse<AIReport>(response);
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 export type EnvironmentDto = {

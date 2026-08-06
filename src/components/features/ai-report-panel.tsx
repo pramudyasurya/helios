@@ -71,11 +71,14 @@ export function AIReportPanel({ runId, initialReport }: AIReportPanelProps) {
       const generatedReport = await generateReport(runId);
       setReport(generatedReport);
     } catch (error) {
+      const isAbort = error instanceof DOMException && error.name === "AbortError";
       setError(
-        getErrorMessage(
-          error,
-          "Failed to generate AI report. Please try again.",
-        ),
+        isAbort
+          ? "AI report generation timed out (120s). The report may still be generating on the server — try again in a moment to load the cached result."
+          : getErrorMessage(
+              error,
+              "Failed to generate AI report. Please try again.",
+            ),
       );
     } finally {
       setIsLoading(false);

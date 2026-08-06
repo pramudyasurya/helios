@@ -7,6 +7,9 @@ import { validateAIReport } from "@/lib/shared/domain/validators";
 import { prisma } from "@/lib/server/infrastructure/db/prisma";
 import { NextRequest } from "next/server";
 
+// AI report generation can take 30-60s with slower models (e.g. GLM 5.2
+// via a local router). Allow up to 120s before the platform kills the route.
+export const maxDuration = 120;
 export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -48,7 +51,7 @@ export async function POST(
         report: report as Prisma.InputJsonValue,
       },
     });
-
+    return Response.json(report);
   } catch (error) {
     const rawMessage = error instanceof Error ? error.message : "Unknown error";
     const safeMessage = redactApiKey(rawMessage);
