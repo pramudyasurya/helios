@@ -3,7 +3,7 @@ import type { LatestRun } from "@/lib/shared/domain/types";
 import { ArrowLeft, Clock, Calendar, Hash } from "lucide-react";
 
 import { StatusBadge } from "@/components/ui/status-badge";
-import { ExportRunButton } from "@/app/runs/[id]/_components/export-run-button";
+import { ExportRunButton } from "@/app/runs/[id]/_components/navigation/export-run-button";
 import { formatDurationMs, formatTimestamp } from "@/lib/shared/domain/format";
 import { HELIOS_ROUTES } from "@/lib/shared/domain/routes";
 

@@ -4,9 +4,9 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/server/infrastructure/db/prisma";
 
 import { AppShell } from "@/components/shared/app-shell";
-import { RunSummaryHeader } from "@/app/runs/[id]/_components/summary-header";
+import { RunSummaryHeader } from "@/app/runs/[id]/_components/overview/summary-header";
 import { runRecordToLatestRun } from "@/lib/server/infrastructure/runner/run-record";
-import { RunDetailTabs } from "@/app/runs/[id]/_components/run-detail-tabs";
+import { RunDetailTabs } from "@/app/runs/[id]/_components/navigation/run-detail-tabs";
 
 const getRunById = cache(async (id: string) => {
   return prisma.run.findUnique({

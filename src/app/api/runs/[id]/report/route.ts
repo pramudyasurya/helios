@@ -1,5 +1,6 @@
 import { Prisma } from "@/generated/prisma/client";
-import { generateAIReport } from "@/lib/server/infrastructure/ai/ollama";
+import { generateAIReport } from "@/lib/server/infrastructure/ai/report-generator";
+import { redactApiKey } from "@/lib/server/infrastructure/ai/ai-config";
 import { runRecordToLatestRun } from "@/lib/server/infrastructure/runner/run-record";
 import { getErrorMessage } from "@/lib/shared/domain/errors";
 import { validateAIReport } from "@/lib/shared/domain/validators";
@@ -48,13 +49,16 @@ export async function POST(
       },
     });
 
-    return Response.json(report);
   } catch (error) {
-    console.error("Failed to generate AI report:", error);
+    const rawMessage = error instanceof Error ? error.message : "Unknown error";
+    const safeMessage = redactApiKey(rawMessage);
+    console.error(`Failed to generate AI report: ${safeMessage}`);
     return Response.json(
       {
         error: "Generation failed",
-        message: getErrorMessage(error, "Failed to generate AI report."),
+        message: redactApiKey(
+          getErrorMessage(error, "Failed to generate AI report."),
+        ),
       },
       { status: 500 },
     );

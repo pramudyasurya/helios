@@ -3,7 +3,7 @@ import {
   generateMockReport,
   generateAIReport,
   buildSystemPrompt,
-} from "@/lib/server/infrastructure/ai/ollama";
+} from "@/lib/server/infrastructure/ai/report-generator";
 import type { LatestRun } from "@/lib/shared/domain/types";
 
 describe("generateMockReport", () => {

@@ -26,32 +26,32 @@ vi.mock("@/lib/client/api", () => ({
   updateEvidenceStatus: vi.fn(),
 }));
 
-vi.mock("@/app/runs/[id]/_components/run-overview", () => ({
+vi.mock("@/app/runs/[id]/_components/overview/run-overview", () => ({
   RunOverview: () => null,
 }));
-vi.mock("@/app/runs/[id]/_components/run-evidence-list", () => ({
+vi.mock("@/app/runs/[id]/_components/evidence/run-evidence-list", () => ({
   RunEvidenceList: () => null,
 }));
-vi.mock("@/app/runs/[id]/_components/run-checks-list", () => ({
+vi.mock("@/app/runs/[id]/_components/findings/run-checks-list", () => ({
   RunChecksList: () => null,
 }));
-vi.mock("@/app/runs/[id]/_components/browser-trail", () => ({
+vi.mock("@/app/runs/[id]/_components/findings/browser-trail", () => ({
   BrowserTrail: () => null,
 }));
-vi.mock("@/app/runs/[id]/_components/run-findings-summary", () => ({
+vi.mock("@/app/runs/[id]/_components/findings/run-findings-summary", () => ({
   RunFindingsSummary: () => null,
 }));
 vi.mock("@/components/features/ai-report-panel", () => ({
   AIReportPanel: () => null,
 }));
-vi.mock("@/app/runs/[id]/_components/page-results-tab", () => ({
+vi.mock("@/app/runs/[id]/_components/findings/page-results-tab", () => ({
   PageResultsTab: () => null,
 }));
-vi.mock("@/app/runs/[id]/_components/run-detail-sidebar", () => ({
+vi.mock("@/app/runs/[id]/_components/navigation/run-detail-sidebar", () => ({
   RunDetailSidebar: () => null,
 }));
 
-import { RunDetailTabs } from "@/app/runs/[id]/_components/run-detail-tabs";
+import { RunDetailTabs } from "@/app/runs/[id]/_components/navigation/run-detail-tabs";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;

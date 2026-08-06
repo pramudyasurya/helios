@@ -1,0 +1,29 @@
+# Normalize line endings to LF in the repository regardless of OS checkout.
+# Prevents CRLF churn in commits (Windows autocrlf artifact) and keeps diffs clean.
+
+* text=auto eol=lf
+
+# Source files — always LF
+*.ts    text eol=lf
+*.tsx   text eol=lf
+*.js    text eol=lf
+*.jsx   text eol=lf
+*.mjs   text eol=lf
+*.cjs   text eol=lf
+*.json  text eol=lf
+*.css   text eol=lf
+*.md    text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+
+# Shell/CI scripts — LF
+*.sh    text eol=lf
+
+# Binary files — no line-ending conversion
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.webp  binary
+*.pdf   binary

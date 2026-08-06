@@ -1,7 +1,7 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it } from "vitest";
-import { PageResultsTab } from "@/app/runs/[id]/_components/page-results-tab";
+import { PageResultsTab } from "@/app/runs/[id]/_components/findings/page-results-tab";
 import type { PageResult } from "@/lib/shared/domain/types";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT =
