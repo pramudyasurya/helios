@@ -1,7 +1,7 @@
 import "server-only";
 import { fetchWithTimeout } from "@/lib/server/infrastructure/utils/fetch-with-timeout";
 import type { AIProviderConfig } from "@/lib/server/infrastructure/ai/ai-config";
-import type { LLMProvider } from "@/lib/server/infrastructure/ai/ai-provider";
+import type { LLMProvider, LLMResponse } from "@/lib/server/infrastructure/ai/ai-provider";
 
 /**
  * Native Gemini provider — calls :generateContent with the API key
@@ -11,7 +11,7 @@ import type { LLMProvider } from "@/lib/server/infrastructure/ai/ai-provider";
 export class GeminiProvider implements LLMProvider {
   constructor(private readonly config: AIProviderConfig) {}
 
-  async generateReport(prompt: string, timeoutMs: number): Promise<string> {
+  async generateReport(prompt: string, timeoutMs: number): Promise<LLMResponse> {
     if (!this.config.apiKey) {
       throw new Error("Gemini provider requires AI_API_KEY");
     }
@@ -37,6 +37,6 @@ export class GeminiProvider implements LLMProvider {
       throw new Error("Gemini provider returned empty response");
     }
 
-    return text;
+    return { content: text };
   }
 }

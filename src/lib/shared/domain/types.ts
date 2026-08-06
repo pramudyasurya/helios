@@ -163,6 +163,8 @@ export type AIReport = {
   riskLevel: AIRiskLevel;
   findings: AIFinding[];
   suggestedActions: string[];
+  /** Optional reasoning/thinking content from models that provide it (e.g. GLM 5.2). */
+  reasoningContent?: string;
 };
 
 export type RunStats = {

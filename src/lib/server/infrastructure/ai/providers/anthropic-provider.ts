@@ -1,7 +1,7 @@
 import "server-only";
 import { fetchWithTimeout } from "@/lib/server/infrastructure/utils/fetch-with-timeout";
 import type { AIProviderConfig } from "@/lib/server/infrastructure/ai/ai-config";
-import type { LLMProvider } from "@/lib/server/infrastructure/ai/ai-provider";
+import type { LLMProvider, LLMResponse } from "@/lib/server/infrastructure/ai/ai-provider";
 
 const ANTHROPIC_VERSION = "2023-06-01";
 
@@ -13,7 +13,7 @@ const ANTHROPIC_VERSION = "2023-06-01";
 export class AnthropicProvider implements LLMProvider {
   constructor(private readonly config: AIProviderConfig) {}
 
-  async generateReport(prompt: string, timeoutMs: number): Promise<string> {
+  async generateReport(prompt: string, timeoutMs: number): Promise<LLMResponse> {
     if (!this.config.apiKey) {
       throw new Error("Anthropic provider requires AI_API_KEY");
     }
@@ -46,6 +46,6 @@ export class AnthropicProvider implements LLMProvider {
       throw new Error("Anthropic provider returned empty response");
     }
 
-    return text;
+    return { content: text };
   }
 }

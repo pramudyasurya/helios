@@ -5,16 +5,27 @@ import { OpenAICompatProvider } from "@/lib/server/infrastructure/ai/providers/o
 import { AnthropicProvider } from "@/lib/server/infrastructure/ai/providers/anthropic-provider";
 import { GeminiProvider } from "@/lib/server/infrastructure/ai/providers/gemini-provider";
 
+/**
+ * A model response is content + optional thinking tokens.
+ * GLM 5.2 and similar reasoning models return reasoning_content
+ * alongside content; other providers return content only.
+ */
+export type LLMResponse = {
+  content: string;
+  reasoningContent?: string;
+};
+
 export interface LLMProvider {
   /**
    * Sends the prompt to the LLM and returns the raw text response
-   * containing JSON that conforms to AIReportSchema.
+   * containing JSON that conforms to AIReportSchema, plus optional
+   * reasoning/thinking content from models that provide it.
    *
    * Throws on any failure (network, timeout, non-2xx, malformed response).
    * The caller (generateAIReport) catches all errors and falls back
    * to generateMockReport.
    */
-  generateReport(prompt: string, timeoutMs: number): Promise<string>;
+  generateReport(prompt: string, timeoutMs: number): Promise<LLMResponse>;
 }
 
 /**

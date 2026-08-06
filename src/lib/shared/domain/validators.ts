@@ -206,6 +206,7 @@ export const AIReportSchema = z.object({
     }),
   ),
   suggestedActions: z.array(z.string()),
+  reasoningContent: z.string().optional(),
 });
 
 export function isIpPrivate(ip: string): boolean {

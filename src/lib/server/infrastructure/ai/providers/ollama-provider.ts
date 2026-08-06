@@ -1,6 +1,6 @@
 import "server-only";
 import type { AIProviderConfig } from "@/lib/server/infrastructure/ai/ai-config";
-import type { LLMProvider } from "@/lib/server/infrastructure/ai/ai-provider";
+import type { LLMProvider, LLMResponse } from "@/lib/server/infrastructure/ai/ai-provider";
 import { fetchWithTimeout } from "@/lib/server/infrastructure/utils/fetch-with-timeout";
 
 /**
@@ -10,7 +10,7 @@ import { fetchWithTimeout } from "@/lib/server/infrastructure/utils/fetch-with-t
 export class OllamaProvider implements LLMProvider {
   constructor(private readonly config: AIProviderConfig) {}
 
-  async generateReport(prompt: string, timeoutMs: number): Promise<string> {
+  async generateReport(prompt: string, timeoutMs: number): Promise<LLMResponse> {
     const url = `${this.config.baseUrl}/api/generate`;
 
     const data = await fetchWithTimeout(
@@ -35,6 +35,6 @@ export class OllamaProvider implements LLMProvider {
       throw new Error("Ollama returned empty response");
     }
 
-    return text;
+    return { content: text };
   }
 }

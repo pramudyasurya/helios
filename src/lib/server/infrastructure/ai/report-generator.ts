@@ -117,7 +117,7 @@ export async function generateAIReport(run: LatestRun): Promise<AIReport> {
 
   try {
     const provider = createProvider(config);
-    const responseText = await provider.generateReport(
+    const { content: responseText, reasoningContent } = await provider.generateReport(
       systemPrompt,
       config.timeout,
     );
@@ -131,7 +131,7 @@ export async function generateAIReport(run: LatestRun): Promise<AIReport> {
       throw new Error("AI provider returned malformed JSON");
     }
     const validated = validateAIReport(parsedJson);
-    if (validated) return validated;
+    if (validated) return { ...validated, reasoningContent };
 
     throw new Error("AI provider output failed schema validation");
   } catch (error) {

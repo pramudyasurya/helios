@@ -1,7 +1,7 @@
 import "server-only";
 import { fetchWithTimeout } from "@/lib/server/infrastructure/utils/fetch-with-timeout";
 import type { AIProviderConfig } from "@/lib/server/infrastructure/ai/ai-config";
-import type { LLMProvider } from "@/lib/server/infrastructure/ai/ai-provider";
+import type { LLMProvider, LLMResponse } from "@/lib/server/infrastructure/ai/ai-provider";
 
 /**
  * OpenAI-compatible provider — works with OpenAI, Groq, Together,
@@ -11,7 +11,7 @@ import type { LLMProvider } from "@/lib/server/infrastructure/ai/ai-provider";
 export class OpenAICompatProvider implements LLMProvider {
   constructor(private readonly config: AIProviderConfig) {}
 
-  async generateReport(prompt: string, timeoutMs: number): Promise<string> {
+  async generateReport(prompt: string, timeoutMs: number): Promise<LLMResponse> {
     const url = `${this.config.baseUrl}/chat/completions`;
 
     const headers: Record<string, string> = {
@@ -40,13 +40,17 @@ export class OpenAICompatProvider implements LLMProvider {
       (response) => response.json(),
     );
 
-    const text =
-      data.choices?.[0]?.message?.content?.trim() ?? "";
+    const message = data.choices?.[0]?.message;
+    const text = message?.content?.trim() ?? "";
 
     if (!text) {
       throw new Error("OpenAI-compatible provider returned empty response");
     }
 
-    return text;
+    // Capture reasoning/thinking tokens from models that provide them
+    // (e.g. GLM 5.2 returns reasoning_content alongside content).
+    const reasoningContent = message?.reasoning_content?.trim() || undefined;
+
+    return { content: text, reasoningContent };
   }
 }
