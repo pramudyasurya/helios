@@ -9,6 +9,8 @@ import {
   RunStatus,
 } from "@/lib/shared/domain/types";
 import { validateAIReport } from "@/lib/shared/domain/validators";
+import { resolveAIConfig, redactApiKey } from "@/lib/server/infrastructure/ai/ai-config";
+import { createProvider } from "@/lib/server/infrastructure/ai/ai-provider";
 
 export function generateMockReport(run: LatestRun): AIReport {
   const findings: AIFinding[] = [];
@@ -88,18 +90,7 @@ export function generateMockReport(run: LatestRun): AIReport {
 }
 
 export async function generateAIReport(run: LatestRun): Promise<AIReport> {
-  const ollamaUrl = process.env.OLLAMA_HOST || "http://localhost:11434";
-  const modelName = process.env.OLLAMA_MODEL || "llama3.2";
-
-  const DEFAULT_TIMEOUT = "30000";
-  let ollamaTimeout = parseInt(
-    process.env.OLLAMA_TIMEOUT || DEFAULT_TIMEOUT,
-    10,
-  );
-
-  if (isNaN(ollamaTimeout) || ollamaTimeout <= 0) {
-    ollamaTimeout = parseInt(DEFAULT_TIMEOUT, 10);
-  }
+  const config = resolveAIConfig();
 
   let safeUrl = run.startingUrl;
   try {
@@ -124,45 +115,31 @@ export async function generateAIReport(run: LatestRun): Promise<AIReport> {
     slicedEvidence,
   );
 
-  let timeoutId: NodeJS.Timeout | undefined;
   try {
-    const controller = new AbortController();
-    timeoutId = setTimeout(() => controller.abort(), ollamaTimeout);
+    const provider = createProvider(config);
+    const responseText = await provider.generateReport(
+      systemPrompt,
+      config.timeout,
+    );
 
-    const response = await fetch(`${ollamaUrl}/api/generate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: modelName,
-        prompt: systemPrompt,
-        format: "json",
-        stream: false,
-      }),
-      signal: controller.signal,
-    });
-
-    if (!response.ok) {
-      throw new Error(`Ollama returned status ${response.status}`);
+    let parsedJson: unknown;
+    try {
+      parsedJson = JSON.parse(responseText);
+    } catch {
+      // V8 SyntaxError embeds a raw response snippet — emit a generic
+      // message so untrusted provider output doesn't leak into logs.
+      throw new Error("AI provider returned malformed JSON");
     }
-
-    const data = await response.json();
-    const parsedText =
-      typeof data.response === "string" ? data.response.trim() : "";
-    const parsedJson = JSON.parse(parsedText);
-
     const validated = validateAIReport(parsedJson);
     if (validated) return validated;
 
-    throw new Error("Ollama output failed schema validation");
+    throw new Error("AI provider output failed schema validation");
   } catch (error) {
+    const safeMessage = redactApiKey((error as Error).message);
     console.warn(
-      `Ollama LLM generation unavailable (${(error as Error).message}). Falling back to rule-based mock report.`,
+      `AI provider (${config.provider}) generation unavailable (${safeMessage}). Falling back to rule-based mock report.`,
     );
     return generateMockReport(run);
-  } finally {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
   }
 }
 

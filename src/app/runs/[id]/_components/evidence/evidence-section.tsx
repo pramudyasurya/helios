@@ -1,5 +1,5 @@
 import type { RunEvidence } from "@/lib/shared/domain/types";
-import { EvidenceItem } from "@/app/runs/[id]/_components/evidence-item";
+import { EvidenceItem } from "@/app/runs/[id]/_components/evidence/evidence-item";
 
 type EvidenceSectionProps = {
   title: string;

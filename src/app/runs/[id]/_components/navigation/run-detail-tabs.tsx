@@ -9,19 +9,19 @@ import type {
   LatestRun,
 } from "@/lib/shared/domain/types";
 import { normalizeRunStatus } from "@/lib/shared/domain/format";
-import { RunOverview } from "@/app/runs/[id]/_components/run-overview";
-import { RunEvidenceList } from "@/app/runs/[id]/_components/run-evidence-list";
+import { RunOverview } from "@/app/runs/[id]/_components/overview/run-overview";
+import { RunEvidenceList } from "@/app/runs/[id]/_components/evidence/run-evidence-list";
 import { type EvidenceFilter } from "@/lib/shared/domain/evidence-sections";
-import { RunChecksList } from "@/app/runs/[id]/_components/run-checks-list";
-import { BrowserTrail } from "@/app/runs/[id]/_components/browser-trail";
-import { RunFindingsSummary } from "@/app/runs/[id]/_components/run-findings-summary";
+import { RunChecksList } from "@/app/runs/[id]/_components/findings/run-checks-list";
+import { BrowserTrail } from "@/app/runs/[id]/_components/findings/browser-trail";
+import { RunFindingsSummary } from "@/app/runs/[id]/_components/findings/run-findings-summary";
 import { getFindingsFromChecks } from "@/lib/shared/domain/findings";
 import { AIReportPanel } from "@/components/features/ai-report-panel";
-import { PageResultsTab } from "@/app/runs/[id]/_components/page-results-tab";
+import { PageResultsTab } from "@/app/runs/[id]/_components/findings/page-results-tab";
 import {
   RunDetailSidebar,
   type RunDetailSectionId,
-} from "@/app/runs/[id]/_components/run-detail-sidebar";
+} from "@/app/runs/[id]/_components/navigation/run-detail-sidebar";
 
 type RunDetailTabsProps = {
   run: LatestRun;

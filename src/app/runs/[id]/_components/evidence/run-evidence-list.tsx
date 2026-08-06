@@ -6,7 +6,7 @@ import {
 } from "@/lib/shared/domain/constants";
 import type { EvidenceStatus, RunEvidence } from "@/lib/shared/domain/types";
 
-import { EvidenceSection } from "@/app/runs/[id]/_components/evidence-section";
+import { EvidenceSection } from "@/app/runs/[id]/_components/evidence/evidence-section";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CheckCircle } from "lucide-react";
 import { EvidenceDetailModal } from "@/components/features/evidence-detail-modal";

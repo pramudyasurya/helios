@@ -8,11 +8,11 @@ import {
 } from "@/lib/client/use-keyboard-shortcuts";
 
 import { AppShell } from "@/components/shared/app-shell";
-import { DashboardHero } from "@/app/_components/dashboard-hero";
+import { DashboardHero } from "@/app/_components/dashboard/dashboard-hero";
 import { RunForm } from "@/components/features/run-form";
 import { LatestRunPanel } from "@/components/features/latest-run-panel";
-import { RunHistorySection } from "@/app/_components/run-history-section";
-import { RecentRunsSkeleton } from "@/app/_components/recent-runs-skeleton";
+import { RunHistorySection } from "@/app/_components/runs/run-history-section";
+import { RecentRunsSkeleton } from "@/app/_components/runs/recent-runs-skeleton";
 
 export default function Home() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);

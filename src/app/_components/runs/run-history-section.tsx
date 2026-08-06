@@ -1,8 +1,8 @@
 import { useRunHistory } from "@/lib/client/use-run-dashboard";
 import { useEffect, type RefObject } from "react";
-import { DashboardMetrics } from "@/app/_components/dashboard-metrics";
-import { RunSearchBar } from "@/app/_components/run-search-bar";
-import { RecentRunsSkeleton } from "@/app/_components/recent-runs-skeleton";
+import { DashboardMetrics } from "@/app/_components/dashboard/dashboard-metrics";
+import { RunSearchBar } from "@/app/_components/runs/run-search-bar";
+import { RecentRunsSkeleton } from "@/app/_components/runs/recent-runs-skeleton";
 import { RecentRunsList } from "@/components/features/recent-runs-list";
 
 type RunHistorySectionProps = {

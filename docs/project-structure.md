@@ -6,8 +6,9 @@ This document explains the main folders used by Helios and what belongs in each 
 
 ```txt
 src/app/
-  page.tsx
   _components/            (Colocated dashboard-specific presentation leaf components)
+    dashboard/           (Dashboard hero and metrics summary)
+    runs/                 (Run history, search bar, and recent runs skeleton)
     charts/               (Recharts sparklines and donut charts)
   runs/[id]/
     page.tsx
@@ -15,6 +16,18 @@ src/app/
     error.tsx
     not-found.tsx
     _components/          (Colocated runs-specific presentation leaf components)
+      overview/          (Run overview, admin details, summary header, screenshots, artifacts)
+      evidence/          (Evidence list, sections, items)
+      findings/          (Findings summary, checks list, browser trail, page results)
+      navigation/        (Detail tabs, sidebar, export button)
+  projects/
+    page.tsx
+    _components/
+      header/            (Projects header and stats bar)
+      cards/             (Project cards, create forms)
+    [projectId]/
+      page.tsx
+      _components/        (Project detail tabs: settings, runs, environments)
   evidence/
     page.tsx
   api/                    (Backend API Route Handlers)
@@ -58,7 +71,8 @@ src/lib/
       db/                 (Prisma Client database adapters)
       runner/             (Playwright automation execution engine)
       queue/              (Job queue setup — pg-boss queue configuration)
-      ai/                 (Ollama AI API connection wrapper)
+      ai/                 (AI provider abstraction — Ollama, OpenAI-compat, Anthropic, Gemini)
+      utils/              (Shared server infrastructure utilities)
     workers/              (Background job processors — QA worker, run processor)
   shared/
     domain/               (Pure environment-agnostic business logic, validators, and types)
@@ -68,7 +82,8 @@ src/lib/
 - `db/`: Database configuration (Prisma client instance).
 - `runner/`: Playwright crawler, screenshot artifacts creator, and page settles.
 - `queue/`: Job queue setup using pg-boss for background QA run processing.
-- `ai/`: Ollama report generator and prompt formatting.
+- `ai/`: AI report generation via env-var-driven provider abstraction. Supports native Ollama (default), OpenAI-compatible (OpenAI/Groq/Together/vLLM/LM Studio), native Anthropic, and native Gemini. Config resolved from `AI_PROVIDER`/`AI_BASE_URL`/`AI_API_KEY`/`AI_MODEL`/`AI_TIMEOUT` env vars with `OLLAMA_*` backward-compat fallbacks. Files: `ai-config.ts` (env resolution), `ai-provider.ts` (interface + factory), `report-generator.ts` (orchestrator — `generateAIReport`, `generateMockReport`, `buildSystemPrompt`), `providers/` (4 provider implementations: `ollama-provider.ts`, `openai-compat-provider.ts`, `anthropic-provider.ts`, `gemini-provider.ts`).
+- `utils/`: Shared server infrastructure utilities. `fetch-with-timeout.ts` — AbortController-based fetch wrapper with timeout, used by all AI providers.
 - `workers/`: Background job processors — `qa-worker.ts` starts the worker process, `qa-run-processor.ts` handles individual QA run execution.
 - `shared/domain/`: Pure, environment-agnostic business models, constants, formats, validators, and helpers (e.g., [types.ts](file:///C:/College/pprince/main-project/src/lib/shared/domain/types.ts), [validators.ts](file:///C:/College/pprince/main-project/src/lib/shared/domain/validators.ts)). Safe to import anywhere.
 
