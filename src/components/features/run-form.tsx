@@ -166,14 +166,16 @@ export function RunForm({
 
         <div className="mt-2.5 flex flex-col sm:flex-row gap-3">
           <input
-            type="url"
+            type="text"
+            inputMode="url"
+            autoComplete="url"
             name="url"
             id="url-target"
             ref={urlInputRef}
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             className="flex-1 w-full rounded-xs border border-border bg-card px-3.5 py-2.5 text-sm text-foreground outline-none transition disabled:cursor-not-allowed disabled:opacity-60 focus:border-accent focus:ring-1 focus:ring-accent"
-            placeholder="https://example.com"
+            placeholder="example.com"
             disabled={isDisabled}
             aria-invalid={Boolean(error)}
             aria-describedby={

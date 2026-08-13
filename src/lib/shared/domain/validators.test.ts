@@ -5,6 +5,7 @@ import {
   CreateRunSchema,
   GetRunsQuerySchema,
   isValidHttpUrl,
+  normalizeUrl,
   resolveRelativeRoute,
   UpdateEvidenceStatusSchema,
   validateAIReport,
@@ -45,6 +46,78 @@ describe("isValidHttpUrl", () => {
 
   it("rejects non-http protocol", () => {
     expect(isValidHttpUrl("ftp://example.com")).toBe(false);
+  });
+});
+
+describe("normalizeUrl", () => {
+  it("prepends https for public scheme-less domains", () => {
+    expect(normalizeUrl("example.com")).toBe("https://example.com");
+    expect(normalizeUrl("example.com/path?q=1")).toBe("https://example.com/path?q=1");
+  });
+
+  it("prepends http for localhost and private targets", () => {
+    expect(normalizeUrl("localhost:3000")).toBe("http://localhost:3000");
+    expect(normalizeUrl("127.0.0.1")).toBe("http://127.0.0.1");
+    expect(normalizeUrl("192.168.1.100:8080")).toBe("http://192.168.1.100:8080");
+    expect(normalizeUrl("10.0.0.1")).toBe("http://10.0.0.1");
+  });
+
+  it("leaves existing http/https schemes unchanged (idempotent)", () => {
+    expect(normalizeUrl("https://example.com")).toBe("https://example.com");
+    expect(normalizeUrl("http://example.com")).toBe("http://example.com");
+    expect(normalizeUrl("HTTPS://example.com")).toBe("HTTPS://example.com");
+  });
+
+  it("leaves known non-http schemes unchanged for downstream rejection", () => {
+    expect(normalizeUrl("ftp://example.com")).toBe("ftp://example.com");
+    expect(normalizeUrl("javascript:alert(1)")).toBe("javascript:alert(1)");
+    expect(normalizeUrl("file:///etc/passwd")).toBe("file:///etc/passwd");
+  });
+
+  it("handles host:port disambiguation", () => {
+    expect(normalizeUrl("example.com:8080")).toBe("https://example.com:8080");
+    expect(normalizeUrl("localhost:3000")).toBe("http://localhost:3000");
+  });
+
+  it("trims whitespace", () => {
+    expect(normalizeUrl("  example.com  ")).toBe("https://example.com");
+    expect(normalizeUrl("https://example.com  ")).toBe("https://example.com");
+  });
+
+  it("returns empty string for blank input", () => {
+    expect(normalizeUrl("")).toBe("");
+    expect(normalizeUrl("   ")).toBe("");
+  });
+
+  it("leaves protocol-relative URLs unchanged for downstream rejection", () => {
+    expect(normalizeUrl("//example.com")).toBe("//example.com");
+    expect(normalizeUrl("//127.0.0.1")).toBe("//127.0.0.1");
+  });
+
+  it("leaves single-slash schemes unchanged for downstream rejection", () => {
+    expect(normalizeUrl("https:example.com")).toBe("https:example.com");
+    expect(normalizeUrl("http:/example.com")).toBe("http:/example.com");
+  });
+
+  it("prepends http for trailing-dot local targets", () => {
+    expect(normalizeUrl("127.0.0.1.")).toBe("http://127.0.0.1.");
+    expect(normalizeUrl("localhost.")).toBe("http://localhost.");
+    expect(normalizeUrl("169.254.169.254.")).toBe("http://169.254.169.254.");
+  });
+
+  it("leaves malformed and single-label hosts unchanged", () => {
+    expect(normalizeUrl("http//localhost")).toBe("http//localhost");
+    expect(normalizeUrl("example")).toBe("example");
+    expect(normalizeUrl("intranet")).toBe("intranet");
+  });
+
+  it("prepends https for IDN and dotted public hosts", () => {
+    expect(normalizeUrl("münchen.de")).toBe("https://münchen.de");
+    expect(normalizeUrl("sub.domain.co.uk")).toBe("https://sub.domain.co.uk");
+  });
+
+  it("prepends http for IPv6 loopback", () => {
+    expect(normalizeUrl("[::1]")).toBe("http://[::1]");
   });
 });
 
@@ -95,6 +168,24 @@ describe("CreateRunSchema (SSRF Protection)", () => {
     const valid = CreateRunSchema.safeParse({ url: "https://github.com" });
 
     expect(valid.success).toBe(true);
+  });
+
+  it("normalizes scheme-less public URLs via the preprocess", () => {
+    const result = CreateRunSchema.safeParse({ url: "example.com" });
+
+    expect(result.success).toBe(true);
+    expect(result.data?.url).toBe("https://example.com");
+  });
+
+  it("normalizes scheme-less localhost and rejects it via SSRF", () => {
+    const result = CreateRunSchema.safeParse({ url: "localhost:3000" });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects malformed scheme-less input via the preprocess", () => {
+    expect(CreateRunSchema.safeParse({ url: "http//localhost" }).success).toBe(false);
+    expect(CreateRunSchema.safeParse({ url: "//example.com" }).success).toBe(false);
   });
 
   it("accepts public IPv6", () => {
