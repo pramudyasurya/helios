@@ -3,6 +3,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 const prismaMock = vi.hoisted(() => ({
   run: { findUnique: vi.fn(), update: vi.fn() },
   pageResult: { deleteMany: vi.fn() },
+  evidence: { deleteMany: vi.fn() },
 }));
 const runnerMock = vi.hoisted(() => ({ runMultiRouteQA: vi.fn() }));
 const trailMock = vi.hoisted(() => ({
@@ -53,6 +54,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   prismaMock.run.update.mockResolvedValue({});
   prismaMock.pageResult.deleteMany.mockResolvedValue({ count: 0 });
+  prismaMock.evidence.deleteMany.mockResolvedValue({ count: 0 });
   trailMock.appendRunTrailStep.mockResolvedValue([]);
 });
 
@@ -124,5 +126,55 @@ describe("processQARun", () => {
     expect(prismaMock.run.update).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ status: "Failed" }) }),
     );
+  });
+});
+
+describe("processQARun checks wiring", () => {
+  it("computes and persists checks from page results on the success path", async () => {
+    const resultWithPages = {
+      ...successfulResult,
+      pageResults: [
+        {
+          id: "page-1",
+          url: "https://example.com",
+          depth: 0,
+          status: "Completed",
+          statusCode: 200,
+          finalUrl: "https://example.com",
+          title: "Example",
+          description: "An example site",
+          durationMs: 500,
+          artifacts: {
+            desktopScreenshot: "/artifacts/desktop.png",
+            mobileScreenshot: "/artifacts/mobile.png",
+          },
+          brokenImages: [],
+          consoleErrors: ["Uncaught Error: test"],
+          failedRequests: [],
+          loadMetrics: { domContentLoadedMs: 800, loadEventMs: 1200 },
+          createdAt: "2026-08-06T00:00:00.000Z",
+          updatedAt: "2026-08-06T00:00:00.000Z",
+        },
+      ],
+    };
+    prismaMock.run.findUnique.mockResolvedValueOnce({ trail: [] });
+    runnerMock.runMultiRouteQA.mockResolvedValueOnce(resultWithPages);
+
+    await processQARun(job, { retryCount: 0, retryLimit: 2 });
+
+    // Verify checks were computed and included in the run update
+    const updateCall = prismaMock.run.update.mock.calls.find(
+      (call) =>
+        call[0]?.data?.status === "Completed",
+    );
+    expect(updateCall).toBeDefined();
+    const checks = updateCall?.[0]?.data?.checks;
+    expect(Array.isArray(checks)).toBe(true);
+    expect(checks.length).toBeGreaterThan(0);
+    // The "Console errors checked" check should be 'warning' since there's 1 console error
+    const consoleCheck = checks.find(
+      (c: { title: string }) => c.title === "Console errors checked",
+    );
+    expect(consoleCheck).toMatchObject({ status: "warning" });
   });
 });

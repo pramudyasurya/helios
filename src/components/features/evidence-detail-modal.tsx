@@ -15,7 +15,7 @@ import {
 } from "@/lib/shared/domain/evidence-sections";
 
 type EvidenceDetailModalProps = {
-  evidence: RunEvidence;
+  evidence: RunEvidence & { screenshotUrl?: string };
   onClose: () => void;
   onStatusChange?: (status: EvidenceStatus) => void;
 };
@@ -32,6 +32,7 @@ export function EvidenceDetailModal({
   onStatusChange,
 }: EvidenceDetailModalProps) {
   const [hasCopiedContent, setHasCopiedContent] = useState(false);
+  const [showFullScreenshot, setShowFullScreenshot] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
 
   useModalFocus(modalRef, true, onClose);
@@ -73,6 +74,16 @@ export function EvidenceDetailModal({
             <span className="rounded-xs border border-border px-2 py-1 text-xs text-muted">
               {evidenceTypeLabels[evidence.type]}
             </span>
+            {evidence.viewport && (
+              <span className="rounded-xs border border-border px-2 py-1 text-xs text-muted">
+                {evidence.viewport}
+              </span>
+            )}
+            {evidence.severity && (
+              <span className="rounded-xs border border-border px-2 py-1 text-xs text-muted capitalize">
+                {evidence.severity}
+              </span>
+            )}
             <span className="text-xs text-muted">
               {formatTimestamp(evidence.capturedAt)}
             </span>
@@ -113,7 +124,7 @@ export function EvidenceDetailModal({
         <div className="mt-4">
           <p className="text-xs text-muted">Observed on</p>
           <a
-            href={evidence.pageUrl}
+            href={evidence.pageUrl.startsWith("http://") || evidence.pageUrl.startsWith("https://") ? evidence.pageUrl : undefined}
             target="_blank"
             rel="noreferrer"
             className="mt-1 block break-all text-xs text-accent hover:underline"
@@ -136,9 +147,60 @@ export function EvidenceDetailModal({
           </div>
         )}
 
+        {evidence.screenshotUrl && (
+          <div className="mt-4">
+            <p className="text-xs text-muted">Screenshot</p>
+            <button
+              type="button"
+              onClick={() => setShowFullScreenshot(true)}
+              className="mt-1 block w-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent rounded-xs"
+              aria-label="View full screenshot"
+            >
+              <img
+                src={evidence.screenshotUrl}
+                alt="Evidence screenshot"
+                className="w-full rounded-xs border border-border object-top"
+              />
+            </button>
+          </div>
+        )}
+
         <pre className="mt-4 max-h-[50vh] overflow-auto whitespace-pre-wrap wrap-break-word rounded-xs border border-border bg-card p-4 text-xs text-foreground font-mono">
           {evidence.content}
         </pre>
+
+        {showFullScreenshot && evidence.screenshotUrl && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Full screenshot"
+            tabIndex={-1}
+            onClick={() => setShowFullScreenshot(false)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                e.stopPropagation();
+                setShowFullScreenshot(false);
+              }
+            }}
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-background/95 p-4 backdrop-blur-sm"
+          >
+            <button
+              type="button"
+              onClick={() => setShowFullScreenshot(false)}
+              aria-label="Close full screenshot"
+              className="absolute top-4 right-4 rounded-full border border-border p-2 text-muted transition hover:text-foreground hover:bg-card"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <img
+              src={evidence.screenshotUrl}
+              alt="Evidence screenshot"
+              className="max-h-[90vh] max-w-full rounded-xs border border-border object-top shadow-lg"
+            />
+          </div>
+        )}
       </div>
     </div>
   );

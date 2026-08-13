@@ -8,6 +8,7 @@ type EvidenceSectionProps = {
   copiedEvidence: string | null;
   onCopyEvidence: (value: string) => void;
   onSelectEvidence: (evidence: RunEvidence) => void;
+  highlightedEvidenceId?: string | null;
 };
 
 export function EvidenceSection({
@@ -17,6 +18,7 @@ export function EvidenceSection({
   copiedEvidence,
   onCopyEvidence,
   onSelectEvidence,
+  highlightedEvidenceId,
 }: EvidenceSectionProps) {
   if (items.length === 0) return null;
 
@@ -29,7 +31,12 @@ export function EvidenceSection({
         {items.map((evidence) => (
           <li
             key={evidence.id}
-            className="rounded-xs border border-border bg-card p-3 text-xs text-muted"
+            id={`evidence-item-${evidence.id}`}
+            className={`rounded-xs border border-border bg-card p-3 text-xs text-muted transition-all duration-1000 ${
+              highlightedEvidenceId === evidence.id
+                ? "ring-2 ring-accent/40 bg-accent/5"
+                : "ring-0 ring-transparent"
+            }`}
           >
             <EvidenceItem
               evidence={evidence}

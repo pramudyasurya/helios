@@ -26,6 +26,9 @@ export interface BoardEvidenceItem {
   pageUrl: string;
   resourceUrl?: string;
   capturedAt: string;
+  screenshotUrl?: string;
+  viewport?: string;
+  severity?: string;
 
   runId: string;
   runTitle: string;
@@ -60,6 +63,7 @@ export function GlobalEvidenceBoard({
 }: GlobalEvidenceBoardProps) {
   const [selectedEvidence, setSelectedEvidence] =
     useState<BoardEvidenceItem | null>(null);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   const [optimisticItems, setOptimisticStatus] = useOptimistic(
     items,
@@ -91,6 +95,7 @@ export function GlobalEvidenceBoard({
         router.refresh();
       } catch (error) {
         console.error("Failed to update status:", error);
+        router.refresh();
 
         if (selectedEvidence && selectedEvidence.id === item.id) {
           setSelectedEvidence({ ...selectedEvidence, status: item.status });
@@ -207,6 +212,21 @@ export function GlobalEvidenceBoard({
                 className="flex flex-col gap-4 p-4 transition hover:bg-card/40 md:flex-row md:items-center md:justify-between"
               >
                 <div className="flex min-w-0 flex-1 items-start gap-3">
+                  {item.screenshotUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setLightboxSrc(item.screenshotUrl!)}
+                      aria-label="View screenshot"
+                      className="shrink-0 cursor-pointer rounded-xs overflow-hidden focus:outline-none focus:ring-2 focus:ring-accent"
+                    >
+                      <img
+                        src={item.screenshotUrl}
+                        alt={`Screenshot evidence for ${item.pageUrl}`}
+                        className="h-16 w-24 object-cover object-top rounded-xs border border-border"
+                      />
+                    </button>
+                  )}
+
                   <div className="flex flex-wrap items-center gap-1.5 shrink-0 mt-0.5">
                     <span
                       className="text-muted mr-1"
@@ -295,6 +315,36 @@ export function GlobalEvidenceBoard({
             handleStatusChange(selectedEvidence, status)
           }
         />
+      )}
+
+      {lightboxSrc && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Screenshot viewer"
+          tabIndex={-1}
+          onClick={() => setLightboxSrc(null)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setLightboxSrc(null);
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 p-4 backdrop-blur-sm md:p-8"
+        >
+          <button
+            type="button"
+            onClick={() => setLightboxSrc(null)}
+            aria-label="Close screenshot viewer"
+            className="absolute top-4 right-4 rounded-full border border-border p-2 text-muted transition hover:text-foreground hover:bg-card"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <img
+            src={lightboxSrc}
+            alt="Evidence screenshot"
+            className="max-h-[90vh] max-w-full rounded-xs border border-border object-top shadow-lg"
+          />
+        </div>
       )}
     </div>
   );

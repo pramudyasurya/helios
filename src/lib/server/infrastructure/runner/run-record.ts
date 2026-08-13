@@ -75,6 +75,8 @@ export function runRecordToLatestRun(
             pageUrl: e.pageUrl,
             resourceUrl: e.resourceUrl ?? undefined,
             status: e.status as EvidenceStatus,
+            severity: e.severity ?? undefined,
+            viewport: e.viewport ?? undefined,
             capturedAt: e.createdAt.toISOString(),
           }))
         : transformRawEvidence({

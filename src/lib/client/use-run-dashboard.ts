@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import type { LatestRun, RunStats } from "@/lib/shared/domain/types";
 import { getRunErrorMessage } from "@/lib/shared/domain/errors";
-import { isValidHttpUrl } from "@/lib/shared/domain/validators";
+import { isValidHttpUrl, normalizeUrl } from "@/lib/shared/domain/validators";
 import {
   createRun,
   getRuns,
@@ -89,16 +89,16 @@ export function useRunDashboard(onRunComplete?: () => void) {
   ) => {
     setRunError(undefined);
 
-    const trimmedUrl = url.trim();
+    const normalizedUrl = normalizeUrl(url);
 
-    if (!isValidHttpUrl(trimmedUrl)) {
+    if (!isValidHttpUrl(normalizedUrl)) {
       setRunError("Please enter a valid HTTP or HTTPS URL.");
       return;
     }
 
     try {
       const result = await createRun({
-        url: trimmedUrl,
+        url: normalizedUrl,
         mode: config?.mode,
         routes: config?.routes,
         maxPages: config?.maxPages,
@@ -107,7 +107,7 @@ export function useRunDashboard(onRunComplete?: () => void) {
         environmentId: config?.environmentId,
         origin: config?.origin,
       });
-      const { run } = createQueuedRunState(trimmedUrl);
+      const { run } = createQueuedRunState(normalizedUrl);
 
       setLatestRun({ ...run, id: result.id });
       onRunComplete?.();
@@ -116,7 +116,7 @@ export function useRunDashboard(onRunComplete?: () => void) {
       const message = getRunErrorMessage(error);
       setRunError(message);
 
-      const { run } = createQueuedRunState(trimmedUrl);
+      const { run } = createQueuedRunState(normalizedUrl);
       setLatestRun(createFailedRunState(run, message));
 
       onRunComplete?.();

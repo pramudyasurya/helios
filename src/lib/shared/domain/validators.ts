@@ -14,12 +14,74 @@ export function isValidHttpUrl(value: string) {
   }
 }
 
+const KNOWN_NON_HTTP_SCHEMES = [
+  "ftp:",
+  "file:",
+  "javascript:",
+  "data:",
+  "mailto:",
+  "ws:",
+  "wss:",
+  "tel:",
+  "about:",
+  "chrome:",
+] as const;
+
+// Matches a leading scheme token (e.g. "http:", "ftp:", "custom:") in raw
+// user input. Shared by normalizeUrl (classify host:port vs scheme) and
+// resolveRelativeRoute (absolute-route detection) — keep in sync.
+const SCHEME_PREFIX = /^[a-zA-Z][a-zA-Z0-9+.-]*:/;
+
+/**
+ * Prepends a scheme to a user-entered URL when missing.
+ * - http(s):// → unchanged (idempotent); known non-http scheme → unchanged
+ *   (rejected downstream); scheme-less → http:// for local/private targets,
+ *   https:// otherwise. UX fast path — HttpUrlSchema/isIpPrivate are the gate.
+ * Called before validation on both client and server.
+ */
+export function normalizeUrl(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return trimmed;
+
+  if (trimmed.startsWith("//")) return trimmed;
+
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+
+  const schemeMatch = trimmed.match(SCHEME_PREFIX);
+  if (schemeMatch) {
+    const scheme = schemeMatch[0].toLowerCase();
+    if ((KNOWN_NON_HTTP_SCHEMES as readonly string[]).includes(scheme)) {
+      return trimmed;
+    }
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(`http://${trimmed}`);
+  } catch {
+    return trimmed;
+  }
+
+  const hostname = parsed.hostname;
+  const isLocal = isIpPrivate(hostname);
+  const isPlausibleHost =
+    hostname.includes(".") || hostname === "localhost" || isLocal;
+
+  if (!isPlausibleHost) return trimmed;
+
+  return isLocal ? `http://${trimmed}` : `https://${trimmed}`;
+}
+
 export function validateAIReport(data: unknown): AIReport | null {
   const result = AIReportSchema.safeParse(data);
   return result.success ? result.data : null;
 }
 
-const HttpUrlSchema = z.string().trim().url({ message: "Enter a valid URL." }).refine(
+const HttpUrlSchema = z
+  .string()
+  .trim()
+  .url({ protocol: /^https?$/i, message: "Enter a valid URL." })
+  .refine(
   (val) => {
     try {
       const parsed = new URL(val);
@@ -47,7 +109,7 @@ export function resolveRelativeRoute(route: string, baseUrl: string): string {
   }
 
   try {
-    if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) {
+    if (SCHEME_PREFIX.test(trimmed)) {
       const parsed = new URL(trimmed);
       if (
         (parsed.protocol !== "http:" && parsed.protocol !== "https:") ||
@@ -80,7 +142,7 @@ export const CreateRunSchema = z
       typeof (data as Record<string, unknown>).url === "string"
     ) {
       const payload = data as Record<string, unknown>;
-      const rawUrl = (payload.url as string).trim();
+      const rawUrl = normalizeUrl(payload.url as string);
       if ("routes" in data && Array.isArray((data as Record<string, unknown>).routes)) {
         const resolvedRoutes = ((data as Record<string, unknown>).routes as unknown[]).map(
           (route) =>
@@ -211,6 +273,9 @@ export const AIReportSchema = z.object({
 
 export function isIpPrivate(ip: string): boolean {
   let checkHost = ip.toLowerCase();
+
+  // Strip trailing-dot FQDN marker so "127.0.0.1." / "localhost." stay private
+  checkHost = checkHost.replace(/\.$/, "");
 
   if (checkHost.startsWith("[") && checkHost.endsWith("]")) {
     checkHost = checkHost.slice(1, -1);

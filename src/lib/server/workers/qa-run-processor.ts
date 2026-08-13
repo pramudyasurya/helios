@@ -12,6 +12,7 @@ import {
   redactEmbeddedUrls,
   sanitizeTrailSteps,
 } from "@/lib/server/infrastructure/runner/trail";
+import { runChecks, toCheckInput } from "@/lib/shared/domain/checks";
 
 export async function processQARun(
   job: QARunJob,
@@ -40,6 +41,7 @@ export async function processQARun(
       where: { id: job.runId },
       data: { status: "Running", summary: "Helios is running browser QA." },
     });
+    await prisma.evidence.deleteMany({ where: { runId: job.runId } });
     await prisma.pageResult.deleteMany({ where: { runId: job.runId } });
 
     const result = await runMultiRouteQA({
@@ -60,6 +62,17 @@ export async function processQARun(
       : [];
     const trail = mergeTrailSteps(sanitizeTrailSteps(rawTrail), result.trail);
 
+    // Compute QA checks from run results (T034-T035)
+    let checks: unknown[] = [];
+    try {
+      const checkInputs = result.pageResults.map(toCheckInput);
+      checks = runChecks(checkInputs);
+    } catch (checkError) {
+      console.warn(
+        `Checks computation failed for run ${job.runId}: ${getErrorMessage(checkError, "Unknown error")}. Persisting empty checks.`,
+      );
+    }
+
     await prisma.run.update({
       where: { id: job.runId },
       data: {
@@ -75,6 +88,7 @@ export async function processQARun(
         consoleErrors: primaryResult?.consoleErrors,
         failedRequests: primaryResult?.failedRequests,
         loadMetrics: primaryResult?.loadMetrics,
+        checks: checks as Prisma.InputJsonValue,
         trail: trail as unknown as Prisma.InputJsonValue,
       },
     });

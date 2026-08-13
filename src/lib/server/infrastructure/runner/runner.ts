@@ -36,6 +36,10 @@ import {
   takeNextCrawlPage,
   type CrawlOptions,
 } from "@/lib/server/infrastructure/runner/crawler";
+import {
+  pageResultToCreateInput,
+  persistPageEvidence,
+} from "@/lib/server/infrastructure/runner/evidence-builder";
 import { prisma } from "@/lib/server/infrastructure/db/prisma";
 
 type RunSinglePageQAProps = {
@@ -320,6 +324,21 @@ export async function runMultiRouteQA({
         dnsCache,
       });
       pageResults.push(pageResult);
+      const createdPage = await prisma.pageResult.create({
+        data: pageResultToCreateInput(pageResult, runId),
+      });
+      try {
+        await persistPageEvidence({
+          runId,
+          pageResult,
+          pageResultId: createdPage.id,
+          prisma,
+        });
+      } catch (evidenceError) {
+        console.warn(
+          `Evidence persistence failed for page ${pageResult.url} in run ${runId}: ${evidenceError instanceof Error ? evidenceError.message : "Unknown error"}. Continuing crawl.`,
+        );
+      }
 
       const stepInput = {
         label: `Inspected page (Depth ${pageResult.depth})`,
@@ -351,28 +370,6 @@ export async function runMultiRouteQA({
         }
       }
     }
-
-    await prisma.pageResult.createMany({
-      data: pageResults.map((pageResult) => ({
-        id: pageResult.id,
-        runId,
-        url: pageResult.url,
-        depth: pageResult.depth,
-        status: pageResult.status,
-        statusCode: pageResult.statusCode,
-        finalUrl: pageResult.finalUrl,
-        title: pageResult.title,
-        description: pageResult.description,
-        durationMs: pageResult.durationMs,
-        artifacts: pageResult.artifacts,
-        brokenImages: pageResult.brokenImages,
-        consoleErrors: pageResult.consoleErrors,
-        failedRequests: pageResult.failedRequests,
-        loadMetrics: pageResult.loadMetrics,
-        createdAt: new Date(pageResult.createdAt),
-        updatedAt: new Date(pageResult.updatedAt),
-      })),
-    });
 
     const finishedAt = new Date();
     const failedPageCount = pageResults.filter(

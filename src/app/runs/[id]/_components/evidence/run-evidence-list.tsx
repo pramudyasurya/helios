@@ -24,6 +24,8 @@ type RunEvidenceListProps = {
   scrollTarget?: EvidenceFilter | null;
   onScrollComplete?: () => void;
   onStatusChange?: (evidenceId: string, newStatus: EvidenceStatus) => void;
+  evidenceIdTarget?: string;
+  onEvidenceIdTargetConsumed?: () => void;
 };
 
 export function RunEvidenceList({
@@ -33,6 +35,8 @@ export function RunEvidenceList({
   scrollTarget,
   onScrollComplete,
   onStatusChange,
+  evidenceIdTarget,
+  onEvidenceIdTargetConsumed,
 }: RunEvidenceListProps) {
   const [showAllEvidence, setShowAllEvidence] = useState(false);
   const [copiedEvidence, setCopiedEvidence] = useState<string | null>(null);
@@ -42,6 +46,9 @@ export function RunEvidenceList({
   const [selectedEvidence, setSelectedEvidence] = useState<RunEvidence | null>(
     null,
   );
+  const [highlightedEvidenceId, setHighlightedEvidenceId] = useState<
+    string | null
+  >(null);
 
   const activeFilter = controlledActiveFilter ?? uncontrolledActiveFilter;
 
@@ -68,6 +75,32 @@ export function RunEvidenceList({
     };
   }, [scrollTarget, onScrollComplete]);
 
+  useEffect(() => {
+    if (!evidenceIdTarget) return;
+
+    setHighlightedEvidenceId(evidenceIdTarget);
+
+    const scrollTimeoutId = window.setTimeout(() => {
+      const element = document.getElementById(
+        `evidence-item-${evidenceIdTarget}`,
+      );
+      element?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 200);
+
+    const clearTimeoutId = window.setTimeout(() => {
+      setHighlightedEvidenceId(null);
+      onEvidenceIdTargetConsumed?.();
+    }, 2000);
+
+    return () => {
+      window.clearTimeout(scrollTimeoutId);
+      window.clearTimeout(clearTimeoutId);
+    };
+  }, [evidenceIdTarget, onEvidenceIdTargetConsumed]);
+
   const handleFilterChange = (filter: EvidenceFilter) => {
     if (controlledActiveFilter === undefined) {
       setUncontrolledActiveFilter(filter);
@@ -78,9 +111,10 @@ export function RunEvidenceList({
     setHasCopiedAllEvidence(false);
   };
 
-  const maxVisibleItems = showAllEvidence
-    ? undefined
-    : MAX_VISIBLE_EVIDENCE_ITEMS;
+  const maxVisibleItems =
+    showAllEvidence || Boolean(evidenceIdTarget)
+      ? undefined
+      : MAX_VISIBLE_EVIDENCE_ITEMS;
 
   const handleCopyEvidence = async (value: string) => {
     await navigator.clipboard.writeText(value);
@@ -225,6 +259,7 @@ export function RunEvidenceList({
                 copiedEvidence={copiedEvidence}
                 onCopyEvidence={handleCopyEvidence}
                 onSelectEvidence={setSelectedEvidence}
+                highlightedEvidenceId={highlightedEvidenceId}
               />
             </div>
           );

@@ -22,6 +22,7 @@ import { generateReport } from "@/lib/client/api";
 type AIReportPanelProps = {
   runId: string;
   initialReport?: AIReport;
+  onViewEvidence?: (evidenceId: string) => void;
 };
 
 const riskConfig: Record<
@@ -74,7 +75,7 @@ const PROGRESS_STEPS = [
   { id: 2, label: "Generating report", icon: FileText, duration: 8000 },
 ] as const;
 
-export function AIReportPanel({ runId, initialReport }: AIReportPanelProps) {
+export function AIReportPanel({ runId, initialReport, onViewEvidence }: AIReportPanelProps) {
   const [report, setReport] = useState<AIReport | undefined>(initialReport);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -417,14 +418,27 @@ export function AIReportPanel({ runId, initialReport }: AIReportPanelProps) {
                       <span className="text-[10px] text-muted font-medium">
                         Evidence IDs:
                       </span>
-                      {finding.evidenceIds.map((evId) => (
-                        <code
-                          key={evId}
-                          className="rounded bg-card px-1.5 py-0.5 text-[9px] font-mono border border-border text-foreground"
-                        >
-                          {evId.substring(0, 8)}
-                        </code>
-                      ))}
+                      {finding.evidenceIds.map((evId) =>
+                        onViewEvidence ? (
+                          <button
+                            key={evId}
+                            type="button"
+                            onClick={() => onViewEvidence(evId)}
+                            title={evId}
+                            aria-label={`View evidence ${evId}`}
+                            className="rounded bg-card px-1.5 py-0.5 text-[9px] font-mono border border-border text-foreground cursor-pointer hover:bg-accent/10 hover:text-accent hover:border-accent/40 transition"
+                          >
+                            {evId.substring(0, 8)}
+                          </button>
+                        ) : (
+                          <code
+                            key={evId}
+                            className="rounded bg-card px-1.5 py-0.5 text-[9px] font-mono border border-border text-foreground"
+                          >
+                            {evId.substring(0, 8)}
+                          </code>
+                        ),
+                      )}
                     </div>
                   )}
                 </li>

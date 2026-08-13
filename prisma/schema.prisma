@@ -78,22 +78,29 @@ enum EvidenceStatus {
 }
 
 model Evidence {
-  id          String         @id @default(uuid())
-  runId       String
-  run         Run            @relation(fields: [runId], references: [id], onDelete: Cascade)
-  type        EvidenceType
-  content     String
-  pageUrl     String
-  resourceUrl String?
-  status      EvidenceStatus @default(open)
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  id            String         @id @default(uuid())
+  runId         String
+  run           Run            @relation(fields: [runId], references: [id], onDelete: Cascade)
+  pageResultId  String?
+  pageResult    PageResult?    @relation(fields: [pageResultId], references: [id], onDelete: Cascade)
+  type          EvidenceType
+  content       String
+  pageUrl       String
+  resourceUrl   String?
+  status        EvidenceStatus @default(open)
+  severity      String?
+  viewport      String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([pageResultId])
+  @@index([runId])
 }
 
 model PageResult {
-  id             String  @id @default(uuid())
+  id             String    @id @default(uuid())
   runId          String
-  run            Run     @relation(fields: [runId], references: [id], onDelete: Cascade)
+  run            Run       @relation(fields: [runId], references: [id], onDelete: Cascade)
   url            String
   depth          Int
   status         String
@@ -107,7 +114,11 @@ model PageResult {
   consoleErrors  Json?
   failedRequests Json?
   loadMetrics    Json?
+  checks         Json?
+  evidence       Evidence[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([runId])
 }
