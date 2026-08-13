@@ -54,7 +54,7 @@ export default async function EvidencePage({
       prisma.evidence.count({ where: { status: "ignored" } }),
       prisma.evidence.findMany({
         where,
-        include: { run: true },
+        include: { run: true, pageResult: true },
         orderBy: { createdAt: "desc" },
         take: 100,
       }),
@@ -68,6 +68,11 @@ export default async function EvidencePage({
     pageUrl: item.pageUrl,
     resourceUrl: item.resourceUrl ?? undefined,
     capturedAt: item.createdAt.toISOString(),
+    screenshotUrl:
+      (item.pageResult?.artifacts as { desktopScreenshot?: string } | null)
+        ?.desktopScreenshot ?? undefined,
+    viewport: item.viewport ?? undefined,
+    severity: item.severity ?? undefined,
 
     runId: item.runId,
     runTitle: item.run.title ?? item.run.finalUrl ?? item.run.startingUrl,

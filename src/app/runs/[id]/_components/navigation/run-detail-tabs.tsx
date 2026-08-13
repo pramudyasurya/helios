@@ -43,6 +43,7 @@ export function RunDetailTabs({ run }: RunDetailTabsProps) {
     useState<EvidenceFilter>("all");
   const [scrollTarget, setScrollTarget] = useState<EvidenceFilter | null>(null);
   const [evidence, setEvidence] = useState(run.evidence ?? []);
+  const [evidenceIdTarget, setEvidenceIdTarget] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     const normalized = normalizeRunStatus(run.status);
@@ -106,6 +107,21 @@ export function RunDetailTabs({ run }: RunDetailTabsProps) {
     setScrollTarget(null);
   };
 
+  const handleViewEvidenceById = (evidenceId: string) => {
+    const target = evidence.find((item) => item.id === evidenceId);
+    if (target) {
+      setActiveEvidenceFilter(evidenceFilterByType[target.type]);
+    } else {
+      setActiveEvidenceFilter("all");
+    }
+    setEvidenceIdTarget(evidenceId);
+    setActiveSection("evidence");
+  };
+
+  const handleEvidenceIdTargetConsumed = () => {
+    setEvidenceIdTarget(undefined);
+  };
+
   const handleUpdateEvidenceStatus = async (
     evidenceId: string,
     newStatus: EvidenceStatus,
@@ -144,7 +160,13 @@ export function RunDetailTabs({ run }: RunDetailTabsProps) {
           </div>
         );
       case "ai-report":
-        return <AIReportPanel runId={run.id} initialReport={run.report} />;
+        return (
+          <AIReportPanel
+            runId={run.id}
+            initialReport={run.report}
+            onViewEvidence={handleViewEvidenceById}
+          />
+        );
       case "pages":
         return <PageResultsTab pageResults={run.pageResults} />;
       case "findings":
@@ -165,6 +187,8 @@ export function RunDetailTabs({ run }: RunDetailTabsProps) {
             onFilterChange={(filter) => setActiveEvidenceFilter(filter)}
             scrollTarget={scrollTarget}
             onScrollComplete={handleScrollComplete}
+            evidenceIdTarget={evidenceIdTarget}
+            onEvidenceIdTargetConsumed={handleEvidenceIdTargetConsumed}
           />
         );
       case "checks":

@@ -17,6 +17,19 @@ export type CheckResult = {
   evidenceType?: EvidenceType;
 };
 
+export type CheckInput = {
+  url: string;
+  finalUrl?: string;
+  statusCode?: number;
+  title?: string;
+  description?: string;
+  loadMetrics?: LoadMetrics;
+  screenshots?: { desktop: string; mobile: string };
+  consoleErrors: string[];
+  failedRequests: string[];
+  brokenImages: string[];
+};
+
 export type LoadMetrics = {
   domContentLoadedMs: number;
   loadEventMs: number;
@@ -42,6 +55,7 @@ export type PageResult = {
   consoleErrors?: string[];
   failedRequests?: string[];
   loadMetrics?: LoadMetrics;
+  checks?: CheckResult[];
 
   createdAt: string;
   updatedAt: string;
@@ -146,6 +160,8 @@ export type RunEvidence = {
   resourceUrl?: string;
   capturedAt: string;
   status: EvidenceStatus;
+  viewport?: string;
+  severity?: string;
 };
 
 export const AI_RISK_LEVELS = ["low", "medium", "high"] as const;

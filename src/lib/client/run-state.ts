@@ -1,7 +1,5 @@
 import type { LatestRun } from "@/lib/shared/domain/types";
 
-export const RUNNING_STATE_DELAY_MS = 1000;
-
 export type QueuedRunState = {
   run: LatestRun;
   startTime: number;
@@ -28,23 +26,5 @@ export function createQueuedRunState(url: string): QueuedRunState {
       createdAt: now.toISOString(),
     },
     startTime: now.getTime(),
-  };
-}
-
-export function markRunRunning(run: LatestRun): LatestRun {
-  const runningAt = new Date();
-
-  return {
-    ...run,
-    status: "Running",
-    trail: [
-      ...run.trail,
-      {
-        label: "QA run running",
-        detail: "Browser session is being launched.",
-        timestamp: runningAt.toISOString(),
-      },
-    ],
-    summary: "Helios is running a real browser QA check.",
   };
 }
