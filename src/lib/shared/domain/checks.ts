@@ -1,8 +1,9 @@
-import type { CheckInput, CheckResult, CheckStatus, CheckSeverity, CreateRunResponse, PageResult } from "@/lib/shared/domain/types";
+import type { CheckInput, CheckResult, CheckStatus, CheckSeverity, CreateRunResponse, EvidenceType, PageResult } from "@/lib/shared/domain/types";
 import {
   getDomLoadStatus,
   formatDomLoadMetric,
 } from "@/lib/shared/domain/performance";
+import { extractViewport } from "@/lib/shared/domain/evidence-transformer";
 
 export function runPageChecks(input: CheckInput): CheckResult[] {
   const finalUrl = input.finalUrl ?? input.url;
@@ -202,5 +203,63 @@ export function createChecksFromRunResult(
     consoleErrors: result.consoleErrors,
     failedRequests: result.failedRequests,
     brokenImages: result.brokenImages,
+  });
+}
+
+const MAX_EVIDENCE_IDS_PER_CHECK = 50;
+
+type EvidenceRow = { id: string; type: EvidenceType; content: string };
+
+const SOURCE_ARRAY_BY_TYPE: Record<
+  EvidenceType,
+  (input: CheckInput) => string[]
+> = {
+  console: (input) => input.consoleErrors,
+  network: (input) => input.failedRequests,
+  image: (input) => input.brokenImages,
+};
+
+/**
+ * Attaches the IDs of persisted evidence rows to each check whose evidenceType
+ * matches, matching rows to the same source entries that produced the check.
+ * Check findings aggregate evidence, so a check receives the IDs of every
+ * matching row (capped) rather than a single representative one.
+ */
+export function attachEvidenceIds(
+  checks: CheckResult[],
+  inputs: CheckInput[],
+  evidence: EvidenceRow[],
+): CheckResult[] {
+  if (evidence.length === 0) return checks;
+
+  const evidenceByTypeAndContent = new Map<string, string[]>();
+  for (const row of evidence) {
+    const { content } = extractViewport(row.content);
+    const key = `${row.type}\u0000${content}`;
+    const ids = evidenceByTypeAndContent.get(key);
+    if (ids) {
+      ids.push(row.id);
+    } else {
+      evidenceByTypeAndContent.set(key, [row.id]);
+    }
+  }
+
+  return checks.map((check) => {
+    if (!check.evidenceType) return check;
+
+    const source = SOURCE_ARRAY_BY_TYPE[check.evidenceType];
+    const ids = new Set<string>();
+    for (const input of inputs) {
+      for (const raw of source(input)) {
+        const { content } = extractViewport(raw);
+        for (const id of evidenceByTypeAndContent.get(
+          `${check.evidenceType}\u0000${content}`,
+        ) ?? []) {
+          if (ids.size < MAX_EVIDENCE_IDS_PER_CHECK) ids.add(id);
+        }
+      }
+    }
+
+    return ids.size > 0 ? { ...check, evidenceIds: [...ids] } : check;
   });
 }

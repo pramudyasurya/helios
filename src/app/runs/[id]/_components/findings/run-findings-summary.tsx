@@ -8,6 +8,7 @@ type RunFindingsSummaryProps = {
   checks: CheckResult[];
   onViewEvidence?: (evidenceType: EvidenceType) => void;
   showEmptyState?: boolean;
+  newIssueEvidenceIds?: Set<string>;
 };
 
 const severityClasses = {
@@ -21,6 +22,7 @@ export function RunFindingsSummary({
   checks,
   onViewEvidence,
   showEmptyState = false,
+  newIssueEvidenceIds,
 }: RunFindingsSummaryProps) {
   const findings = getFindingsFromChecks(checks);
 
@@ -53,14 +55,28 @@ export function RunFindingsSummary({
             >
               <div className="flex items-center justify-between gap-3">
                 <p className="font-medium text-foreground">{finding.title}</p>
-                <span
-                  className={
-                    "rounded-full border px-2 py-0.5 text-xs " +
-                    severityClasses[finding.severity]
-                  }
-                >
-                  {formatLabel(finding.severity)}
-                </span>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  {finding.evidenceIds &&
+                    newIssueEvidenceIds &&
+                    finding.evidenceIds.some((id) =>
+                      newIssueEvidenceIds.has(id),
+                    ) && (
+                      <span
+                        title="Issue first seen in this run"
+                        className="rounded-full border border-danger/30 bg-danger/5 px-2 py-0.5 text-xs text-danger"
+                      >
+                        New issue · Regression
+                      </span>
+                    )}
+                  <span
+                    className={
+                      "rounded-full border px-2 py-0.5 text-xs " +
+                      severityClasses[finding.severity]
+                    }
+                  >
+                    {formatLabel(finding.severity)}
+                  </span>
+                </div>
               </div>
               <p className="mt-1 text-muted">{finding.detail}</p>
 

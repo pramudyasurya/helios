@@ -1,6 +1,7 @@
 import { useRunHistory } from "@/lib/client/use-run-dashboard";
 import { useEffect, type RefObject } from "react";
 import { DashboardMetrics } from "@/app/_components/dashboard/dashboard-metrics";
+import { TrendChartPanel } from "@/app/_components/dashboard/trend-chart-panel";
 import { RunSearchBar } from "@/app/_components/runs/run-search-bar";
 import { RecentRunsSkeleton } from "@/app/_components/runs/recent-runs-skeleton";
 import { RecentRunsList } from "@/components/features/recent-runs-list";
@@ -58,6 +59,9 @@ export function RunHistorySection({
           </span>
         </div>
         <DashboardMetrics stats={stats} isLoading={isStatsLoading} />
+        <div className="mt-3.5">
+          <TrendChartPanel stats={stats} />
+        </div>
       </section>
 
       <div className="rounded-xs border border-border/80 bg-panel/90 p-5 sm:p-6 shadow-sm">

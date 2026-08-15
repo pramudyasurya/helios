@@ -12,7 +12,8 @@ import {
   redactEmbeddedUrls,
   sanitizeTrailSteps,
 } from "@/lib/server/infrastructure/runner/trail";
-import { runChecks, toCheckInput } from "@/lib/shared/domain/checks";
+import { runChecks, toCheckInput, attachEvidenceIds } from "@/lib/shared/domain/checks";
+import { fingerprintRunIssues } from "@/lib/server/infrastructure/issues/fingerprint-issues";
 
 export async function processQARun(
   job: QARunJob,
@@ -66,7 +67,15 @@ export async function processQARun(
     let checks: unknown[] = [];
     try {
       const checkInputs = result.pageResults.map(toCheckInput);
-      checks = runChecks(checkInputs);
+      const evidenceRows = await prisma.evidence.findMany({
+        where: { runId: job.runId },
+        select: { id: true, type: true, content: true },
+      });
+      checks = attachEvidenceIds(
+        runChecks(checkInputs),
+        checkInputs,
+        evidenceRows,
+      );
     } catch (checkError) {
       console.warn(
         `Checks computation failed for run ${job.runId}: ${getErrorMessage(checkError, "Unknown error")}. Persisting empty checks.`,
@@ -92,6 +101,14 @@ export async function processQARun(
         trail: trail as unknown as Prisma.InputJsonValue,
       },
     });
+
+    try {
+      await fingerprintRunIssues(job.runId);
+    } catch (error) {
+      console.warn(
+        `Issue fingerprinting failed for run ${job.runId}: ${getErrorMessage(error, "Unknown error")}`,
+      );
+    }
   } catch (error) {
     const failedAt = new Date();
     const detail = redactEmbeddedUrls(

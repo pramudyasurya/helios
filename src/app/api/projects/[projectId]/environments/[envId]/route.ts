@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/server/infrastructure/db/prisma";
+import { unscheduleQARunSchedule } from "@/lib/server/infrastructure/queue/qa-jobs";
 import { UpdateEnvironmentSchema } from "@/lib/shared/domain/validators";
 import { getErrorMessage, uniqueConstraintResponse } from "@/lib/shared/domain/errors";
 
@@ -71,6 +72,15 @@ export async function DELETE(
         { error: "Environment not found" },
         { status: 404 },
       );
+    }
+
+    const schedules = await prisma.qaSchedule.findMany({
+      where: { environmentId: envId },
+      select: { id: true },
+    });
+
+    for (const schedule of schedules) {
+      await unscheduleQARunSchedule(schedule.id);
     }
 
     await prisma.environment.delete({ where: { id: envId } });

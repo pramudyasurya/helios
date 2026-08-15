@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { LatestRun } from "@/lib/shared/domain/types";
-import { ArrowLeft, Clock, Calendar, Hash } from "lucide-react";
+import { ArrowLeft, Clock, Calendar, GitCompareArrows, Hash } from "lucide-react";
 
 import { StatusBadge } from "@/components/ui/status-badge";
 import { ExportRunButton } from "@/app/runs/[id]/_components/navigation/export-run-button";
@@ -9,11 +9,18 @@ import { HELIOS_ROUTES } from "@/lib/shared/domain/routes";
 
 type RunSummaryHeaderProps = {
   run: LatestRun;
+  previousRunId?: string | null;
 };
 
-export function RunSummaryHeader({ run }: RunSummaryHeaderProps) {
+export function RunSummaryHeader({
+  run,
+  previousRunId,
+}: RunSummaryHeaderProps) {
   const isFinished = run.status === "Completed" || run.status === "Failed";
   const displayTitle = run.title ?? run.startingUrl;
+  const compareHref = previousRunId
+    ? HELIOS_ROUTES.compare(run.id, previousRunId)
+    : HELIOS_ROUTES.compare(run.id, "");
 
   return (
     <div className="mb-6 rounded-xs border border-border/80 bg-linear-to-r from-panel/90 via-panel/70 to-card/60 p-5 sm:p-6 shadow-sm">
@@ -35,6 +42,15 @@ export function RunSummaryHeader({ run }: RunSummaryHeaderProps) {
           ) : null}
           <StatusBadge status={run.status} />
           {isFinished && <ExportRunButton run={run} />}
+          {isFinished && (
+            <Link
+              href={compareHref}
+              className="inline-flex items-center gap-1.5 rounded-full border border-border px-2 py-1 text-xs text-muted transition hover:text-foreground"
+            >
+              <GitCompareArrows className="h-3.5 w-3.5" aria-hidden="true" />
+              Compare
+            </Link>
+          )}
         </div>
       </div>
 

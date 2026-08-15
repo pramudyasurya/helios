@@ -3,6 +3,7 @@ import {
   AI_RISK_LEVELS,
   EVIDENCE_STATUSES,
 } from "@/lib/shared/domain/types";
+import { isValidCron } from "@/lib/shared/domain/cron";
 import { z } from "zod";
 
 export function isValidHttpUrl(value: string) {
@@ -161,7 +162,7 @@ export const CreateRunSchema = z
     maxDepth: z.coerce.number().int().min(0).max(2).default(2),
     projectId: z.string().trim().min(1).optional(),
     environmentId: z.string().trim().min(1).optional(),
-    origin: z.literal("manual").optional().default("manual"),
+    origin: z.enum(["manual", "ci", "scheduled"]).optional().default("manual"),
   }))
   .superRefine(({ mode, routes, projectId, environmentId }, context) => {
     if (mode === "manual" && routes.length === 0) {
@@ -180,6 +181,33 @@ export const CreateRunSchema = z
       });
     }
   });
+
+const ScheduleFieldsSchema = z.object({
+  cronExpression: z.string().trim().min(1).max(100)
+    .refine((v) => isValidCron(v), { message: "Invalid 5-field cron expression." }),
+  timezone: z.string().trim().max(64)
+    .refine((v) => isValidCron("0 * * * *", v), { message: "Invalid IANA timezone." })
+    .default("UTC"),
+  mode: z.enum(["single", "manual", "crawl"]).default("single"),
+  routes: z.array(HttpUrlSchema).max(4).default([]),
+  maxPages: z.coerce.number().int().min(1).max(5).optional(),
+  maxDepth: z.coerce.number().int().min(0).max(2).optional(),
+  active: z.boolean().default(true),
+});
+
+export const CreateScheduleSchema = ScheduleFieldsSchema.superRefine(
+  ({ mode, routes }, context) => {
+    if (mode === "manual" && routes.length === 0) {
+      context.addIssue({
+        code: "custom",
+        path: ["routes"],
+        message: "At least one route is required in manual mode.",
+      });
+    }
+  },
+);
+
+export const UpdateScheduleSchema = ScheduleFieldsSchema.partial();
 
 export const CreateProjectSchema = z.object({
   name: z

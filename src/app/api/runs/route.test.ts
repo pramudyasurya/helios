@@ -50,7 +50,10 @@ describe("POST /api/runs", () => {
     expect(queueMock.enqueueQARun).not.toHaveBeenCalled();
   });
 
-  it("rejects a client-supplied CI origin before persisting", async () => {
+  it("accepts and persists a client-supplied CI origin", async () => {
+    prismaMock.run.create.mockResolvedValue({ id: "run_123" });
+    queueMock.enqueueQARun.mockResolvedValue("job-1");
+
     const response = await POST(
       createRequest({
         url: "https://example.com",
@@ -58,8 +61,12 @@ describe("POST /api/runs", () => {
       }),
     );
 
-    expect(response.status).toBe(400);
-    expect(prismaMock.run.create).not.toHaveBeenCalled();
-    expect(queueMock.enqueueQARun).not.toHaveBeenCalled();
+    expect(response.status).toBe(202);
+    expect(prismaMock.run.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ origin: "ci" }),
+      }),
+    );
+    expect(queueMock.enqueueQARun).toHaveBeenCalledTimes(1);
   });
 });

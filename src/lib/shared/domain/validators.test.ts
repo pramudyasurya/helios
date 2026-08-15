@@ -3,6 +3,7 @@ import {
   CreateEnvironmentSchema,
   CreateProjectSchema,
   CreateRunSchema,
+  CreateScheduleSchema,
   GetRunsQuerySchema,
   isValidHttpUrl,
   normalizeUrl,
@@ -490,8 +491,62 @@ describe("CreateProjectSchema and CreateEnvironmentSchema", () => {
   });
 });
 
-describe("CreateRunSchema run context", () => {
-  it("accepts an ad-hoc run or a complete Project and Environment context", () => {
+describe("CreateScheduleSchema", () => {
+  const validBase = { cronExpression: "17 2 * * *" };
+
+  it("accepts a valid schedule", () => {
+    expect(CreateScheduleSchema.safeParse(validBase).success).toBe(true);
+  });
+
+  it("rejects manual mode without routes", () => {
+    const result = CreateScheduleSchema.safeParse({
+      ...validBase,
+      mode: "manual",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.message).toBe(
+        "At least one route is required in manual mode.",
+      );
+    }
+  });
+
+  it("accepts manual mode with routes", () => {
+    expect(
+      CreateScheduleSchema.safeParse({
+        ...validBase,
+        mode: "manual",
+        routes: ["https://example.com/login"],
+      }).success,
+    ).toBe(true);
+  });
+
+  it("rejects non-URL routes", () => {
+    expect(
+      CreateScheduleSchema.safeParse({
+        ...validBase,
+        routes: ["/login"],
+      }).success,
+    ).toBe(false);
+    expect(
+      CreateScheduleSchema.safeParse({
+        ...validBase,
+        routes: ["javascript:alert(1)"],
+      }).success,
+    ).toBe(false);
+  });
+
+  it("rejects a 6-field cron expression", () => {
+    expect(
+      CreateScheduleSchema.safeParse({
+        ...validBase,
+        cronExpression: "0 17 2 * * *",
+      }).success,
+    ).toBe(false);
+  });
+});
+
+describe("CreateRunSchema run context", () => {  it("accepts an ad-hoc run or a complete Project and Environment context", () => {
     expect(CreateRunSchema.safeParse({ url: "https://example.com" }).success).toBe(true);
     expect(
       CreateRunSchema.safeParse({
@@ -502,7 +557,7 @@ describe("CreateRunSchema run context", () => {
     ).toBe(true);
   });
 
-  it("rejects partial context and CI origin through the manual run contract", () => {
+  it("rejects partial context and accepts widened origins in the run contract", () => {
     expect(
       CreateRunSchema.safeParse({
         url: "https://example.com",
@@ -514,6 +569,12 @@ describe("CreateRunSchema run context", () => {
         url: "https://example.com",
         origin: "ci",
       }).success,
-    ).toBe(false);
+    ).toBe(true);
+    expect(
+      CreateRunSchema.safeParse({
+        url: "https://example.com",
+        origin: "scheduled",
+      }).success,
+    ).toBe(true);
   });
 });

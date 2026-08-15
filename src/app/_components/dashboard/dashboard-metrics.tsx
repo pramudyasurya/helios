@@ -20,6 +20,7 @@ const EMPTY_RUN_STATS: Required<RunStats> = {
   failedRuns: 0,
   avgDurationMs: 0,
   recentDurations: [],
+  timeseries: [],
 };
 
 type MetricCardProps = {

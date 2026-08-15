@@ -88,6 +88,7 @@ export function runRecordToLatestRun(
             consoleErrors: jsonStringArray(run.consoleErrors),
             failedRequests: jsonStringArray(run.failedRequests),
           }),
+    environmentId: run.environmentId ?? undefined,
     projectName: run.environment?.project?.name,
     environmentName: run.environment?.name,
     origin: run.origin ?? "manual",

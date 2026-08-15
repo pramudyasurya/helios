@@ -15,9 +15,34 @@ const getRunById = cache(async (id: string) => {
       evidence: true,
       pageResults: true,
       environment: { include: { project: true } },
+      runIssues: {
+        select: {
+          status: true,
+          evidenceIds: true,
+          issue: { select: { type: true } },
+        },
+      },
     },
   });
 });
+
+const getPreviousRunId = cache(
+  async (run: { id: string; environmentId: string | null }) => {
+    if (!run.environmentId) return null;
+
+    const previous = await prisma.run.findFirst({
+      where: {
+        environmentId: run.environmentId,
+        id: { not: run.id },
+        status: { in: ["Completed", "Failed"] },
+      },
+      orderBy: { createdAt: "desc" },
+      select: { id: true },
+    });
+
+    return previous?.id ?? null;
+  },
+);
 
 export async function generateMetadata({
   params,
@@ -53,13 +78,20 @@ export default async function RunDetailPage({
   }
 
   const run = runRecordToLatestRun(record);
+  const previousRunId = await getPreviousRunId(record);
+
+  const newIssueEvidenceIds = new Set(
+    (record.runIssues ?? [])
+      .filter((runIssue) => runIssue.status === "new")
+      .flatMap((runIssue) => runIssue.evidenceIds),
+  );
 
   return (
     <AppShell>
       <main className="py-8 px-4 sm:px-6 mx-auto max-w-7xl">
         <RunSummaryHeader run={run} />
         <div className="mt-6">
-          <RunDetailTabs run={run} />
+          <RunDetailTabs run={run} newIssueEvidenceIds={newIssueEvidenceIds} />
         </div>
       </main>
     </AppShell>

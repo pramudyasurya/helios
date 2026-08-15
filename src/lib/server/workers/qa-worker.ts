@@ -1,13 +1,18 @@
 import { prisma } from "@/lib/server/infrastructure/db/prisma";
 import {
   startQARunWorker,
+  startScheduleTickWorker,
   stopQABoss,
 } from "@/lib/server/infrastructure/queue/qa-jobs";
+import { reconcileQARunSchedules } from "@/lib/server/infrastructure/queue/qa-schedule-reconciler";
 import { getErrorMessage } from "@/lib/shared/domain/errors";
 import { processQARun } from "@/lib/server/workers/qa-run-processor";
+import { processScheduleTick } from "@/lib/server/workers/schedule-tick-processor";
 
 async function main() {
   const boss = await startQARunWorker(processQARun);
+  await startScheduleTickWorker(processScheduleTick);
+  await reconcileQARunSchedules(boss);
 
   console.info("QA worker is listening for queued runs.");
 

@@ -25,6 +25,7 @@ import {
 
 type RunDetailTabsProps = {
   run: LatestRun;
+  newIssueEvidenceIds?: Set<string>;
 };
 
 const evidenceFilterByType: Record<EvidenceType, EvidenceFilter> = {
@@ -35,7 +36,7 @@ const evidenceFilterByType: Record<EvidenceType, EvidenceFilter> = {
 
 const RUN_DETAIL_REFRESH_INTERVAL_MS = 3_000;
 
-export function RunDetailTabs({ run }: RunDetailTabsProps) {
+export function RunDetailTabs({ run, newIssueEvidenceIds }: RunDetailTabsProps) {
   const router = useRouter();
   const [isRefreshPending, startRefreshTransition] = useTransition();
   const [activeSection, setActiveSection] = useState<RunDetailSectionId>("overview");
@@ -156,6 +157,7 @@ export function RunDetailTabs({ run }: RunDetailTabsProps) {
             <RunFindingsSummary
               checks={run.checks}
               onViewEvidence={handleViewEvidence}
+              newIssueEvidenceIds={newIssueEvidenceIds}
             />
           </div>
         );
@@ -175,6 +177,7 @@ export function RunDetailTabs({ run }: RunDetailTabsProps) {
             checks={run.checks}
             onViewEvidence={handleViewEvidence}
             showEmptyState
+            newIssueEvidenceIds={newIssueEvidenceIds}
           />
         );
       case "evidence":

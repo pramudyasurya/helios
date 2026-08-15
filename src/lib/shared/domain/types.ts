@@ -15,6 +15,7 @@ export type CheckResult = {
   status: CheckStatus;
   severity: CheckSeverity;
   evidenceType?: EvidenceType;
+  evidenceIds?: string[];
 };
 
 export type CheckInput = {
@@ -109,6 +110,7 @@ export type LatestRun = {
   evidence?: RunEvidence[];
   report?: AIReport;
 
+  environmentId?: string;
   projectName?: string;
   environmentName?: string;
   origin?: string;
@@ -189,6 +191,60 @@ export type RunStats = {
   failedRuns: number;
   avgDurationMs: number;
   recentDurations?: number[];
+  timeseries?: TrendPoint[];
+};
+
+export type ScheduleMode = "single" | "manual" | "crawl";
+
+export type QaScheduleView = {
+  id: string;
+  environmentId: string;
+  cronExpression: string;
+  timezone: string;
+  mode: ScheduleMode;
+  routes: string[];
+  maxPages: number | null;
+  maxDepth: number | null;
+  active: boolean;
+  lastFiredAt: string | null;
+  nextRunAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type IssueDiff = {
+  fingerprint: string;
+  title: string;
+  type: EvidenceType;
+  severity: CheckSeverity;
+  evidenceIds: string[];
+  status: "new" | "recurring" | "resolved";
+};
+
+export type MetricDelta = {
+  key: string;
+  label: string;
+  from: number | null;
+  to: number | null;
+  delta: number | null;
+  percentChange: number | null;
+  direction: "improved" | "regressed" | "unchanged";
+};
+
+export type RunComparison = {
+  runA: { id: string; createdAt: string };
+  runB: { id: string; createdAt: string };
+  newIssues: IssueDiff[];
+  resolvedIssues: IssueDiff[];
+  recurringIssues: IssueDiff[];
+  metricDeltas: MetricDelta[];
+};
+
+export type TrendPoint = {
+  date: string;
+  runId: string;
+  passRate: number;
+  errorCount: number;
 };
 
 export type PaginatedResponse<T> = {

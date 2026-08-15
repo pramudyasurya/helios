@@ -36,7 +36,12 @@ const getCachedStatsData = unstable_cache(
       ];
     }
 
-    const [statusGroups, durationAggr, recentRuns] = await Promise.all([
+    const [
+      statusGroups,
+      durationAggr,
+      recentRuns,
+      terminalRuns,
+    ] = await Promise.all([
       prisma.run.groupBy({
         by: ["status"],
         where,
@@ -66,12 +71,43 @@ const getCachedStatsData = unstable_cache(
           durationMs: true,
         },
       }),
+      prisma.run.findMany({
+        where: {
+          ...where,
+          status: { in: ["Completed", "Failed"] },
+        },
+        take: 30,
+        orderBy: {
+          createdAt: "desc",
+        },
+        select: {
+          id: true,
+          status: true,
+          createdAt: true,
+        },
+      }),
     ]);
+
+    const consoleErrorCounts =
+      terminalRuns.length > 0
+        ? await prisma.evidence.groupBy({
+            by: ["runId"],
+            where: {
+              runId: { in: terminalRuns.map((run) => run.id) },
+              type: "console",
+            },
+            _count: {
+              _all: true,
+            },
+          })
+        : [];
 
     return {
       statusGroups,
       durationAggr,
       recentRuns,
+      terminalRuns,
+      consoleErrorCounts,
     };
   },
   ["run-stats"],
@@ -111,7 +147,13 @@ export async function GET(request: Request) {
   const { q, status, projectId, environmentId } = validation.data;
 
   try {
-    const { statusGroups, durationAggr, recentRuns } = await getCachedStatsData(
+    const {
+      statusGroups,
+      durationAggr,
+      recentRuns,
+      terminalRuns,
+      consoleErrorCounts,
+    } = await getCachedStatsData(
       q,
       status || "",
       projectId || "",
@@ -136,12 +178,26 @@ export async function GET(request: Request) {
       ? Math.round(durationAggr._avg.durationMs)
       : 0;
 
+    const errorCountByRunId = new Map(
+      consoleErrorCounts.map((group) => [group.runId, group._count._all]),
+    );
+
+    const timeseries = terminalRuns
+      .map((run) => ({
+        date: run.createdAt.toISOString(),
+        runId: run.id,
+        passRate: run.status === "Completed" ? 100 : 0,
+        errorCount: errorCountByRunId.get(run.id) ?? 0,
+      }))
+      .reverse();
+
     return Response.json({
       totalRuns,
       completedRuns,
       failedRuns,
       avgDurationMs,
       recentDurations,
+      timeseries,
     });
   } catch (error) {
     return Response.json(

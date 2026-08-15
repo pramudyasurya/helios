@@ -3,7 +3,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 const prismaMock = vi.hoisted(() => ({
   run: { findUnique: vi.fn(), update: vi.fn() },
   pageResult: { deleteMany: vi.fn() },
-  evidence: { deleteMany: vi.fn() },
+  evidence: { deleteMany: vi.fn(), findMany: vi.fn() },
 }));
 const runnerMock = vi.hoisted(() => ({ runMultiRouteQA: vi.fn() }));
 const trailMock = vi.hoisted(() => ({
@@ -19,10 +19,12 @@ const trailMock = vi.hoisted(() => ({
     ),
   ),
 }));
+const fingerprintMock = vi.hoisted(() => ({ fingerprintRunIssues: vi.fn() }));
 
 vi.mock("@/lib/server/infrastructure/db/prisma", () => ({ prisma: prismaMock }));
 vi.mock("@/lib/server/infrastructure/runner/runner", () => runnerMock);
 vi.mock("@/lib/server/infrastructure/runner/trail", () => trailMock);
+vi.mock("@/lib/server/infrastructure/issues/fingerprint-issues", () => fingerprintMock);
 
 import { processQARun } from "@/lib/server/workers/qa-run-processor";
 
@@ -55,7 +57,9 @@ beforeEach(() => {
   prismaMock.run.update.mockResolvedValue({});
   prismaMock.pageResult.deleteMany.mockResolvedValue({ count: 0 });
   prismaMock.evidence.deleteMany.mockResolvedValue({ count: 0 });
+  prismaMock.evidence.findMany.mockResolvedValue([]);
   trailMock.appendRunTrailStep.mockResolvedValue([]);
+  fingerprintMock.fingerprintRunIssues.mockResolvedValue(undefined);
 });
 
 describe("processQARun", () => {
@@ -176,5 +180,83 @@ describe("processQARun checks wiring", () => {
       (c: { title: string }) => c.title === "Console errors checked",
     );
     expect(consoleCheck).toMatchObject({ status: "warning" });
+  });
+
+  it("attaches persisted evidence IDs to checks by evidence type", async () => {
+    const resultWithPages = {
+      ...successfulResult,
+      pageResults: [
+        {
+          id: "page-1",
+          url: "https://example.com",
+          depth: 0,
+          status: "Completed",
+          statusCode: 200,
+          finalUrl: "https://example.com",
+          title: "Example",
+          description: "An example site",
+          durationMs: 500,
+          artifacts: {},
+          brokenImages: ["https://example.com/missing.png"],
+          consoleErrors: ["[Desktop] Uncaught Error: boom"],
+          failedRequests: [],
+          loadMetrics: { domContentLoadedMs: 800, loadEventMs: 1200 },
+          createdAt: "2026-08-06T00:00:00.000Z",
+          updatedAt: "2026-08-06T00:00:00.000Z",
+        },
+      ],
+    };
+    prismaMock.run.findUnique.mockResolvedValueOnce({ trail: [] });
+    runnerMock.runMultiRouteQA.mockResolvedValueOnce(resultWithPages);
+    prismaMock.evidence.findMany.mockResolvedValueOnce([
+      { id: "ev-console-1", type: "console", content: "Uncaught Error: boom" },
+      { id: "ev-image-1", type: "image", content: "https://example.com/missing.png" },
+    ]);
+
+    await processQARun(job, { retryCount: 0, retryLimit: 2 });
+
+    const updateCall = prismaMock.run.update.mock.calls.find(
+      (call) => call[0]?.data?.status === "Completed",
+    );
+    const checks = updateCall?.[0]?.data?.checks as Array<{
+      title: string;
+      evidenceIds?: string[];
+    }>;
+
+    const consoleCheck = checks.find((c) => c.title === "Console errors checked");
+    expect(consoleCheck?.evidenceIds).toEqual(["ev-console-1"]);
+    const imageCheck = checks.find((c) => c.title === "Broken images checked");
+    expect(imageCheck?.evidenceIds).toEqual(["ev-image-1"]);
+    const networkCheck = checks.find(
+      (c) => c.title === "Failed network requests checked",
+    );
+    expect(networkCheck?.evidenceIds).toBeUndefined();
+  });
+});
+
+describe("processQARun fingerprint hook", () => {
+  it("fingerprints issues on the success path after persisting the run", async () => {
+    prismaMock.run.findUnique.mockResolvedValueOnce({ trail: [] });
+    runnerMock.runMultiRouteQA.mockResolvedValueOnce(successfulResult);
+
+    await processQARun(job, { retryCount: 0, retryLimit: 2 });
+
+    expect(fingerprintMock.fingerprintRunIssues).toHaveBeenCalledWith("run-1");
+  });
+
+  it("treats fingerprinting as best-effort and never fails the run", async () => {
+    prismaMock.run.findUnique.mockResolvedValueOnce({ trail: [] });
+    runnerMock.runMultiRouteQA.mockResolvedValueOnce(successfulResult);
+    fingerprintMock.fingerprintRunIssues.mockRejectedValueOnce(
+      new Error("fingerprint db failure"),
+    );
+
+    await expect(
+      processQARun(job, { retryCount: 0, retryLimit: 2 }),
+    ).resolves.toBeUndefined();
+
+    expect(prismaMock.run.update).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ status: "Completed" }) }),
+    );
   });
 });
