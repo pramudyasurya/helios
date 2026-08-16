@@ -91,6 +91,9 @@ export function runRecordToLatestRun(
     environmentId: run.environmentId ?? undefined,
     projectName: run.environment?.project?.name,
     environmentName: run.environment?.name,
-    origin: run.origin ?? "manual",
+    origin:
+      run.origin === "scheduled" || run.origin === "ci"
+        ? run.origin
+        : "manual",
   };
 }

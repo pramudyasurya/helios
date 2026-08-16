@@ -6,6 +6,7 @@ import { PlayCircle, Filter, ExternalLink } from "lucide-react";
 import type { ProjectDetailDto, LatestRun, PaginatedResponse } from "@/lib/client/api";
 import { getRuns } from "@/lib/client/api";
 import { formatTimestamp, formatDurationMs } from "@/lib/shared/domain/format";
+import { ScheduledBadge } from "@/components/features/scheduled-badge";
 
 type ProjectRunsTabProps = {
   project: ProjectDetailDto;
@@ -126,17 +127,20 @@ export function ProjectRunsTab({ project }: ProjectRunsTabProps) {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <span
-                        className={`px-2 py-0.5 rounded-xs text-[10px] font-semibold uppercase tracking-wider ${
-                          run.status === "Completed"
-                            ? "border border-emerald-500/30 text-emerald-400 bg-emerald-500/5"
-                            : run.status === "Failed"
-                              ? "bg-danger/10 text-danger border border-danger/30"
-                              : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                        }`}
-                      >
-                        {run.status}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`px-2 py-0.5 rounded-xs text-[10px] font-semibold uppercase tracking-wider ${
+                            run.status === "Completed"
+                              ? "border border-emerald-500/30 text-emerald-400 bg-emerald-500/5"
+                              : run.status === "Failed"
+                                ? "bg-danger/10 text-danger border border-danger/30"
+                                : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                          }`}
+                        >
+                          {run.status}
+                        </span>
+                        {run.origin === "scheduled" && <ScheduledBadge />}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-muted font-mono">
                       {run.durationMs ? formatDurationMs(run.durationMs) : "-"}

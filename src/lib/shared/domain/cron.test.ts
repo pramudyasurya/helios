@@ -5,6 +5,8 @@ import {
   jitterMinute,
   nextRunAt,
   stableHash,
+  SCHEDULE_PRESETS,
+  scheduleNextRunAt,
 } from "@/lib/shared/domain/cron";
 
 describe("stableHash", () => {
@@ -76,5 +78,32 @@ describe("nextRunAt", () => {
 
   it("returns null for an invalid cron", () => {
     expect(nextRunAt("not a cron")).toBeNull();
+  });
+});
+
+describe("SCHEDULE_PRESETS", () => {
+  it("exposes five valid 5-field presets", () => {
+    expect(SCHEDULE_PRESETS).toHaveLength(5);
+    for (const preset of SCHEDULE_PRESETS) {
+      expect(isValidCron(preset.cron)).toBe(true);
+    }
+  });
+});
+
+describe("scheduleNextRunAt", () => {
+  it("returns an ISO string for a valid cron", () => {
+    const result = scheduleNextRunAt("0 * * * *", "env-preview");
+    expect(result).not.toBeNull();
+    expect(new Date(result!).toISOString()).toBe(result);
+  });
+
+  it("returns null for an invalid cron", () => {
+    expect(scheduleNextRunAt("not a cron", "env-preview")).toBeNull();
+  });
+
+  it("applies jitter so the preview matches the stored cron minute", () => {
+    const result = scheduleNextRunAt("0 * * * *", "env-jitter");
+    const minute = new Date(result!).getUTCMinutes();
+    expect(minute).toBe(jitterMinute("env-jitter"));
   });
 });

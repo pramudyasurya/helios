@@ -113,7 +113,7 @@ export type LatestRun = {
   environmentId?: string;
   projectName?: string;
   environmentName?: string;
-  origin?: string;
+  origin?: "manual" | "ci" | "scheduled";
 };
 
 export type CreateQueuedRunResponse = {

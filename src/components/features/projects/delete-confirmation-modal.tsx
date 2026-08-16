@@ -9,7 +9,7 @@ export type DeleteConfirmationModalProps = {
   onClose: () => void;
   onConfirm: () => Promise<void>;
   targetName: string;
-  resourceType: "Project" | "Environment";
+  resourceType: "Project" | "Environment" | "Schedule";
 };
 
 export function DeleteConfirmationModal({
@@ -102,7 +102,11 @@ export function DeleteConfirmationModal({
               This action <strong className="text-danger font-semibold">cannot be undone</strong>. This will permanently delete the{" "}
               <span className="text-foreground font-semibold lowercase">{resourceType}</span>{" "}
               <span className="font-mono text-foreground font-semibold px-1 py-0.5 bg-card rounded-xs border border-border/60">{targetName}</span>
-              {resourceType === "Project" ? " and all of its configured environments." : "."}
+              {resourceType === "Project"
+                ? " and all of its configured environments."
+                : resourceType === "Schedule"
+                  ? " and unschedule it from the cron engine (no further runs will fire)."
+                  : "."}
             </p>
             <p>
               Please type <span className="font-mono text-foreground font-bold">{targetName}</span> below to confirm:

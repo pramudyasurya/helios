@@ -3,6 +3,7 @@ import type {
   EvidenceStatus,
   LatestRun,
   PaginatedResponse,
+  QaScheduleView,
   RunEvidence,
   RunStats,
   AIReport,
@@ -13,6 +14,7 @@ export type {
   EvidenceStatus,
   LatestRun,
   PaginatedResponse,
+  QaScheduleView,
   RunEvidence,
   RunStats,
   AIReport,
@@ -348,5 +350,75 @@ export async function deleteEnvironment(
   const response = await fetch(`/api/projects/${projectId}/environments/${envId}`, {
     method: "DELETE",
   });
+  return parseJsonResponse<{ success: boolean; deletedId: string }>(response);
+}
+
+export type ScheduleInput = {
+  cronExpression: string;
+  timezone?: string;
+  mode?: "single" | "manual" | "crawl";
+  routes?: string[];
+  maxPages?: number;
+  maxDepth?: number;
+  active?: boolean;
+};
+
+export type ScheduleUpdateInput = Partial<ScheduleInput>;
+
+export async function listSchedules(
+  projectId: string,
+  envId: string,
+): Promise<QaScheduleView[]> {
+  const response = await fetch(
+    `/api/projects/${projectId}/environments/${envId}/schedules`,
+  );
+  const { data } = await parseJsonResponse<{ data: QaScheduleView[] }>(response);
+  return data;
+}
+
+export async function createSchedule(
+  projectId: string,
+  envId: string,
+  payload: ScheduleInput,
+): Promise<QaScheduleView> {
+  const response = await fetch(
+    `/api/projects/${projectId}/environments/${envId}/schedules`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+  );
+  const { data } = await parseJsonResponse<{ data: QaScheduleView }>(response);
+  return data;
+}
+
+export async function updateSchedule(
+  projectId: string,
+  envId: string,
+  scheduleId: string,
+  payload: ScheduleUpdateInput,
+): Promise<QaScheduleView> {
+  const response = await fetch(
+    `/api/projects/${projectId}/environments/${envId}/schedules/${scheduleId}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+  );
+  const { data } = await parseJsonResponse<{ data: QaScheduleView }>(response);
+  return data;
+}
+
+export async function deleteSchedule(
+  projectId: string,
+  envId: string,
+  scheduleId: string,
+): Promise<{ success: boolean; deletedId: string }> {
+  const response = await fetch(
+    `/api/projects/${projectId}/environments/${envId}/schedules/${scheduleId}`,
+    { method: "DELETE" },
+  );
   return parseJsonResponse<{ success: boolean; deletedId: string }>(response);
 }

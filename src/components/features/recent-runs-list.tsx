@@ -7,6 +7,7 @@ import { Trash2, ChevronLeft, ChevronRight, Search } from "lucide-react";
 
 import { formatDurationMs, formatTimestamp } from "@/lib/shared/domain/format";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { ScheduledBadge } from "@/components/features/scheduled-badge";
 
 type RecentRunsListProps = {
   runs: LatestRun[];
@@ -135,8 +136,9 @@ export function RecentRunsList({
                   : "pr-12 sm:pr-3 sm:group-hover:pr-12 sm:group-focus-within:pr-12"
               }`}
             >
-              <div className="shrink-0">
+              <div className="shrink-0 flex items-center gap-1.5">
                 <StatusBadge status={run.status} />
+                {run.origin === "scheduled" && <ScheduledBadge />}
               </div>
 
               <div className="flex min-w-0 flex-1 flex-col justify-center">

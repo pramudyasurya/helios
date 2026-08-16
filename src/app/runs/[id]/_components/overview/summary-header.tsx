@@ -3,6 +3,7 @@ import type { LatestRun } from "@/lib/shared/domain/types";
 import { ArrowLeft, Clock, Calendar, GitCompareArrows, Hash } from "lucide-react";
 
 import { StatusBadge } from "@/components/ui/status-badge";
+import { ScheduledBadge } from "@/components/features/scheduled-badge";
 import { ExportRunButton } from "@/app/runs/[id]/_components/navigation/export-run-button";
 import { formatDurationMs, formatTimestamp } from "@/lib/shared/domain/format";
 import { HELIOS_ROUTES } from "@/lib/shared/domain/routes";
@@ -41,6 +42,7 @@ export function RunSummaryHeader({
             </span>
           ) : null}
           <StatusBadge status={run.status} />
+          {run.origin === "scheduled" && <ScheduledBadge />}
           {isFinished && <ExportRunButton run={run} />}
           {isFinished && (
             <Link

@@ -47,3 +47,20 @@ export function nextRunAt(cron: string, tz = "UTC", after = new Date()): string 
     return null;
   }
 }
+
+export const SCHEDULE_PRESETS = [
+  { label: "Every 15 minutes", cron: "*/15 * * * *" },
+  { label: "Every hour", cron: "0 * * * *" },
+  { label: "Every 6 hours", cron: "0 */6 * * *" },
+  { label: "Daily", cron: "0 0 * * *" },
+  { label: "Weekly", cron: "0 0 * * 1" },
+] as const;
+
+export function scheduleNextRunAt(
+  cron: string,
+  environmentId: string,
+  timezone = "UTC",
+): string | null {
+  const effective = applyCronJitter(cron, environmentId);
+  return nextRunAt(effective, timezone);
+}

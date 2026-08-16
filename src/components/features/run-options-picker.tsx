@@ -18,17 +18,20 @@ export type RunConfig = {
 type RunOptionsPickerProps = {
   onChange: (config: RunConfig) => void;
   isDisabled?: boolean;
+  defaultConfig?: Partial<RunConfig>;
 };
 
 export function RunOptionsPicker({
   onChange,
   isDisabled = false,
+  defaultConfig,
 }: RunOptionsPickerProps) {
-  const [mode, setMode] = useState<RunMode>("single");
-  const [routesText, setRoutesText] = useState("");
-  const [maxPages, setMaxPages] = useState(5);
-  const [maxDepth, setMaxDepth] = useState(2);
-
+  const [mode, setMode] = useState<RunMode>(defaultConfig?.mode ?? "single");
+  const [routesText, setRoutesText] = useState(
+    defaultConfig?.routes?.join("\n") ?? "",
+  );
+  const [maxPages, setMaxPages] = useState(defaultConfig?.maxPages ?? 5);
+  const [maxDepth, setMaxDepth] = useState(defaultConfig?.maxDepth ?? 2);
   useEffect(() => {
     let routes: string[] | undefined;
     if (mode === "manual") {
@@ -156,7 +159,7 @@ export function RunOptionsPicker({
               htmlFor="max-pages"
               className="block text-xs font-semibold text-foreground"
             >
-              Max Pages (1–20)
+              Max Pages (1–5)
             </label>
             <div className="mt-1.5 flex items-center rounded-xs bg-background/80 p-1">
               <button
@@ -173,12 +176,12 @@ export function RunOptionsPicker({
                 type="number"
                 id="max-pages"
                 min={1}
-                max={20}
+                max={5}
                 disabled={isDisabled}
                 value={maxPages}
                 onChange={(e) =>
                   setMaxPages(
-                    Math.min(20, Math.max(1, Number(e.target.value) || 1)),
+                    Math.min(5, Math.max(1, Number(e.target.value) || 1)),
                   )
                 }
                 className="w-full bg-transparent text-center font-mono text-xs font-semibold text-foreground outline-none border-none ring-0 focus:outline-none focus:ring-0 focus:border-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -186,8 +189,8 @@ export function RunOptionsPicker({
 
               <button
                 type="button"
-                disabled={isDisabled || maxPages >= 20}
-                onClick={() => setMaxPages((prev) => Math.min(20, prev + 1))}
+                disabled={isDisabled || maxPages >= 5}
+                onClick={() => setMaxPages((prev) => Math.min(5, prev + 1))}
                 className="flex h-7 w-7 items-center justify-center rounded-xs bg-card/80 text-muted transition hover:bg-card hover:text-foreground active:scale-95 disabled:opacity-40"
                 aria-label="Increase max pages"
               >
@@ -204,13 +207,13 @@ export function RunOptionsPicker({
               htmlFor="max-depth"
               className="block text-xs font-semibold text-foreground"
             >
-              Max Depth (1–5)
+              Max Depth (0–2)
             </label>
             <div className="mt-1.5 flex items-center rounded-xs bg-background/80 p-1">
               <button
                 type="button"
-                disabled={isDisabled || maxDepth <= 1}
-                onClick={() => setMaxDepth((prev) => Math.max(1, prev - 1))}
+                disabled={isDisabled || maxDepth <= 0}
+                onClick={() => setMaxDepth((prev) => Math.max(0, prev - 1))}
                 className="flex h-7 w-7 items-center justify-center rounded-xs bg-card/80 text-muted transition hover:bg-card hover:text-foreground active:scale-95 disabled:opacity-40"
                 aria-label="Decrease max depth"
               >
@@ -220,13 +223,13 @@ export function RunOptionsPicker({
               <input
                 type="number"
                 id="max-depth"
-                min={1}
-                max={5}
+                min={0}
+                max={2}
                 disabled={isDisabled}
                 value={maxDepth}
                 onChange={(e) =>
                   setMaxDepth(
-                    Math.min(5, Math.max(1, Number(e.target.value) || 1)),
+                    Math.min(2, Math.max(0, Number(e.target.value) || 0)),
                   )
                 }
                 className="w-full bg-transparent text-center font-mono text-xs font-semibold text-foreground outline-none border-none ring-0 focus:outline-none focus:ring-0 focus:border-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -234,8 +237,8 @@ export function RunOptionsPicker({
 
               <button
                 type="button"
-                disabled={isDisabled || maxDepth >= 5}
-                onClick={() => setMaxDepth((prev) => Math.min(5, prev + 1))}
+                disabled={isDisabled || maxDepth >= 2}
+                onClick={() => setMaxDepth((prev) => Math.min(2, prev + 1))}
                 className="flex h-7 w-7 items-center justify-center rounded-xs bg-card/80 text-muted transition hover:bg-card hover:text-foreground active:scale-95 disabled:opacity-40"
                 aria-label="Increase max depth"
               >
