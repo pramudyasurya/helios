@@ -6,6 +6,19 @@ import {
 import { isValidCron } from "@/lib/shared/domain/cron";
 import { z } from "zod";
 
+const TRUTHY_VALUES: Record<string, true> = {
+  "1": true,
+  true: true,
+  yes: true,
+  on: true,
+};
+
+export function allowLocalTargets(): boolean {
+  const raw = process.env.HELIOS_ALLOW_LOCAL_TARGETS;
+  if (raw === undefined) return false;
+  return TRUTHY_VALUES[raw.trim().toLowerCase()] === true;
+}
+
 export function isValidHttpUrl(value: string) {
   try {
     const url = new URL(value);
@@ -91,6 +104,8 @@ const HttpUrlSchema = z
         return false;
 
       if (parsed.username || parsed.password) return false;
+
+      if (allowLocalTargets()) return true;
 
       return !isIpPrivate(parsed.hostname);
     } catch {

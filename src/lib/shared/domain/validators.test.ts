@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import {
+  allowLocalTargets,
   CreateEnvironmentSchema,
   CreateProjectSchema,
   CreateRunSchema,
@@ -576,5 +577,52 @@ describe("CreateRunSchema run context", () => {  it("accepts an ad-hoc run or a 
         origin: "scheduled",
       }).success,
     ).toBe(true);
+  });
+});
+
+describe("HELIOS_ALLOW_LOCAL_TARGETS (SSRF opt-in)", () => {
+  const original = process.env.HELIOS_ALLOW_LOCAL_TARGETS;
+
+  function setFlag(value: string | undefined) {
+    if (value === undefined) {
+      delete process.env.HELIOS_ALLOW_LOCAL_TARGETS;
+    } else {
+      process.env.HELIOS_ALLOW_LOCAL_TARGETS = value;
+    }
+  }
+
+  afterEach(() => {
+    setFlag(original);
+  });
+
+  it("allowLocalTargets is false when unset and truthy for 1/true/yes/on", () => {
+    setFlag(undefined);
+    expect(allowLocalTargets()).toBe(false);
+
+    for (const value of ["1", "true", "yes", "on", "TRUE", "Yes"]) {
+      setFlag(value);
+      expect(allowLocalTargets()).toBe(true);
+    }
+  });
+
+  it("allowLocalTargets is false for falsey values", () => {
+    for (const value of ["0", "false", "no", "off", ""]) {
+      setFlag(value);
+      expect(allowLocalTargets()).toBe(false);
+    }
+  });
+
+  it("accepts localhost and private IPs when the flag is on", () => {
+    setFlag("1");
+    expect(CreateRunSchema.safeParse({ url: "http://localhost:3000" }).success).toBe(true);
+    expect(CreateRunSchema.safeParse({ url: "http://127.0.0.1" }).success).toBe(true);
+    expect(CreateRunSchema.safeParse({ url: "http://192.168.1.10" }).success).toBe(true);
+    expect(CreateRunSchema.safeParse({ url: "http://10.0.0.1" }).success).toBe(true);
+  });
+
+  it("still rejects non-http schemes and userinfo with the flag on", () => {
+    setFlag("1");
+    expect(CreateRunSchema.safeParse({ url: "ftp://example.com" }).success).toBe(false);
+    expect(CreateRunSchema.safeParse({ url: "http://user:pass@example.com" }).success).toBe(false);
   });
 });

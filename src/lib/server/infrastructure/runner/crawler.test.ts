@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import {
   canonicalizeUrl,
@@ -202,6 +202,25 @@ describe("shouldBlockRequestUrl", () => {
 
   it("allows public HTTP(S) URLs and blocks malformed URLs", () => {
     expect(shouldBlockRequestUrl("https://example.com")).toBe(false);
+    expect(shouldBlockRequestUrl("not a URL")).toBe(true);
+  });
+});
+
+describe("shouldBlockRequestUrl with HELIOS_ALLOW_LOCAL_TARGETS", () => {
+  const original = process.env.HELIOS_ALLOW_LOCAL_TARGETS;
+
+  afterEach(() => {
+    if (original === undefined) {
+      delete process.env.HELIOS_ALLOW_LOCAL_TARGETS;
+    } else {
+      process.env.HELIOS_ALLOW_LOCAL_TARGETS = original;
+    }
+  });
+
+  it("stops blocking private IPs when the flag is on, but still blocks malformed URLs", () => {
+    process.env.HELIOS_ALLOW_LOCAL_TARGETS = "1";
+    expect(shouldBlockRequestUrl("http://127.0.0.1")).toBe(false);
+    expect(shouldBlockRequestUrl("http://192.168.1.10")).toBe(false);
     expect(shouldBlockRequestUrl("not a URL")).toBe(true);
   });
 });

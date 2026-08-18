@@ -1,4 +1,4 @@
-import { isIpPrivate } from "@/lib/shared/domain/validators";
+import { isIpPrivate, allowLocalTargets } from "@/lib/shared/domain/validators";
 
 export type CrawlQueueItem = {
   url: string;
@@ -155,6 +155,7 @@ export function shouldBlockRequestUrl(requestUrl: string): boolean {
 
     return (
       (url.protocol === "http:" || url.protocol === "https:") &&
+      !allowLocalTargets() &&
       isIpPrivate(url.hostname)
     );
   } catch {

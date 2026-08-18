@@ -28,7 +28,7 @@ import {
   appendRunTrailStep,
   formatDisplayUrl,
 } from "@/lib/server/infrastructure/runner/trail";
-import { isIpPrivate } from "@/lib/shared/domain/validators";
+import { isIpPrivate, allowLocalTargets } from "@/lib/shared/domain/validators";
 import {
   createCrawlQueue,
   enqueueCrawlLinks,
@@ -244,6 +244,8 @@ export async function isPrivateHostOrIp(
   hostOrIp: string,
   dnsCache?: Map<string, boolean>,
 ): Promise<boolean> {
+  if (allowLocalTargets()) return false;
+
   if (isIpPrivate(hostOrIp)) return true;
 
   if (dnsCache?.has(hostOrIp)) {
