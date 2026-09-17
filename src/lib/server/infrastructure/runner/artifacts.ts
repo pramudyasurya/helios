@@ -1,7 +1,7 @@
 import "server-only";
 import { mkdir, rm } from "node:fs/promises";
 import path from "node:path";
-import type { Page } from "playwright";
+import type { BrowserContext, Page } from "playwright";
 
 type CaptureRunScreenshotsProps = {
   runId: string;
@@ -42,10 +42,46 @@ export async function captureRunScreenshots({
 
   const publicArtifactPath = artifactPath.join("/");
 
-  return {
+  const screenshots: {
+    desktopScreenshot: string;
+    mobileScreenshot: string;
+    trace?: string;
+  } = {
     desktopScreenshot: `/artifacts/runs/${publicArtifactPath}/desktop.png`,
     mobileScreenshot: `/artifacts/runs/${publicArtifactPath}/mobile.png`,
   };
+
+  return screenshots;
+}
+
+export function getRunTraceArtifactPath(runId: string) {
+  const localPath = path.join(
+    process.cwd(),
+    "public",
+    "artifacts",
+    "runs",
+    runId,
+    "trace.zip",
+  );
+  const publicUrl = `/artifacts/runs/${runId}/trace.zip`;
+
+  return { localPath, publicUrl };
+}
+
+type SaveRunTraceProps = {
+  context: BrowserContext;
+  runId: string;
+};
+
+export async function saveRunTrace({
+  context,
+  runId,
+}: SaveRunTraceProps): Promise<string | undefined> {
+  const { localPath, publicUrl } = getRunTraceArtifactPath(runId);
+  const runDir = path.dirname(localPath);
+  await mkdir(runDir, { recursive: true });
+  await context.tracing.stop({ path: localPath });
+  return publicUrl;
 }
 
 export async function clearRunArtifacts(runId: string): Promise<void> {

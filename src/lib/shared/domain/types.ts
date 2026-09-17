@@ -51,6 +51,7 @@ export type PageResult = {
   artifacts?: {
     desktopScreenshot: string;
     mobileScreenshot: string;
+    trace?: string;
   };
   brokenImages?: string[];
   consoleErrors?: string[];
@@ -101,6 +102,7 @@ export type LatestRun = {
   artifacts?: {
     desktopScreenshot: string;
     mobileScreenshot: string;
+    trace?: string;
   };
   brokenImages?: string[];
   consoleErrors?: string[];
@@ -139,6 +141,7 @@ export type CreateRunResponse = {
   artifacts: {
     desktopScreenshot: string;
     mobileScreenshot: string;
+    trace?: string;
   };
   brokenImages: string[];
   consoleErrors: string[];

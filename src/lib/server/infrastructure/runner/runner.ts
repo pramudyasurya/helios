@@ -1,5 +1,5 @@
 import "server-only";
-import { chromium, type Route, type Request, type Browser, type Page } from "playwright";
+import { chromium, type Route, type Request, type Browser, type BrowserContext, type Page } from "playwright";
 import { lookup } from "node:dns/promises";
 import { randomUUID } from "node:crypto";
 
@@ -18,7 +18,7 @@ import {
   captureBrokenImages,
   createBrowserEvidenceCollector,
 } from "@/lib/server/infrastructure/runner/evidence";
-import { captureRunScreenshots } from "@/lib/server/infrastructure/runner/artifacts";
+import { captureRunScreenshots, saveRunTrace } from "@/lib/server/infrastructure/runner/artifacts";
 import { waitForPageToSettle } from "@/lib/server/infrastructure/runner/navigation";
 import {
   createTrailStep,
@@ -103,23 +103,21 @@ export async function runSinglePageQA({
   const dnsCache = new Map<string, boolean>();
 
   let browser: Browser | undefined;
+  let context: BrowserContext | undefined;
   try {
     browser = await chromium.launch();
-    const page = await browser.newPage({
-      viewport: {
-        width: 1440,
-        height: 900,
-      },
-    });
+    context = await browser.newContext();
+    try {
+      await context.tracing.start({ screenshots: true, snapshots: true, sources: false });
+    } catch (traceErr) {
+      console.warn(`Failed to start Playwright tracing for run ${runId}:`, traceErr);
+    }
 
-    const mobilePage = await browser.newPage({
-      viewport: {
-        width: 390,
-        height: 844,
-      },
-      isMobile: true,
-    });
+    const page = await context.newPage();
+    await page.setViewportSize({ width: 1440, height: 900 });
 
+    const mobilePage = await context.newPage();
+    await mobilePage.setViewportSize({ width: 390, height: 844 });
     await page.route("**/*", (route, request) =>
       handleRoute(route, request, dnsCache),
     );
@@ -164,6 +162,18 @@ export async function runSinglePageQA({
       desktopPage: page,
       mobilePage,
     });
+
+    let traceUrl: string | undefined;
+    if (context) {
+      try {
+        traceUrl = await saveRunTrace({ context, runId });
+        if (traceUrl) {
+          artifacts.trace = traceUrl;
+        }
+      } catch (traceErr) {
+        console.warn(`Failed to save trace for run ${runId}:`, traceErr);
+      }
+    }
 
     const finishedAt = new Date();
     const durationMs = finishedAt.getTime() - startedAt.getTime();
@@ -236,7 +246,8 @@ export async function runSinglePageQA({
   } catch (error) {
     throw new Error(getPlaywrightErrorMessage(error));
   } finally {
-    await browser?.close();
+    await context?.close().catch(() => {});
+    await browser?.close().catch(() => {});
   }
 }
 
@@ -419,18 +430,22 @@ async function inspectRoute({
   const pageId = randomUUID();
   const startedAt = new Date();
   const collector = createBrowserEvidenceCollector();
+  let context: BrowserContext | undefined;
   let desktopPage: Page | undefined;
   let mobilePage: Page | undefined;
 
   try {
-    desktopPage = await browser.newPage({
-      viewport: { width: 1440, height: 900 },
-    });
-    mobilePage = await browser.newPage({
-      viewport: { width: 390, height: 844 },
-      isMobile: true,
-    });
+    context = await browser.newContext();
+    try {
+      await context.tracing.start({ screenshots: true, snapshots: true, sources: false });
+    } catch (traceErr) {
+      console.warn(`Failed to start Playwright tracing for page ${route.url} in run ${runId}:`, traceErr);
+    }
 
+    desktopPage = await context.newPage();
+    await desktopPage.setViewportSize({ width: 1440, height: 900 });
+    mobilePage = await context.newPage();
+    await mobilePage.setViewportSize({ width: 390, height: 844 });
     await desktopPage.route("**/*", (playwrightRoute, request) =>
       handleRoute(playwrightRoute, request, dnsCache),
     );
@@ -470,6 +485,17 @@ async function inspectRoute({
       desktopPage,
       mobilePage,
     });
+
+    if (context) {
+      try {
+        const traceUrl = await saveRunTrace({ context, runId });
+        if (traceUrl) {
+          artifacts.trace = traceUrl;
+        }
+      } catch (traceErr) {
+        console.warn(`Failed to save trace for page ${route.url} in run ${runId}:`, traceErr);
+      }
+    }
     const discoveredLinks = extractLinks(
       await desktopPage.content(),
       finalUrl,
@@ -518,5 +544,6 @@ async function inspectRoute({
   } finally {
     await desktopPage?.close();
     await mobilePage?.close();
+    await context?.close();
   }
 }

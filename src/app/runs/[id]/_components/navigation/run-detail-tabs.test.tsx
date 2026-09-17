@@ -47,6 +47,9 @@ vi.mock("@/components/features/ai-report-panel", () => ({
 vi.mock("@/app/runs/[id]/_components/findings/page-results-tab", () => ({
   PageResultsTab: () => null,
 }));
+vi.mock("@/app/runs/[id]/_components/findings/trace-viewer-tab", () => ({
+  TraceViewerTab: () => null,
+}));
 vi.mock("@/app/runs/[id]/_components/navigation/run-detail-sidebar", () => ({
   RunDetailSidebar: () => null,
 }));

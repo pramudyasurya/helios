@@ -9,6 +9,7 @@ import {
   Layers,
   CheckCircle2,
   ListTree,
+  Activity,
   type LucideIcon,
 } from "lucide-react";
 
@@ -19,8 +20,8 @@ export type RunDetailSectionId =
   | "findings"
   | "evidence"
   | "checks"
-  | "trail";
-
+  | "trail"
+  | "trace";
 export type SectionNavItem = {
   id: RunDetailSectionId;
   label: string;
@@ -96,6 +97,12 @@ export function RunDetailSidebar({
       shortLabel: "Trail",
       icon: ListTree,
       count: counts.trail,
+    },
+    {
+      id: "trace",
+      label: "Playwright Trace",
+      shortLabel: "Trace",
+      icon: Activity,
     },
   ];
 

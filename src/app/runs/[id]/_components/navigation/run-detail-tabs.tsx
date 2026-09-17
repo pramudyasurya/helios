@@ -18,6 +18,7 @@ import { RunFindingsSummary } from "@/app/runs/[id]/_components/findings/run-fin
 import { getFindingsFromChecks } from "@/lib/shared/domain/findings";
 import { AIReportPanel } from "@/components/features/ai-report-panel";
 import { PageResultsTab } from "@/app/runs/[id]/_components/findings/page-results-tab";
+import { TraceViewerTab } from "@/app/runs/[id]/_components/findings/trace-viewer-tab";
 import {
   RunDetailSidebar,
   type RunDetailSectionId,
@@ -203,6 +204,8 @@ export function RunDetailTabs({ run, newIssueEvidenceIds }: RunDetailTabsProps) 
         );
       case "trail":
         return <BrowserTrail trail={run.trail} />;
+      case "trace":
+        return <TraceViewerTab run={run} />;
       default:
         return null;
     }
