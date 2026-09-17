@@ -20,11 +20,15 @@ const trailMock = vi.hoisted(() => ({
   ),
 }));
 const fingerprintMock = vi.hoisted(() => ({ fingerprintRunIssues: vi.fn() }));
+const aiReportMock = vi.hoisted(() => ({ generateAIReport: vi.fn() }));
+const runRecordMock = vi.hoisted(() => ({ runRecordToLatestRun: vi.fn() }));
 
 vi.mock("@/lib/server/infrastructure/db/prisma", () => ({ prisma: prismaMock }));
 vi.mock("@/lib/server/infrastructure/runner/runner", () => runnerMock);
 vi.mock("@/lib/server/infrastructure/runner/trail", () => trailMock);
 vi.mock("@/lib/server/infrastructure/issues/fingerprint-issues", () => fingerprintMock);
+vi.mock("@/lib/server/infrastructure/ai/report-generator", () => aiReportMock);
+vi.mock("@/lib/server/infrastructure/runner/run-record", () => runRecordMock);
 
 import { processQARun } from "@/lib/server/workers/qa-run-processor";
 
@@ -60,6 +64,8 @@ beforeEach(() => {
   prismaMock.evidence.findMany.mockResolvedValue([]);
   trailMock.appendRunTrailStep.mockResolvedValue([]);
   fingerprintMock.fingerprintRunIssues.mockResolvedValue(undefined);
+  aiReportMock.generateAIReport.mockReset();
+  runRecordMock.runRecordToLatestRun.mockReset();
 });
 
 describe("processQARun", () => {
@@ -258,5 +264,78 @@ describe("processQARun fingerprint hook", () => {
     expect(prismaMock.run.update).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ status: "Completed" }) }),
     );
+  });
+});
+
+describe("processQARun auto AI report generation", () => {
+  it("generates and updates AI report on successful run completion", async () => {
+    const mockCompletedRun = {
+      id: "run-1",
+      status: "Completed",
+      startingUrl: "https://example.com",
+      evidence: [],
+    };
+    const mockLatestRun = { id: "run-1", status: "Completed" };
+    const mockReport = {
+      summary: "QA run completed without errors.",
+      riskLevel: "low",
+      findings: [],
+      suggestedActions: ["No actions needed."],
+    };
+
+    // First findUnique is for existing trail
+    prismaMock.run.findUnique.mockResolvedValueOnce({ trail: [] });
+    // Second findUnique is for completed run with evidence
+    prismaMock.run.findUnique.mockResolvedValueOnce(mockCompletedRun);
+
+    runnerMock.runMultiRouteQA.mockResolvedValueOnce(successfulResult);
+    runRecordMock.runRecordToLatestRun.mockReturnValueOnce(mockLatestRun);
+    aiReportMock.generateAIReport.mockResolvedValueOnce(mockReport);
+
+    await processQARun(job, { retryCount: 0, retryLimit: 2 });
+
+    expect(prismaMock.run.findUnique).toHaveBeenCalledWith({
+      where: { id: "run-1" },
+      include: { evidence: true },
+    });
+    expect(runRecordMock.runRecordToLatestRun).toHaveBeenCalledWith(mockCompletedRun);
+    expect(aiReportMock.generateAIReport).toHaveBeenCalledWith(mockLatestRun);
+    expect(prismaMock.run.update).toHaveBeenCalledWith({
+      where: { id: "run-1" },
+      data: { report: mockReport },
+    });
+  });
+
+  it("catches AI generation failures without failing the QA run", async () => {
+    const mockCompletedRun = { id: "run-1", status: "Completed", evidence: [] };
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    prismaMock.run.findUnique.mockResolvedValueOnce({ trail: [] });
+    prismaMock.run.findUnique.mockResolvedValueOnce(mockCompletedRun);
+
+    runnerMock.runMultiRouteQA.mockResolvedValueOnce(successfulResult);
+    runRecordMock.runRecordToLatestRun.mockReturnValueOnce({ id: "run-1" });
+    aiReportMock.generateAIReport.mockRejectedValueOnce(new Error("AI generation timeout"));
+
+    await expect(
+      processQARun(job, { retryCount: 0, retryLimit: 2 }),
+    ).resolves.toBeUndefined();
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      "Auto AI report generation failed",
+      expect.any(Error),
+    );
+    consoleErrorSpy.mockRestore();
+  });
+
+  it("skips report generation if run record is not found", async () => {
+    prismaMock.run.findUnique.mockResolvedValueOnce({ trail: [] });
+    prismaMock.run.findUnique.mockResolvedValueOnce(null);
+
+    runnerMock.runMultiRouteQA.mockResolvedValueOnce(successfulResult);
+
+    await processQARun(job, { retryCount: 0, retryLimit: 2 });
+
+    expect(aiReportMock.generateAIReport).not.toHaveBeenCalled();
   });
 });

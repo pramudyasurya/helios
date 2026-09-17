@@ -5,6 +5,7 @@ import { ArrowLeft, Clock, Calendar, GitCompareArrows, Hash } from "lucide-react
 import { StatusBadge } from "@/components/ui/status-badge";
 import { ScheduledBadge } from "@/components/features/scheduled-badge";
 import { ExportRunButton } from "@/app/runs/[id]/_components/navigation/export-run-button";
+import { RerunButton } from "@/app/runs/[id]/_components/navigation/rerun-button";
 import { formatDurationMs, formatTimestamp } from "@/lib/shared/domain/format";
 import { HELIOS_ROUTES } from "@/lib/shared/domain/routes";
 
@@ -43,10 +44,21 @@ export function RunSummaryHeader({
           ) : null}
           <StatusBadge status={run.status} />
           {run.origin === "scheduled" && <ScheduledBadge />}
+          {isFinished && <RerunButton run={run} />}
           {isFinished && <ExportRunButton run={run} />}
           {isFinished && (
             <Link
               href={compareHref}
+              title={
+                previousRunId
+                  ? "Compare with previous run in this environment"
+                  : "Open comparison view"
+              }
+              aria-label={
+                previousRunId
+                  ? "Compare with previous run"
+                  : "Compare runs"
+              }
               className="inline-flex items-center gap-1.5 rounded-full border border-border px-2 py-1 text-xs text-muted transition hover:text-foreground"
             >
               <GitCompareArrows className="h-3.5 w-3.5" aria-hidden="true" />

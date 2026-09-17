@@ -24,7 +24,7 @@ export function runRecordToLatestRun(
   run: Run & {
     evidence?: Evidence[];
     pageResults?: PrismaPageResult[];
-    environment?: { name: string; project?: { name: string } } | null;
+    environment?: { projectId?: string; name: string; project?: { id?: string; name: string } } | null;
   },
 ): LatestRun {
   return {
@@ -88,6 +88,7 @@ export function runRecordToLatestRun(
             consoleErrors: jsonStringArray(run.consoleErrors),
             failedRequests: jsonStringArray(run.failedRequests),
           }),
+    projectId: run.environment?.project?.id ?? run.environment?.projectId ?? undefined,
     environmentId: run.environmentId ?? undefined,
     projectName: run.environment?.project?.name,
     environmentName: run.environment?.name,

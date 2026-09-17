@@ -110,12 +110,15 @@ export type LatestRun = {
   evidence?: RunEvidence[];
   report?: AIReport;
 
+  projectId?: string;
   environmentId?: string;
   projectName?: string;
   environmentName?: string;
   origin?: "manual" | "ci" | "scheduled";
+  mode?: "single" | "manual" | "crawl";
+  maxPages?: number;
+  maxDepth?: number;
 };
-
 export type CreateQueuedRunResponse = {
   id: string;
   status: "queued";

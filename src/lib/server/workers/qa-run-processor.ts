@@ -14,6 +14,8 @@ import {
 } from "@/lib/server/infrastructure/runner/trail";
 import { runChecks, toCheckInput, attachEvidenceIds } from "@/lib/shared/domain/checks";
 import { fingerprintRunIssues } from "@/lib/server/infrastructure/issues/fingerprint-issues";
+import { generateAIReport } from "@/lib/server/infrastructure/ai/report-generator";
+import { runRecordToLatestRun } from "@/lib/server/infrastructure/runner/run-record";
 
 export async function processQARun(
   job: QARunJob,
@@ -108,6 +110,25 @@ export async function processQARun(
       console.warn(
         `Issue fingerprinting failed for run ${job.runId}: ${getErrorMessage(error, "Unknown error")}`,
       );
+    }
+
+    try {
+      const completedRun = await prisma.run.findUnique({
+        where: { id: job.runId },
+        include: { evidence: true },
+      });
+      if (completedRun) {
+        const latestRun = runRecordToLatestRun(completedRun);
+        const report = await generateAIReport(latestRun);
+        await prisma.run.update({
+          where: { id: job.runId },
+          data: {
+            report: report as Prisma.InputJsonValue,
+          },
+        });
+      }
+    } catch (err) {
+      console.error("Auto AI report generation failed", err);
     }
   } catch (error) {
     const failedAt = new Date();
