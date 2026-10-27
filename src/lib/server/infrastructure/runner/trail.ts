@@ -9,10 +9,6 @@ export type RunTrailStepInput = {
   timestamp?: string;
 };
 
-export function getRunTimestamp(startedAt: Date, offsetMs: number) {
-  return new Date(startedAt.getTime() + offsetMs).toISOString();
-}
-
 export function createTrailStep({
   label,
   detail,
@@ -48,10 +44,10 @@ export function getTerminalRunOutcome({
   totalPages: number;
   failedPages: number;
 }): { status: "Completed" | "Failed"; summary: string } {
-  if (failedPages === totalPages) {
+  if (totalPages === 0) {
     return {
       status: "Failed",
-      summary: `Helios could not complete QA for any of ${totalPages} page(s).`,
+      summary: "Helios inspected no pages for this run.",
     };
   }
 
@@ -62,9 +58,16 @@ export function getTerminalRunOutcome({
     };
   }
 
+  if (failedPages === totalPages) {
+    return {
+      status: "Failed",
+      summary: `Helios could not complete QA for any of ${totalPages} page(s).`,
+    };
+  }
+
   return {
-    status: "Completed",
-    summary: `Helios completed QA for ${totalPages} page(s) with ${failedPages} failed page(s).`,
+    status: "Failed",
+    summary: `Helios failed ${failedPages} of ${totalPages} page(s).`,
   };
 }
 

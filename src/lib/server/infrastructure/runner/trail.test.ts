@@ -14,7 +14,6 @@ vi.mock("@/lib/server/infrastructure/db/prisma", () => ({
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-  getRunTimestamp,
   createTrailStep,
   boundTrailSteps,
   appendRunTrailStep,
@@ -28,14 +27,6 @@ afterEach(() => {
   vi.useRealTimers();
   prismaMock.findUnique.mockReset();
   prismaMock.update.mockReset();
-});
-
-describe("getRunTimestamp", () => {
-  it("adds an offset to the start time", () => {
-    const startedAt = new Date("2026-06-24T10:00:00.000Z");
-
-    expect(getRunTimestamp(startedAt, 1000)).toBe("2026-06-24T10:00:01.000Z");
-  });
 });
 
 describe("formatDisplayUrl and redactEmbeddedUrls", () => {
@@ -84,8 +75,9 @@ describe("createTerminalRunTrailStep", () => {
 describe("getTerminalRunOutcome", () => {
   it.each([
     [2, 0, "Completed", "Helios completed QA for 2 page(s)."],
-    [2, 1, "Completed", "Helios completed QA for 2 page(s) with 1 failed page(s)."],
+    [2, 1, "Failed", "Helios failed 1 of 2 page(s)."],
     [2, 2, "Failed", "Helios could not complete QA for any of 2 page(s)."],
+    [0, 0, "Failed", "Helios inspected no pages for this run."],
   ] as const)(
     "reports %s pages with %s failures as %s",
     (totalPages, failedPages, status, summary) => {

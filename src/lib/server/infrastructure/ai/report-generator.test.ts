@@ -48,6 +48,71 @@ describe("generateMockReport", () => {
     expect(report.findings[1].evidenceIds).toEqual(["ev-2"]);
     expect(report.suggestedActions.length).toBe(2);
   });
+
+  it("describes a partial page failure without claiming the whole site is down", () => {
+    const report = generateMockReport({
+      ...mockRun,
+      status: "Failed",
+      consoleErrors: [],
+      failedRequests: [],
+      evidence: [],
+      pageResults: [
+        {
+          id: "page-ok",
+          url: "https://example.com",
+          depth: 0,
+          status: "Completed",
+          statusCode: 200,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+        {
+          id: "page-broken",
+          url: "https://example.com/broken",
+          depth: 1,
+          status: "Failed",
+          statusCode: 500,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ],
+    });
+
+    expect(report.riskLevel).toBe("high");
+    expect(report.summary).toBe(
+      "The QA run on https://example.com failed: 1 of 2 page(s) did not load successfully.",
+    );
+    expect(report.suggestedActions).toContain(
+      "Inspect the failed pages listed in the run findings and re-run QA after fixing them.",
+    );
+  });
+
+  it("reports a total failure as a site-level load failure", () => {
+    const report = generateMockReport({
+      ...mockRun,
+      status: "Failed",
+      consoleErrors: [],
+      failedRequests: [],
+      evidence: [],
+      pageResults: [
+        {
+          id: "page-broken",
+          url: "https://example.com",
+          depth: 0,
+          status: "Failed",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ],
+    });
+
+    expect(report.summary).toBe(
+      "The QA run on https://example.com failed to load or complete successfully.",
+    );
+    expect(report.suggestedActions).toContain(
+      "Verify the target website domain is online and reachable.",
+    );
+  });
 });
 
 describe("generateAIReport", () => {

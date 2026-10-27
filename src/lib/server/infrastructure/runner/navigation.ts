@@ -3,13 +3,12 @@ import type { Page } from "playwright";
 
 import { PAGE_SETTLE_TIMEOUT_MS } from "@/lib/shared/domain/constants";
 
-export async function waitForPageToSettle(page: Page) {
+export async function waitForPageToSettle(page: Page): Promise<void> {
   try {
-    await page.waitForLoadState("networkidle", {
+    await page.waitForLoadState("load", {
       timeout: PAGE_SETTLE_TIMEOUT_MS,
     });
-    return true;
   } catch {
-    return false;
+    // Timeouts on slow or long-polling pages are expected; capture proceeds.
   }
 }

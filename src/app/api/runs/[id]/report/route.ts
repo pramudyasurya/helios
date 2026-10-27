@@ -21,6 +21,7 @@ export async function POST(
       where: { id },
       include: {
         evidence: true,
+        pageResults: true,
       },
     });
 
