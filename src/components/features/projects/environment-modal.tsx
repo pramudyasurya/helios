@@ -4,16 +4,33 @@ import { useEffect, useRef, useState } from "react";
 import { X, AlertCircle, Loader2 } from "lucide-react";
 import { useModalFocus } from "@/lib/client/use-modal-focus";
 import type { EnvironmentDto } from "@/lib/client/api";
+import type { StorageState } from "@/lib/shared/domain/types";
 
 import { isValidHttpUrl } from "@/lib/shared/domain/validators";
 
 type EnvironmentModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: { name: string; baseUrl?: string | null }) => Promise<void>;
+  onSave: (data: {
+    name: string;
+    baseUrl?: string | null;
+    storageState?: StorageState | null;
+  }) => Promise<void>;
   projectName?: string;
   envToEdit?: EnvironmentDto | null;
 };
+
+const EMPTY_STORAGE_STATE_JSON = "";
+
+function isStorageState(value: unknown): value is StorageState {
+  if (!value || typeof value !== "object") return false;
+  return (
+    "cookies" in value &&
+    Array.isArray(value.cookies) &&
+    "origins" in value &&
+    Array.isArray(value.origins)
+  );
+}
 
 export function EnvironmentModal({
   isOpen,
@@ -24,6 +41,8 @@ export function EnvironmentModal({
 }: EnvironmentModalProps) {
   const [name, setName] = useState("");
   const [baseUrl, setBaseUrl] = useState("");
+  const [sessionJson, setSessionJson] = useState(EMPTY_STORAGE_STATE_JSON);
+  const [clearSession, setClearSession] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,6 +53,8 @@ export function EnvironmentModal({
     if (isOpen) {
       setName(envToEdit ? envToEdit.name : "");
       setBaseUrl(envToEdit?.baseUrl || "");
+      setSessionJson(EMPTY_STORAGE_STATE_JSON);
+      setClearSession(false);
       setError(null);
     }
   }, [isOpen, envToEdit]);
@@ -54,12 +75,37 @@ export function EnvironmentModal({
       return;
     }
 
+    let storageState: StorageState | null | undefined;
+    const trimmedSession = sessionJson.trim();
+
+    if (clearSession) {
+      storageState = null;
+    } else if (trimmedSession) {
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(trimmedSession);
+      } catch {
+        setError("Session JSON is not valid JSON.");
+        return;
+      }
+
+      if (!isStorageState(parsed)) {
+        setError(
+          "Session JSON must be a Playwright storageState object with cookies and origins arrays.",
+        );
+        return;
+      }
+      storageState = parsed;
+    }
+
     try {
       setIsSubmitting(true);
       setError(null);
+
       await onSave({
         name: trimmedName,
         baseUrl: trimmedUrl || null,
+        ...(storageState !== undefined ? { storageState } : {}),
       });
       onClose();
     } catch (err: unknown) {
@@ -144,6 +190,53 @@ export function EnvironmentModal({
               placeholder="https://staging.example.com"
               className="w-full px-3 py-2 bg-card border border-border rounded-xs text-foreground placeholder:text-muted/60 focus:border-accent focus:outline-hidden text-xs font-mono transition-all"
             />
+          </div>
+
+          <div className="pt-2 border-t border-border">
+            <div className="flex items-center justify-between mb-2">
+              <label
+                htmlFor="env-session-input"
+                className="block text-[11px] font-mono uppercase tracking-wider text-muted"
+              >
+                Session State <span className="text-muted/60 lowercase">(optional)</span>
+              </label>
+              {isEditing && envToEdit?.hasStorageState && !clearSession && (
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-xs border border-emerald-500/30 text-emerald-400 bg-emerald-500/5">
+                  configured
+                </span>
+              )}
+            </div>
+            <textarea
+              id="env-session-input"
+              value={sessionJson}
+              onChange={(e) => setSessionJson(e.target.value)}
+              disabled={clearSession}
+              rows={4}
+              placeholder='{"cookies": [...], "origins": [...]}'
+              aria-describedby="env-session-hint"
+              className="w-full px-3 py-2 bg-card border border-border rounded-xs text-foreground placeholder:text-muted/60 focus:border-accent focus:outline-hidden text-[11px] font-mono transition-all resize-y disabled:opacity-50"
+            />
+            <p id="env-session-hint" className="mt-1.5 text-[10px] text-muted leading-relaxed">
+              Paste a Playwright storageState to run authenticated QA. Capture one with{" "}
+              <code className="font-mono text-foreground/80">
+                npx tsx scripts/helios/capture-session.ts
+              </code>
+              . Traces are disabled for authenticated runs.
+            </p>
+            {isEditing && envToEdit?.hasStorageState && (
+              <label className="mt-2 flex items-center space-x-2 text-[10px] text-muted cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={clearSession}
+                  onChange={(e) => {
+                    setClearSession(e.target.checked);
+                    if (e.target.checked) setSessionJson(EMPTY_STORAGE_STATE_JSON);
+                  }}
+                  className="h-3 w-3 accent-current cursor-pointer"
+                />
+                <span>Clear the stored session</span>
+              </label>
+            )}
           </div>
 
           {/* Footer */}

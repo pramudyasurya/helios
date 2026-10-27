@@ -7,6 +7,7 @@ import type {
   RunEvidence,
   RunStats,
   AIReport,
+  StorageState,
 } from "@/lib/shared/domain/types";
 
 export type {
@@ -250,6 +251,7 @@ export type EnvironmentDto = {
   projectId: string;
   name: string;
   baseUrl?: string | null;
+  hasStorageState?: boolean;
   createdAt: string;
   updatedAt: string;
   lastRunStatus?: string | null;
@@ -333,7 +335,11 @@ export async function createEnvironment(
 export async function updateEnvironment(
   projectId: string,
   envId: string,
-  payload: { name?: string; baseUrl?: string | null },
+  payload: {
+    name?: string;
+    baseUrl?: string | null;
+    storageState?: StorageState | null;
+  },
 ): Promise<EnvironmentDto> {
   const response = await fetch(`/api/projects/${projectId}/environments/${envId}`, {
     method: "PATCH",
