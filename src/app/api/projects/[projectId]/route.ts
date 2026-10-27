@@ -72,6 +72,7 @@ export async function GET(
         projectId: env.projectId,
         name: env.name,
         baseUrl: env.baseUrl,
+        hasStorageState: env.storageState !== null,
         createdAt: env.createdAt,
         updatedAt: env.updatedAt,
         lastRunStatus: lastEnvRun ? lastEnvRun.status : null,

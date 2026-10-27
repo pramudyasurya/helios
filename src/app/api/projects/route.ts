@@ -18,7 +18,7 @@ export async function GET() {
       include: {
         environments: {
           orderBy: { name: "asc" },
-          select: { id: true, name: true, baseUrl: true },
+          select: { id: true, name: true, baseUrl: true, storageState: true },
         },
       },
     });
@@ -87,7 +87,12 @@ export async function GET() {
         id: project.id,
         name: project.name,
         slug: project.slug,
-        environments: project.environments,
+        environments: project.environments.map((env) => ({
+          id: env.id,
+          name: env.name,
+          baseUrl: env.baseUrl,
+          hasStorageState: env.storageState !== null,
+        })),
         createdAt: project.createdAt,
         updatedAt: project.updatedAt,
         totalRuns,

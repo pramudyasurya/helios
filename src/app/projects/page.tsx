@@ -20,6 +20,7 @@ import {
   type ProjectDto,
   type EnvironmentDto,
 } from "@/lib/client/api";
+import type { StorageState } from "@/lib/shared/domain/types";
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<ProjectDto[]>([]);
@@ -112,16 +113,22 @@ export default function ProjectsPage() {
   async function handleSaveEnvironment(data: {
     name: string;
     baseUrl?: string | null;
+    storageState?: StorageState | null;
   }) {
     if (!envProject) return;
 
     if (envToEdit) {
       await updateEnvironment(envProject.id, envToEdit.id, data);
     } else {
-      await createEnvironment(envProject.id, {
+      const created = await createEnvironment(envProject.id, {
         name: data.name,
         baseUrl: data.baseUrl || undefined,
       });
+      if (data.storageState) {
+        await updateEnvironment(envProject.id, created.id, {
+          storageState: data.storageState,
+        });
+      }
     }
     await loadProjects(searchQuery);
   }

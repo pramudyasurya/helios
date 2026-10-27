@@ -7,6 +7,7 @@ import { EnvironmentModal } from "@/components/features/projects/environment-mod
 import { DeleteConfirmationModal } from "@/components/features/projects/delete-confirmation-modal";
 import { createEnvironment, updateEnvironment, deleteEnvironment } from "@/lib/client/api";
 import { formatTimestamp } from "@/lib/shared/domain/format";
+import type { StorageState } from "@/lib/shared/domain/types";
 
 type ProjectEnvironmentsTabProps = {
   project: ProjectDetailDto;
@@ -40,14 +41,23 @@ export function ProjectEnvironmentsTab({ project, onRefresh }: ProjectEnvironmen
     }
   }
 
-  async function handleSaveEnv(data: { name: string; baseUrl?: string | null }) {
+  async function handleSaveEnv(data: {
+    name: string;
+    baseUrl?: string | null;
+    storageState?: StorageState | null;
+  }) {
     if (envToEdit) {
       await updateEnvironment(project.id, envToEdit.id, data);
     } else {
-      await createEnvironment(project.id, {
+      const created = await createEnvironment(project.id, {
         name: data.name,
         baseUrl: data.baseUrl || undefined,
       });
+      if (data.storageState) {
+        await updateEnvironment(project.id, created.id, {
+          storageState: data.storageState,
+        });
+      }
     }
     onRefresh();
   }
