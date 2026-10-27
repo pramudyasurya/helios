@@ -135,7 +135,9 @@ export async function POST(request: Request) {
         slug,
       },
       include: {
-        environments: true,
+        environments: {
+          select: { id: true, name: true, baseUrl: true, createdAt: true, updatedAt: true },
+        },
       },
     });
 

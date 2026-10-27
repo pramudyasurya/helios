@@ -9,6 +9,35 @@ export type TrailStep = {
 export type CheckStatus = "passed" | "warning" | "failed";
 export type CheckSeverity = "info" | "low" | "medium" | "high";
 
+export type BotChallengeKind = "challenge" | "captcha" | "block";
+
+export type StorageState = {
+  cookies: Array<{
+    name: string;
+    value: string;
+    domain: string;
+    path: string;
+    expires: number;
+    httpOnly: boolean;
+    secure: boolean;
+    sameSite: "Strict" | "Lax" | "None";
+  }>;
+  origins: Array<{
+    origin: string;
+    localStorage: Array<{ name: string; value: string }>;
+  }>;
+};
+
+/**
+ * SPAs commonly hold their session in localStorage rather than a cookie, so a
+ * state with empty `cookies` can still be a live session.
+ */
+export function hasSession(state: StorageState | undefined): boolean {
+  if (!state) return false;
+  if (state.cookies.length > 0) return true;
+  return state.origins.some((origin) => origin.localStorage.length > 0);
+}
+
 export type CheckResult = {
   title: string;
   detail: string;
@@ -23,6 +52,8 @@ export type CheckInput = {
   finalUrl?: string;
   statusCode?: number;
   pageStatus?: string;
+  botChallenge?: BotChallengeKind;
+  loginRedirect?: boolean;
   title?: string;
   description?: string;
   loadMetrics?: LoadMetrics;
@@ -43,6 +74,8 @@ export type PageResult = {
   depth: number;
   status: string;
   statusCode?: number;
+  botChallenge?: BotChallengeKind;
+  loginRedirect?: boolean;
 
   finalUrl?: string;
   title?: string;

@@ -6,6 +6,7 @@ import type {
 import { prisma } from "@/lib/server/infrastructure/db/prisma";
 import { getErrorMessage } from "@/lib/shared/domain/errors";
 import { runMultiRouteQA } from "@/lib/server/infrastructure/runner/runner";
+import { loadRunStorageState } from "@/lib/server/infrastructure/runner/storage-state";
 import {
   appendRunTrailStep,
   boundTrailSteps,
@@ -47,6 +48,8 @@ export async function processQARun(
     await prisma.evidence.deleteMany({ where: { runId: job.runId } });
     await prisma.pageResult.deleteMany({ where: { runId: job.runId } });
 
+    const storageState = await loadRunStorageState(job.runId);
+
     const result = await runMultiRouteQA({
       submittedUrl: job.submittedUrl,
       runId: job.runId,
@@ -54,6 +57,7 @@ export async function processQARun(
       routes: job.routes,
       maxPages: job.maxPages,
       maxDepth: job.maxDepth,
+      storageState,
     });
     const primaryResult = result.pageResults[0];
     const existingRun = await prisma.run.findUnique({
