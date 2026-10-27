@@ -70,9 +70,17 @@ export function generateMockReport(run: LatestRun): AIReport {
 
   if (run.status === "Failed") {
     riskLevel = "high";
-    summary = `The QA run on ${run.startingUrl} failed to load or complete successfully.`;
+    const pages = run.pageResults ?? [];
+    const failedPages = pages.filter((page) => page.status === "Failed").length;
+    const isPartialFailure = failedPages > 0 && failedPages < pages.length;
+
+    summary = isPartialFailure
+      ? `The QA run on ${run.startingUrl} failed: ${failedPages} of ${pages.length} page(s) did not load successfully.`
+      : `The QA run on ${run.startingUrl} failed to load or complete successfully.`;
     suggestedActions.push(
-      "Verify the target website domain is online and reachable.",
+      isPartialFailure
+        ? "Inspect the failed pages listed in the run findings and re-run QA after fixing them."
+        : "Verify the target website domain is online and reachable.",
     );
   } else if (findings.length > 0) {
     riskLevel = findings.some((f) => f.severity === "high") ? "high" : "medium";

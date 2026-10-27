@@ -115,7 +115,7 @@ export async function processQARun(
     try {
       const completedRun = await prisma.run.findUnique({
         where: { id: job.runId },
-        include: { evidence: true },
+        include: { evidence: true, pageResults: true },
       });
       if (completedRun) {
         const latestRun = runRecordToLatestRun(completedRun);

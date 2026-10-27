@@ -188,6 +188,70 @@ describe("processQARun checks wiring", () => {
     expect(consoleCheck).toMatchObject({ status: "warning" });
   });
 
+  it("persists a Failed run and a failed load check when one page failed", async () => {
+    const resultWithMixedPages = {
+      ...successfulResult,
+      status: "Failed" as const,
+      summary: "Helios failed 1 of 2 page(s).",
+      pageResults: [
+        {
+          id: "page-ok",
+          url: "https://example.com",
+          depth: 0,
+          status: "Completed",
+          statusCode: 200,
+          finalUrl: "https://example.com",
+          title: "Example",
+          description: "An example site",
+          durationMs: 400,
+          artifacts: {
+            desktopScreenshot: "/artifacts/ok-desktop.png",
+            mobileScreenshot: "/artifacts/ok-mobile.png",
+          },
+          brokenImages: [],
+          consoleErrors: [],
+          failedRequests: [],
+          loadMetrics: { domContentLoadedMs: 700, loadEventMs: 1_100 },
+          createdAt: "2026-08-06T00:00:00.000Z",
+          updatedAt: "2026-08-06T00:00:00.000Z",
+        },
+        {
+          id: "page-broken",
+          url: "https://example.com/broken",
+          depth: 1,
+          status: "Failed",
+          statusCode: 500,
+          durationMs: 300,
+          brokenImages: [],
+          consoleErrors: [],
+          failedRequests: [],
+          createdAt: "2026-08-06T00:00:00.000Z",
+          updatedAt: "2026-08-06T00:00:00.000Z",
+        },
+      ],
+    };
+    prismaMock.run.findUnique.mockResolvedValueOnce({ trail: [] });
+    runnerMock.runMultiRouteQA.mockResolvedValueOnce(resultWithMixedPages);
+
+    await processQARun(job, { retryCount: 0, retryLimit: 2 });
+
+    const updateCall = prismaMock.run.update.mock.calls.find(
+      (call) => call[0]?.data?.status === "Failed",
+    );
+    expect(updateCall).toBeDefined();
+
+    const checks = updateCall?.[0]?.data?.checks;
+    expect(Array.isArray(checks)).toBe(true);
+    const loadCheck = checks.find(
+      (c: { title: string }) => c.title === "Page loaded successfully",
+    );
+    expect(loadCheck).toMatchObject({
+      status: "failed",
+      severity: "high",
+      detail: "The server responded with HTTP 500.",
+    });
+  });
+
   it("attaches persisted evidence IDs to checks by evidence type", async () => {
     const resultWithPages = {
       ...successfulResult,
@@ -296,7 +360,7 @@ describe("processQARun auto AI report generation", () => {
 
     expect(prismaMock.run.findUnique).toHaveBeenCalledWith({
       where: { id: "run-1" },
-      include: { evidence: true },
+      include: { evidence: true, pageResults: true },
     });
     expect(runRecordMock.runRecordToLatestRun).toHaveBeenCalledWith(mockCompletedRun);
     expect(aiReportMock.generateAIReport).toHaveBeenCalledWith(mockLatestRun);
