@@ -9,10 +9,6 @@ export type RunTrailStepInput = {
   timestamp?: string;
 };
 
-export function getRunTimestamp(startedAt: Date, offsetMs: number) {
-  return new Date(startedAt.getTime() + offsetMs).toISOString();
-}
-
 export function createTrailStep({
   label,
   detail,

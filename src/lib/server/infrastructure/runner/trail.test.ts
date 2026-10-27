@@ -14,7 +14,6 @@ vi.mock("@/lib/server/infrastructure/db/prisma", () => ({
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-  getRunTimestamp,
   createTrailStep,
   boundTrailSteps,
   appendRunTrailStep,
@@ -28,14 +27,6 @@ afterEach(() => {
   vi.useRealTimers();
   prismaMock.findUnique.mockReset();
   prismaMock.update.mockReset();
-});
-
-describe("getRunTimestamp", () => {
-  it("adds an offset to the start time", () => {
-    const startedAt = new Date("2026-06-24T10:00:00.000Z");
-
-    expect(getRunTimestamp(startedAt, 1000)).toBe("2026-06-24T10:00:01.000Z");
-  });
 });
 
 describe("formatDisplayUrl and redactEmbeddedUrls", () => {

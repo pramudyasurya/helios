@@ -3,11 +3,7 @@ import { chromium, type Route, type Request, type Browser, type BrowserContext, 
 import { lookup } from "node:dns/promises";
 import { randomUUID } from "node:crypto";
 
-import type {
-  CreateRunResponse,
-  PageResult,
-  TrailStep,
-} from "@/lib/shared/domain/types";
+import type { PageResult, TrailStep } from "@/lib/shared/domain/types";
 
 import { PAGE_GOTO_TIMEOUT_MS } from "@/lib/shared/domain/constants";
 import { derivePageStatus } from "@/lib/shared/domain/checks";
@@ -25,7 +21,6 @@ import {
   createTrailStep,
   createTerminalRunTrailStep,
   getTerminalRunOutcome,
-  getRunTimestamp,
   appendRunTrailStep,
   formatDisplayUrl,
 } from "@/lib/server/infrastructure/runner/trail";
@@ -42,11 +37,6 @@ import {
   persistPageEvidence,
 } from "@/lib/server/infrastructure/runner/evidence-builder";
 import { prisma } from "@/lib/server/infrastructure/db/prisma";
-
-type RunSinglePageQAProps = {
-  submittedUrl: string;
-  runId: string;
-};
 
 export type RunMode = "single" | "manual" | "crawl";
 
@@ -93,162 +83,6 @@ async function handleRoute(
   } catch {
     await route.abort("blockedbyclient");
     return false;
-  }
-}
-
-export async function runSinglePageQA({
-  submittedUrl,
-  runId,
-}: RunSinglePageQAProps): Promise<CreateRunResponse> {
-  const startedAt = new Date();
-  const dnsCache = new Map<string, boolean>();
-
-  let browser: Browser | undefined;
-  let context: BrowserContext | undefined;
-  try {
-    browser = await chromium.launch();
-    context = await browser.newContext();
-    try {
-      await context.tracing.start({ screenshots: true, snapshots: true, sources: false });
-    } catch (traceErr) {
-      console.warn(`Failed to start Playwright tracing for run ${runId}:`, traceErr);
-    }
-
-    const page = await context.newPage();
-    await page.setViewportSize({ width: 1440, height: 900 });
-
-    const mobilePage = await context.newPage();
-    await mobilePage.setViewportSize({ width: 390, height: 844 });
-    await page.route("**/*", (route, request) =>
-      handleRoute(route, request, dnsCache),
-    );
-    await mobilePage.route("**/*", (route, request) =>
-      handleRoute(route, request, dnsCache),
-    );
-
-    const evidenceCollector = createBrowserEvidenceCollector();
-
-    attachPageEvidenceListeners({
-      page,
-      viewportLabel: "Desktop",
-      collector: evidenceCollector,
-    });
-
-    attachPageEvidenceListeners({
-      page: mobilePage,
-      viewportLabel: "Mobile",
-      collector: evidenceCollector,
-    });
-
-    await page.goto(submittedUrl, {
-      waitUntil: "domcontentloaded",
-      timeout: PAGE_GOTO_TIMEOUT_MS,
-    });
-
-    await mobilePage.goto(submittedUrl, {
-      waitUntil: "domcontentloaded",
-      timeout: PAGE_GOTO_TIMEOUT_MS,
-    });
-
-    const desktopSettled = await waitForPageToSettle(page);
-    const mobileSettled = await waitForPageToSettle(mobilePage);
-
-    const { title, finalUrl, description, loadMetrics } =
-      await capturePageMetadata(page);
-
-    const brokenImages = await captureBrokenImages(page);
-
-    const artifacts = await captureRunScreenshots({
-      runId,
-      desktopPage: page,
-      mobilePage,
-    });
-
-    let traceUrl: string | undefined;
-    if (context) {
-      try {
-        traceUrl = await saveRunTrace({ context, runId });
-        if (traceUrl) {
-          artifacts.trace = traceUrl;
-        }
-      } catch (traceErr) {
-        console.warn(`Failed to save trace for run ${runId}:`, traceErr);
-      }
-    }
-
-    const finishedAt = new Date();
-    const durationMs = finishedAt.getTime() - startedAt.getTime();
-    const { consoleErrors, failedRequests } = evidenceCollector;
-
-    return {
-      id: runId,
-      startingUrl: submittedUrl,
-      finalUrl,
-      status: "Completed",
-      title,
-      description,
-      createdAt: startedAt.toISOString(),
-      finishedAt: finishedAt.toISOString(),
-      durationMs,
-      loadMetrics,
-      summary:
-        "Helios opened the submitted URL with Playwright and captured basic page metadata.",
-      trail: [
-        createTrailStep({
-          label: "Request received",
-          detail: "Helios accepted and validated the submitted URL",
-          timestamp: startedAt.toISOString(),
-        }),
-        createTrailStep({
-          label: "Browser launched",
-          detail: "Playwright launched a Chromium browser instance.",
-          timestamp: getRunTimestamp(startedAt, 250),
-        }),
-        createTrailStep({
-          label: "Navigated to URL",
-          detail: `Desktop and mobile pages navigated to ${submittedUrl}.`,
-          timestamp: getRunTimestamp(startedAt, 750),
-        }),
-        createTrailStep({
-          label: "Page settle check completed",
-          detail:
-            desktopSettled && mobileSettled
-              ? "Desktop and mobile pages reached network idle."
-              : "At least one viewport did not reach network idle before the settle timeout; Helios continued with available evidence.",
-          timestamp: getRunTimestamp(startedAt, 1_500),
-        }),
-        createTrailStep({
-          label: "Page metadata captured",
-          detail: `Captured title and final URL: ${finalUrl}.`,
-          timestamp: getRunTimestamp(startedAt, 2_000),
-        }),
-        createTrailStep({
-          label: "Screenshots captured",
-          detail:
-            "Desktop and mobile screenshots were saved as local artifacts.",
-          timestamp: getRunTimestamp(startedAt, 2_500),
-        }),
-        createTrailStep({
-          label: "Console and network evidence collected",
-          detail: `${consoleErrors.length} console error(s), ${failedRequests.length} failed request(s) captured.`,
-          timestamp: getRunTimestamp(startedAt, 2_750),
-        }),
-        createTrailStep({
-          label: "Run completed",
-          detail: "Browser QA run completed successfully.",
-          timestamp: finishedAt.toISOString(),
-        }),
-      ],
-      artifacts,
-      brokenImages,
-      consoleErrors,
-      failedRequests,
-    };
-  } catch (error) {
-    throw new Error(getPlaywrightErrorMessage(error));
-  } finally {
-    await context?.close().catch(() => {});
-    await browser?.close().catch(() => {});
   }
 }
 
@@ -413,7 +247,7 @@ export async function runMultiRouteQA({
       trail,
     };
   } finally {
-    await browser?.close();
+    await browser?.close().catch(() => {});
   }
 }
 
@@ -489,7 +323,7 @@ async function inspectRoute({
 
     if (context) {
       try {
-        const traceUrl = await saveRunTrace({ context, runId });
+        const traceUrl = await saveRunTrace({ context, runId, pageId });
         if (traceUrl) {
           artifacts.trace = traceUrl;
         }
@@ -545,8 +379,8 @@ async function inspectRoute({
       discoveredLinks: [],
     };
   } finally {
-    await desktopPage?.close();
-    await mobilePage?.close();
-    await context?.close();
+    await mobilePage?.close().catch(() => {});
+    await desktopPage?.close().catch(() => {});
+    await context?.close().catch(() => {});
   }
 }

@@ -72,6 +72,56 @@ describe("artifacts trace utilities", () => {
     expect(result.publicUrl).toBe(`/artifacts/runs/${runId}/trace.zip`);
   });
 
+  it("scopes the trace to the page when a page id is provided", () => {
+    const runId = "run_x";
+    const pageId = "page_y";
+    const result = getRunTraceArtifactPath(runId, pageId);
+
+    expect(result.localPath).toBe(
+      path.join(
+        process.cwd(),
+        "public",
+        "artifacts",
+        "runs",
+        runId,
+        pageId,
+        "trace.zip",
+      ),
+    );
+    expect(result.publicUrl).toBe(`/artifacts/runs/${runId}/${pageId}/trace.zip`);
+  });
+
+  it("writes a per-page trace into the page directory", async () => {
+    const runId = "run_trace_page_789";
+    const pageId = "page_trace_789";
+    const expectedDir = path.join(
+      process.cwd(),
+      "public",
+      "artifacts",
+      "runs",
+      runId,
+      pageId,
+    );
+
+    const mockContext = {
+      tracing: {
+        stop: vi.fn().mockResolvedValue(undefined),
+      },
+    } as unknown as BrowserContext;
+
+    const publicUrl = await saveRunTrace({
+      context: mockContext,
+      runId,
+      pageId,
+    });
+
+    expect(makeDirectory).toHaveBeenCalledWith(expectedDir, { recursive: true });
+    expect(mockContext.tracing.stop).toHaveBeenCalledWith({
+      path: path.join(expectedDir, "trace.zip"),
+    });
+    expect(publicUrl).toBe(`/artifacts/runs/${runId}/${pageId}/trace.zip`);
+  });
+
   it("creates the directory and stops tracing with local file path", async () => {
     const runId = "run_trace_save_456";
     const expectedDir = path.join(process.cwd(), "public", "artifacts", "runs", runId);

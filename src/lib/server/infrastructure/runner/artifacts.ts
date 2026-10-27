@@ -54,16 +54,17 @@ export async function captureRunScreenshots({
   return screenshots;
 }
 
-export function getRunTraceArtifactPath(runId: string) {
+export function getRunTraceArtifactPath(runId: string, pageId?: string) {
+  const artifactPath = pageId ? [runId, pageId] : [runId];
   const localPath = path.join(
     process.cwd(),
     "public",
     "artifacts",
     "runs",
-    runId,
+    ...artifactPath,
     "trace.zip",
   );
-  const publicUrl = `/artifacts/runs/${runId}/trace.zip`;
+  const publicUrl = `/artifacts/runs/${artifactPath.join("/")}/trace.zip`;
 
   return { localPath, publicUrl };
 }
@@ -71,13 +72,15 @@ export function getRunTraceArtifactPath(runId: string) {
 type SaveRunTraceProps = {
   context: BrowserContext;
   runId: string;
+  pageId?: string;
 };
 
 export async function saveRunTrace({
   context,
   runId,
+  pageId,
 }: SaveRunTraceProps): Promise<string | undefined> {
-  const { localPath, publicUrl } = getRunTraceArtifactPath(runId);
+  const { localPath, publicUrl } = getRunTraceArtifactPath(runId, pageId);
   const runDir = path.dirname(localPath);
   await mkdir(runDir, { recursive: true });
   await context.tracing.stop({ path: localPath });
