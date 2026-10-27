@@ -269,6 +269,43 @@ export const UpdateEnvironmentSchema = z.object({
           : val,
       HttpUrlSchema.optional().nullable(),
     ),
+  storageState: z
+    .preprocess(
+      (val) => (val === null ? null : val),
+      z
+        .object({
+          cookies: z
+            .array(
+              z.object({
+                name: z.string().min(1),
+                value: z.string(),
+                domain: z.string().min(1),
+                path: z.string().min(1),
+                expires: z.number(),
+                httpOnly: z.boolean(),
+                secure: z.boolean(),
+                sameSite: z.enum(["Strict", "Lax", "None"]),
+              }),
+            )
+            .max(200)
+            .optional(),
+          origins: z
+            .array(
+              z.object({
+                origin: z.string().min(1),
+                localStorage: z
+                  .array(
+                    z.object({ name: z.string(), value: z.string() }),
+                  )
+                  .max(500),
+              }),
+            )
+            .max(50)
+            .optional(),
+        })
+        .nullable()
+        .optional(),
+    ),
 });
 
 const VALID_QUERY_STATUSES = [

@@ -22,6 +22,7 @@ const trailMock = vi.hoisted(() => ({
 const fingerprintMock = vi.hoisted(() => ({ fingerprintRunIssues: vi.fn() }));
 const aiReportMock = vi.hoisted(() => ({ generateAIReport: vi.fn() }));
 const runRecordMock = vi.hoisted(() => ({ runRecordToLatestRun: vi.fn() }));
+const storageStateMock = vi.hoisted(() => ({ loadRunStorageState: vi.fn() }));
 
 vi.mock("@/lib/server/infrastructure/db/prisma", () => ({ prisma: prismaMock }));
 vi.mock("@/lib/server/infrastructure/runner/runner", () => runnerMock);
@@ -29,6 +30,7 @@ vi.mock("@/lib/server/infrastructure/runner/trail", () => trailMock);
 vi.mock("@/lib/server/infrastructure/issues/fingerprint-issues", () => fingerprintMock);
 vi.mock("@/lib/server/infrastructure/ai/report-generator", () => aiReportMock);
 vi.mock("@/lib/server/infrastructure/runner/run-record", () => runRecordMock);
+vi.mock("@/lib/server/infrastructure/runner/storage-state", () => storageStateMock);
 
 import { processQARun } from "@/lib/server/workers/qa-run-processor";
 
@@ -66,6 +68,11 @@ beforeEach(() => {
   fingerprintMock.fingerprintRunIssues.mockResolvedValue(undefined);
   aiReportMock.generateAIReport.mockReset();
   runRecordMock.runRecordToLatestRun.mockReset();
+  storageStateMock.loadRunStorageState.mockReset();
+  storageStateMock.loadRunStorageState.mockResolvedValue({
+    cookies: [],
+    origins: [],
+  });
 });
 
 describe("processQARun", () => {
@@ -186,6 +193,34 @@ describe("processQARun checks wiring", () => {
       (c: { title: string }) => c.title === "Console errors checked",
     );
     expect(consoleCheck).toMatchObject({ status: "warning" });
+  });
+
+  it("passes the environment storage state through to the runner", async () => {
+    const storedState = {
+      cookies: [
+        {
+          name: "session",
+          value: "abc123",
+          domain: "app.example.com",
+          path: "/",
+          expires: 1_900_000_000,
+          httpOnly: true,
+          secure: true,
+          sameSite: "Lax" as const,
+        },
+      ],
+      origins: [],
+    };
+    storageStateMock.loadRunStorageState.mockResolvedValueOnce(storedState);
+    prismaMock.run.findUnique.mockResolvedValueOnce({ trail: [] });
+    runnerMock.runMultiRouteQA.mockResolvedValueOnce(successfulResult);
+
+    await processQARun(job, { retryCount: 0, retryLimit: 2 });
+
+    expect(storageStateMock.loadRunStorageState).toHaveBeenCalledWith("run-1");
+    expect(runnerMock.runMultiRouteQA).toHaveBeenCalledWith(
+      expect.objectContaining({ storageState: storedState }),
+    );
   });
 
   it("persists a Failed run and a failed load check when one page failed", async () => {

@@ -123,7 +123,9 @@ export async function PATCH(
       where: { id: projectId },
       data: { name: result.data.name },
       include: {
-        environments: true,
+        environments: {
+          select: { id: true, name: true, baseUrl: true, createdAt: true, updatedAt: true },
+        },
       },
     });
 

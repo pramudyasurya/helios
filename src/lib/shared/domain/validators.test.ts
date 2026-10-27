@@ -10,6 +10,7 @@ import {
   normalizeUrl,
   resolveRelativeRoute,
   UpdateEvidenceStatusSchema,
+  UpdateEnvironmentSchema,
   validateAIReport,
 } from "@/lib/shared/domain/validators";
 
@@ -624,5 +625,65 @@ describe("HELIOS_ALLOW_LOCAL_TARGETS (SSRF opt-in)", () => {
     setFlag("1");
     expect(CreateRunSchema.safeParse({ url: "ftp://example.com" }).success).toBe(false);
     expect(CreateRunSchema.safeParse({ url: "http://user:pass@example.com" }).success).toBe(false);
+  });
+});
+
+describe("UpdateEnvironmentSchema storageState", () => {
+  const cookie = {
+    name: "session",
+    value: "abc",
+    domain: "app.example.com",
+    path: "/",
+    expires: 1_900_000_000,
+    httpOnly: true,
+    secure: true,
+    sameSite: "Lax" as const,
+  };
+
+  it("accepts a well-formed storage state", () => {
+    const result = UpdateEnvironmentSchema.safeParse({
+      storageState: {
+        cookies: [cookie],
+        origins: [
+          {
+            origin: "https://app.example.com",
+            localStorage: [{ name: "token", value: "jwt" }],
+          },
+        ],
+      },
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts null to clear a stored session", () => {
+    const result = UpdateEnvironmentSchema.safeParse({ storageState: null });
+
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.storageState).toBeNull();
+  });
+
+  it("rejects a cookie missing required fields", () => {
+    const result = UpdateEnvironmentSchema.safeParse({
+      storageState: { cookies: [{ name: "session" }] },
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects an unknown sameSite value", () => {
+    const result = UpdateEnvironmentSchema.safeParse({
+      storageState: { cookies: [{ ...cookie, sameSite: "Sometimes" }] },
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects origins that are not objects", () => {
+    const result = UpdateEnvironmentSchema.safeParse({
+      storageState: { origins: ["not-an-origin"] },
+    });
+
+    expect(result.success).toBe(false);
   });
 });

@@ -222,6 +222,52 @@ describe("runPageChecks", () => {
       severity: "info",
     });
   });
+
+  it("fails a 200 interstitial that carries a bot-protection challenge", () => {
+    const input: CheckInput = {
+      url: "https://example.com",
+      pageStatus: "Completed",
+      statusCode: 200,
+      botChallenge: "challenge",
+      consoleErrors: [],
+      failedRequests: [],
+      brokenImages: [],
+    };
+
+    const checks = runPageChecks(input);
+
+    expect(
+      checks.find((check) => check.title === "Page loaded successfully"),
+    ).toMatchObject({ status: "failed", severity: "high" });
+
+    expect(
+      checks.find((check) => check.title === "Bot protection challenge detected"),
+    ).toMatchObject({ status: "failed", severity: "high" });
+  });
+
+  it("fails the page when the session was redirected to a login page", () => {
+    const input: CheckInput = {
+      url: "https://app.example.com/dashboard",
+      pageStatus: "Completed",
+      statusCode: 200,
+      loginRedirect: true,
+      consoleErrors: [],
+      failedRequests: [],
+      brokenImages: [],
+    };
+
+    const checks = runPageChecks(input);
+
+    expect(
+      checks.find((check) => check.title === "Page loaded successfully"),
+    ).toMatchObject({ status: "failed", severity: "high" });
+
+    expect(
+      checks.find(
+        (check) => check.title === "Authentication session expired",
+      ),
+    ).toMatchObject({ status: "failed", severity: "high" });
+  });
 });
 
 describe("runChecks", () => {

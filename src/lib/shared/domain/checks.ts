@@ -24,6 +24,8 @@ export function runPageChecks(input: CheckInput): CheckResult[] {
     : undefined;
   const pageFailed =
     input.pageStatus === "Failed" ||
+    input.loginRedirect === true ||
+    input.botChallenge !== undefined ||
     derivePageStatus(input.statusCode) === "Failed";
 
   return [
@@ -111,6 +113,30 @@ export function runPageChecks(input: CheckInput): CheckResult[] {
       severity: hasFailedRequests ? "medium" : "info",
       evidenceType: hasFailedRequests ? "network" : undefined,
     },
+    ...(input.botChallenge
+      ? [
+          {
+            title: "Bot protection challenge detected",
+            detail:
+              input.botChallenge === "block"
+                ? "The edge blocked this request outright, so no real page content was inspected."
+                : "The edge served a bot-protection interstitial instead of the real page, so page content and timings reflect the challenge screen.",
+            status: "failed" as const,
+            severity: "high" as const,
+          },
+        ]
+      : []),
+    ...(input.loginRedirect
+      ? [
+          {
+            title: "Authentication session expired",
+            detail:
+              "The request was redirected to a login page, so the stored session is no longer valid. Re-authenticate the environment before trusting this result.",
+            status: "failed" as const,
+            severity: "high" as const,
+          },
+        ]
+      : []),
   ];
 }
 
@@ -187,6 +213,8 @@ export function toCheckInput(page: PageResult): CheckInput {
     finalUrl: page.finalUrl,
     statusCode: page.statusCode,
     pageStatus: page.status,
+    botChallenge: page.botChallenge,
+    loginRedirect: page.loginRedirect,
     title: page.title,
     description: page.description,
     loadMetrics: page.loadMetrics,

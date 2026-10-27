@@ -3,10 +3,15 @@ import { chromium, type Route, type Request, type Browser, type BrowserContext, 
 import { lookup } from "node:dns/promises";
 import { randomUUID } from "node:crypto";
 
-import type { PageResult, TrailStep } from "@/lib/shared/domain/types";
+import type { PageResult, StorageState, TrailStep } from "@/lib/shared/domain/types";
+import { hasSession } from "@/lib/shared/domain/types";
 
 import { PAGE_GOTO_TIMEOUT_MS } from "@/lib/shared/domain/constants";
 import { derivePageStatus } from "@/lib/shared/domain/checks";
+import {
+  detectBotChallenge,
+  isLoginRedirect,
+} from "@/lib/shared/domain/bot-protection";
 
 import { getPlaywrightErrorMessage } from "@/lib/server/infrastructure/runner/errors";
 import { capturePageMetadata } from "@/lib/server/infrastructure/runner/metadata";
@@ -47,6 +52,7 @@ export type RunMultiRouteQAProps = {
   routes?: string[];
   maxPages?: number;
   maxDepth?: number;
+  storageState?: StorageState;
 };
 
 export type MultiRouteRunResult = {
@@ -116,6 +122,7 @@ export async function runMultiRouteQA({
   routes = [],
   maxPages,
   maxDepth,
+  storageState,
 }: RunMultiRouteQAProps): Promise<MultiRouteRunResult> {
   const startedAt = new Date();
   const options: CrawlOptions = { maxPages, maxDepth };
@@ -159,6 +166,17 @@ export async function runMultiRouteQA({
       },
     });
 
+    if (hasSession(storageState)) {
+      const traceNote = {
+        label: "Trace capture disabled",
+        detail:
+          "This run uses a stored session. Playwright traces record request headers and artifacts are served publicly, so traces are not captured for authenticated runs.",
+        timestamp: new Date().toISOString(),
+      };
+      trail.push(createTrailStep(traceNote));
+      await appendRunTrailStep({ runId, step: traceNote });
+    }
+
     while (queue.pending.length > 0) {
       const next = takeNextCrawlPage(queue);
       queue = next.state;
@@ -170,6 +188,7 @@ export async function runMultiRouteQA({
         route: next.page,
         runId,
         dnsCache,
+        storageState,
       });
       pageResults.push(pageResult);
       const createdPage = await prisma.pageResult.create({
@@ -256,11 +275,13 @@ async function inspectRoute({
   route,
   runId,
   dnsCache,
+  storageState,
 }: {
   browser: Browser;
   route: { url: string; depth: number };
   runId: string;
   dnsCache: Map<string, boolean>;
+  storageState?: StorageState;
 }): Promise<{ pageResult: PageResult; discoveredLinks: string[] }> {
   const pageId = randomUUID();
   const startedAt = new Date();
@@ -270,9 +291,15 @@ async function inspectRoute({
   let mobilePage: Page | undefined;
 
   try {
-    context = await browser.newContext();
+    context = await browser.newContext(
+      hasSession(storageState) ? { storageState } : undefined,
+    );
     try {
-      await context.tracing.start({ screenshots: true, snapshots: true, sources: false });
+      // Traces record request headers and public/artifacts is served statically,
+      // so tracing an authenticated session would publish its cookies.
+      if (!hasSession(storageState)) {
+        await context.tracing.start({ screenshots: true, snapshots: true, sources: false });
+      }
     } catch (traceErr) {
       console.warn(`Failed to start Playwright tracing for page ${route.url} in run ${runId}:`, traceErr);
     }
@@ -321,7 +348,7 @@ async function inspectRoute({
       mobilePage,
     });
 
-    if (context) {
+    if (context && !hasSession(storageState)) {
       try {
         const traceUrl = await saveRunTrace({ context, runId, pageId });
         if (traceUrl) {
@@ -337,7 +364,13 @@ async function inspectRoute({
     );
     const finishedAt = new Date();
     const statusCode = desktopResponse?.status();
-    const pageFailed = derivePageStatus(statusCode) === "Failed";
+    const botChallenge = detectBotChallenge(desktopResponse?.headers());
+    const loginRedirect = isLoginRedirect(route.url, finalUrl);
+    const authExpired = hasSession(storageState) && loginRedirect;
+    const pageFailed =
+      derivePageStatus(statusCode) === "Failed" ||
+      authExpired ||
+      botChallenge !== undefined;
 
     return {
       pageResult: {
@@ -346,6 +379,8 @@ async function inspectRoute({
         depth: route.depth,
         status: pageFailed ? "Failed" : "Completed",
         statusCode,
+        botChallenge,
+        loginRedirect: authExpired,
         finalUrl,
         title,
         description,

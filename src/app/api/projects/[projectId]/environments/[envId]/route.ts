@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/server/infrastructure/db/prisma";
 import { unscheduleQARunSchedule } from "@/lib/server/infrastructure/queue/qa-jobs";
 import { UpdateEnvironmentSchema } from "@/lib/shared/domain/validators";
@@ -38,10 +39,32 @@ export async function PATCH(
         ...(result.data.baseUrl !== undefined
           ? { baseUrl: result.data.baseUrl }
           : {}),
+        ...(result.data.storageState !== undefined
+          ? {
+              storageState:
+                result.data.storageState === null
+                  ? Prisma.DbNull
+                  : (result.data.storageState as Prisma.InputJsonValue),
+            }
+          : {}),
+      },
+      select: {
+        id: true,
+        projectId: true,
+        name: true,
+        baseUrl: true,
+        storageState: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
 
-    return NextResponse.json(updated);
+    const { storageState: persistedStorageState, ...environment } = updated;
+
+    return NextResponse.json({
+      ...environment,
+      hasStorageState: Boolean(persistedStorageState),
+    });
   } catch (error) {
     const uniqueConflict = uniqueConstraintResponse(
       error,
