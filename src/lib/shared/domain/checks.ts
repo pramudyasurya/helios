@@ -5,6 +5,10 @@ import {
 } from "@/lib/shared/domain/performance";
 import { extractViewport } from "@/lib/shared/domain/evidence-transformer";
 
+export function derivePageStatus(statusCode?: number): "Completed" | "Failed" {
+  return statusCode !== undefined && statusCode >= 400 ? "Failed" : "Completed";
+}
+
 export function runPageChecks(input: CheckInput): CheckResult[] {
   const finalUrl = input.finalUrl ?? input.url;
   const title = input.title ?? "";
@@ -18,14 +22,27 @@ export function runPageChecks(input: CheckInput): CheckResult[] {
   const domLoadStatus = input.loadMetrics
     ? getDomLoadStatus(input.loadMetrics.domContentLoadedMs)
     : undefined;
+  const pageFailed =
+    input.pageStatus === "Failed" ||
+    derivePageStatus(input.statusCode) === "Failed";
 
   return [
-    {
-      title: "Page loaded successfully",
-      detail: `Playwright loaded the page and resolved to ${finalUrl}.`,
-      status: "passed",
-      severity: "info",
-    },
+    pageFailed
+      ? {
+          title: "Page loaded successfully",
+          detail:
+            input.statusCode !== undefined
+              ? `The server responded with HTTP ${input.statusCode}.`
+              : "Playwright could not load this page. See the console evidence for the captured error.",
+          status: "failed",
+          severity: "high",
+        }
+      : {
+          title: "Page loaded successfully",
+          detail: `Playwright loaded the page and resolved to ${finalUrl}.`,
+          status: "passed",
+          severity: "info",
+        },
     {
       title: "Page load metrics captured",
       detail: input.loadMetrics
@@ -169,6 +186,7 @@ export function toCheckInput(page: PageResult): CheckInput {
     url: page.url,
     finalUrl: page.finalUrl,
     statusCode: page.statusCode,
+    pageStatus: page.status,
     title: page.title,
     description: page.description,
     loadMetrics: page.loadMetrics,

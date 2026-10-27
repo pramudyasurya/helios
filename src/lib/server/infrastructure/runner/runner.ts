@@ -10,6 +10,7 @@ import type {
 } from "@/lib/shared/domain/types";
 
 import { PAGE_GOTO_TIMEOUT_MS } from "@/lib/shared/domain/constants";
+import { derivePageStatus } from "@/lib/shared/domain/checks";
 
 import { getPlaywrightErrorMessage } from "@/lib/server/infrastructure/runner/errors";
 import { capturePageMetadata } from "@/lib/server/infrastructure/runner/metadata";
@@ -501,14 +502,16 @@ async function inspectRoute({
       finalUrl,
     );
     const finishedAt = new Date();
+    const statusCode = desktopResponse?.status();
+    const pageFailed = derivePageStatus(statusCode) === "Failed";
 
     return {
       pageResult: {
         id: pageId,
         url: route.url,
         depth: route.depth,
-        status: "Completed",
-        statusCode: desktopResponse?.status(),
+        status: pageFailed ? "Failed" : "Completed",
+        statusCode,
         finalUrl,
         title,
         description,

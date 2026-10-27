@@ -22,6 +22,7 @@ export type CheckInput = {
   url: string;
   finalUrl?: string;
   statusCode?: number;
+  pageStatus?: string;
   title?: string;
   description?: string;
   loadMetrics?: LoadMetrics;

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { CheckInput, CreateRunResponse, PageResult } from "@/lib/shared/domain/types";
-import { createChecksFromRunResult, runChecks, runPageChecks, toCheckInput } from "@/lib/shared/domain/checks";
+import { createChecksFromRunResult, derivePageStatus, runChecks, runPageChecks, toCheckInput } from "@/lib/shared/domain/checks";
 
 function createMockRun(
   overrides: Partial<CreateRunResponse> = {},
@@ -106,6 +106,22 @@ describe("createChecksFromRunResult", () => {
   });
 });
 
+describe("derivePageStatus", () => {
+  it.each([
+    [undefined, "Completed"],
+    [199, "Completed"],
+    [200, "Completed"],
+    [301, "Completed"],
+    [399, "Completed"],
+    [400, "Failed"],
+    [404, "Failed"],
+    [500, "Failed"],
+    [503, "Failed"],
+  ] as const)("maps status code %s to %s", (statusCode, expected) => {
+    expect(derivePageStatus(statusCode)).toBe(expected);
+  });
+});
+
 describe("runPageChecks", () => {
   it("marks the console check as warning when console errors are present", () => {
     const input: CheckInput = {
@@ -123,6 +139,87 @@ describe("runPageChecks", () => {
     expect(consoleCheck).toMatchObject({
       status: "warning",
       evidenceType: "console",
+    });
+  });
+
+  it("fails the page-load check when the page status is Failed", () => {
+    const input: CheckInput = {
+      url: "https://example.com",
+      pageStatus: "Failed",
+      consoleErrors: [],
+      failedRequests: [],
+      brokenImages: [],
+    };
+
+    const loadCheck = runPageChecks(input).find(
+      (check) => check.title === "Page loaded successfully",
+    );
+
+    expect(loadCheck).toEqual({
+      title: "Page loaded successfully",
+      detail:
+        "Playwright could not load this page. See the console evidence for the captured error.",
+      status: "failed",
+      severity: "high",
+    });
+  });
+
+  it("names the HTTP status code when a failed page has one", () => {
+    const input: CheckInput = {
+      url: "https://example.com",
+      pageStatus: "Failed",
+      statusCode: 500,
+      consoleErrors: [],
+      failedRequests: [],
+      brokenImages: [],
+    };
+
+    const loadCheck = runPageChecks(input).find(
+      (check) => check.title === "Page loaded successfully",
+    );
+
+    expect(loadCheck?.detail).toBe("The server responded with HTTP 500.");
+    expect(loadCheck?.status).toBe("failed");
+    expect(loadCheck?.severity).toBe("high");
+  });
+
+  it("fails the page-load check from the status code alone", () => {
+    const input: CheckInput = {
+      url: "https://example.com",
+      pageStatus: "Completed",
+      statusCode: 500,
+      consoleErrors: [],
+      failedRequests: [],
+      brokenImages: [],
+    };
+
+    const loadCheck = runPageChecks(input).find(
+      (check) => check.title === "Page loaded successfully",
+    );
+
+    expect(loadCheck?.status).toBe("failed");
+    expect(loadCheck?.detail).toBe("The server responded with HTTP 500.");
+  });
+
+  it("passes the page-load check for a healthy page", () => {
+    const input: CheckInput = {
+      url: "https://example.com",
+      pageStatus: "Completed",
+      statusCode: 200,
+      consoleErrors: [],
+      failedRequests: [],
+      brokenImages: [],
+    };
+
+    const loadCheck = runPageChecks(input).find(
+      (check) => check.title === "Page loaded successfully",
+    );
+
+    expect(loadCheck).toEqual({
+      title: "Page loaded successfully",
+      detail: "Playwright loaded the page and resolved to https://example.com.",
+      status: "passed",
+      severity: "info",
     });
   });
 });
@@ -227,6 +324,7 @@ describe("toCheckInput", () => {
       url: "https://example.com/page",
       finalUrl: "https://example.com/page/final",
       statusCode: 200,
+      pageStatus: "Completed",
       title: "Page Title",
       description: "Page description",
       loadMetrics: { domContentLoadedMs: 800, loadEventMs: 1200 },
@@ -254,6 +352,7 @@ describe("toCheckInput", () => {
       url: "https://example.com/bare",
       finalUrl: undefined,
       statusCode: undefined,
+      pageStatus: "Completed",
       title: undefined,
       description: undefined,
       loadMetrics: undefined,
