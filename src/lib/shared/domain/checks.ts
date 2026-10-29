@@ -4,7 +4,13 @@ import {
   formatDomLoadMetric,
 } from "@/lib/shared/domain/performance";
 import { extractViewport } from "@/lib/shared/domain/evidence-transformer";
-
+import {
+  CHECK_TITLE_COOKIE_SECURITY,
+  CHECK_TITLE_MIXED_CONTENT,
+  CHECK_TITLE_SECURITY_HEADERS,
+  evaluateCookieSecurity,
+  evaluateSecurityHeaders,
+} from "@/lib/shared/domain/security";
 export function derivePageStatus(statusCode?: number): "Completed" | "Failed" {
   return statusCode !== undefined && statusCode >= 400 ? "Failed" : "Completed";
 }
@@ -137,6 +143,49 @@ export function runPageChecks(input: CheckInput): CheckResult[] {
           },
         ]
       : []),
+    ...(() => {
+      const isHttps = finalUrl.toLowerCase().startsWith("https://");
+      const securityChecks: CheckResult[] = [];
+
+      // Security headers check
+      if (input.securityHeaders !== undefined) {
+        const secHeadersResult = evaluateSecurityHeaders(finalUrl, input.securityHeaders);
+        securityChecks.push({
+          title: CHECK_TITLE_SECURITY_HEADERS,
+          detail: secHeadersResult.detail,
+          status: secHeadersResult.status,
+          severity: secHeadersResult.severity,
+        });
+      }
+
+      // Cookie security attributes check
+      if (input.cookies !== undefined) {
+        const cookieSecResult = evaluateCookieSecurity(input.cookies, isHttps);
+        securityChecks.push({
+          title: CHECK_TITLE_COOKIE_SECURITY,
+          detail: cookieSecResult.detail,
+          status: cookieSecResult.status,
+          severity: cookieSecResult.severity,
+        });
+      }
+
+      // Mixed content check
+      if (input.insecureResources !== undefined) {
+        const hasMixedContent = isHttps && input.insecureResources.length > 0;
+        securityChecks.push({
+          title: CHECK_TITLE_MIXED_CONTENT,
+          detail: hasMixedContent
+            ? `${input.insecureResources.length} insecure mixed content resource(s) loaded over HTTP on an HTTPS origin.`
+            : isHttps
+              ? "No mixed content subresources detected."
+              : "Page origin is not HTTPS; mixed content checks not applicable.",
+          status: hasMixedContent ? "failed" : "passed",
+          severity: hasMixedContent ? "high" : "info",
+        });
+      }
+
+      return securityChecks;
+    })(),
   ];
 }
 
@@ -227,6 +276,9 @@ export function toCheckInput(page: PageResult): CheckInput {
     consoleErrors: page.consoleErrors ?? [],
     failedRequests: page.failedRequests ?? [],
     brokenImages: page.brokenImages ?? [],
+    insecureResources: page.insecureResources,
+    cookies: page.cookies,
+    securityHeaders: page.securityHeaders,
   };
 }
 

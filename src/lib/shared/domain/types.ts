@@ -61,6 +61,9 @@ export type CheckInput = {
   consoleErrors: string[];
   failedRequests: string[];
   brokenImages: string[];
+  insecureResources?: string[];
+  cookies?: Array<{ name: string; secure: boolean; httpOnly: boolean; sameSite: string }>;
+  securityHeaders?: Record<string, string>;
 };
 
 export type LoadMetrics = {
@@ -90,9 +93,11 @@ export type PageResult = {
   brokenImages?: string[];
   consoleErrors?: string[];
   failedRequests?: string[];
+  insecureResources?: string[];
+  cookies?: Array<{ name: string; secure: boolean; httpOnly: boolean; sameSite: string }>;
+  securityHeaders?: Record<string, string>;
   loadMetrics?: LoadMetrics;
   checks?: CheckResult[];
-
   createdAt: string;
   updatedAt: string;
 };

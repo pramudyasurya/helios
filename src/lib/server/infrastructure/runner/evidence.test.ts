@@ -1,8 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Page } from "playwright";
 
-import { captureBrokenImages } from "@/lib/server/infrastructure/runner/evidence";
-
+import {
+  attachPageEvidenceListeners,
+  captureBrokenImages,
+  createBrowserEvidenceCollector,
+} from "@/lib/server/infrastructure/runner/evidence";
 // Page cannot be constructed without a browser; captureBrokenImages only calls
 // page.evaluate, so the callback runs in-process against a stubbed document.
 const pageStub = {
@@ -69,5 +72,68 @@ describe("captureBrokenImages", () => {
     await expect(captureBrokenImages(pageStub)).resolves.toEqual([
       "https://x/broken.png",
     ]);
+  });
+});
+
+describe("attachPageEvidenceListeners", () => {
+  it("captures mixed content requests when page URL is HTTPS and request URL is HTTP", () => {
+    const handlers = new Map<string, (...args: unknown[]) => void>();
+    const pageMock = {
+      url: () => "https://example.com/secure-page",
+      on: (event: string, handler: (...args: unknown[]) => void) => {
+        handlers.set(event, handler);
+      },
+    } as unknown as Page;
+
+    const collector = createBrowserEvidenceCollector();
+    attachPageEvidenceListeners({
+      page: pageMock,
+      viewportLabel: "Desktop",
+      collector,
+    });
+
+    const requestHandler = handlers.get("request");
+    expect(requestHandler).toBeDefined();
+
+    // Subresource over HTTP on HTTPS page
+    requestHandler!({
+      url: () => "http://insecure.example.com/script.js",
+      resourceType: () => "script",
+    });
+
+    // Subresource over HTTPS on HTTPS page (should not be captured)
+    requestHandler!({
+      url: () => "https://secure.example.com/style.css",
+      resourceType: () => "stylesheet",
+    });
+
+    expect(collector.insecureResources).toEqual([
+      "[Desktop] script: http://insecure.example.com/script.js",
+    ]);
+  });
+
+  it("does not capture HTTP requests when page itself is HTTP", () => {
+    const handlers = new Map<string, (...args: unknown[]) => void>();
+    const pageMock = {
+      url: () => "http://example.com/plain-page",
+      on: (event: string, handler: (...args: unknown[]) => void) => {
+        handlers.set(event, handler);
+      },
+    } as unknown as Page;
+
+    const collector = createBrowserEvidenceCollector();
+    attachPageEvidenceListeners({
+      page: pageMock,
+      viewportLabel: "Mobile",
+      collector,
+    });
+
+    const requestHandler = handlers.get("request");
+    requestHandler!({
+      url: () => "http://example.com/image.png",
+      resourceType: () => "image",
+    });
+
+    expect(collector.insecureResources).toEqual([]);
   });
 });

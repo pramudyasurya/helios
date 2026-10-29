@@ -338,6 +338,14 @@ async function inspectRoute({
     await waitForPageToSettle(desktopPage);
     await waitForPageToSettle(mobilePage);
 
+    const rawCookies = await context.cookies().catch(() => []);
+    const cookies = rawCookies.map((c) => ({
+      name: c.name,
+      secure: c.secure,
+      httpOnly: c.httpOnly,
+      sameSite: c.sameSite,
+    }));
+
     const { title, finalUrl, description, loadMetrics } =
       await capturePageMetadata(desktopPage);
     const brokenImages = await captureBrokenImages(desktopPage);
@@ -389,6 +397,9 @@ async function inspectRoute({
         brokenImages,
         consoleErrors: collector.consoleErrors,
         failedRequests: collector.failedRequests,
+        insecureResources: collector.insecureResources,
+        cookies,
+        securityHeaders: desktopResponse?.headers(),
         loadMetrics,
         createdAt: startedAt.toISOString(),
         updatedAt: finishedAt.toISOString(),
