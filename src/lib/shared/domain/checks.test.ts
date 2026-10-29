@@ -361,6 +361,9 @@ describe("toCheckInput", () => {
       brokenImages: ["broken1"],
       consoleErrors: ["error1"],
       failedRequests: ["failed1"],
+      insecureResources: ["insecure1"],
+      cookies: [{ name: "session", secure: true, httpOnly: true, sameSite: "lax" }],
+      securityHeaders: { "strict-transport-security": "max-age=31536000" },
       loadMetrics: { domContentLoadedMs: 800, loadEventMs: 1200 },
       createdAt: "2026-08-06T00:00:00.000Z",
       updatedAt: "2026-08-06T00:00:00.000Z",
@@ -371,6 +374,8 @@ describe("toCheckInput", () => {
       finalUrl: "https://example.com/page/final",
       statusCode: 200,
       pageStatus: "Completed",
+      botChallenge: undefined,
+      loginRedirect: undefined,
       title: "Page Title",
       description: "Page description",
       loadMetrics: { domContentLoadedMs: 800, loadEventMs: 1200 },
@@ -381,6 +386,9 @@ describe("toCheckInput", () => {
       consoleErrors: ["error1"],
       failedRequests: ["failed1"],
       brokenImages: ["broken1"],
+      insecureResources: ["insecure1"],
+      cookies: [{ name: "session", secure: true, httpOnly: true, sameSite: "lax" }],
+      securityHeaders: { "strict-transport-security": "max-age=31536000" },
     });
   });
 
@@ -406,6 +414,41 @@ describe("toCheckInput", () => {
       consoleErrors: [],
       failedRequests: [],
       brokenImages: [],
+      insecureResources: undefined,
+      cookies: undefined,
+      securityHeaders: undefined,
     });
+  });
+
+  it("includes security checks in runPageChecks when security data is present", () => {
+    const checks = runPageChecks({
+      url: "https://example.com",
+      finalUrl: "https://example.com",
+      consoleErrors: [],
+      failedRequests: [],
+      brokenImages: [],
+      securityHeaders: {
+        "strict-transport-security": "max-age=31536000",
+        "content-security-policy": "default-src 'self'",
+        "x-frame-options": "DENY",
+        "x-content-type-options": "nosniff",
+        "permissions-policy": "geolocation=()",
+      },
+      cookies: [{ name: "session", secure: true, httpOnly: true, sameSite: "lax" }],
+      insecureResources: ["http://example.com/asset.js"],
+    });
+
+    const headersCheck = checks.find((c) => c.title === "Security headers checked");
+    expect(headersCheck).toBeDefined();
+    expect(headersCheck?.status).toBe("passed");
+
+    const cookiesCheck = checks.find((c) => c.title === "Cookie security attributes checked");
+    expect(cookiesCheck).toBeDefined();
+    expect(cookiesCheck?.status).toBe("passed");
+
+    const mixedContentCheck = checks.find((c) => c.title === "Mixed content subresources checked");
+    expect(mixedContentCheck).toBeDefined();
+    expect(mixedContentCheck?.status).toBe("failed");
+    expect(mixedContentCheck?.severity).toBe("high");
   });
 });

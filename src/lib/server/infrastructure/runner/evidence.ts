@@ -1,9 +1,10 @@
 import "server-only";
 import type { Page } from "playwright";
 
-type BrowserEvidenceCollector = {
+export type BrowserEvidenceCollector = {
   consoleErrors: string[];
   failedRequests: string[];
+  insecureResources: string[];
 };
 
 export async function captureBrokenImages(page: Page) {
@@ -19,6 +20,7 @@ export function createBrowserEvidenceCollector(): BrowserEvidenceCollector {
   return {
     consoleErrors: [],
     failedRequests: [],
+    insecureResources: [],
   };
 }
 
@@ -43,5 +45,14 @@ export function attachPageEvidenceListeners({
         request.failure()?.errorText ?? "Unknown failure"
       }`,
     );
+  });
+
+  page.on("request", (request) => {
+    const pageUrl = page.url();
+    if (pageUrl.startsWith("https://") && request.url().startsWith("http://")) {
+      collector.insecureResources.push(
+        `[${viewportLabel}] ${request.resourceType()}: ${request.url()}`,
+      );
+    }
   });
 }
