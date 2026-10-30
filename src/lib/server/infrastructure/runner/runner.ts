@@ -3,9 +3,9 @@ import { chromium, type Route, type Request, type Browser, type BrowserContext, 
 import { lookup } from "node:dns/promises";
 import { randomUUID } from "node:crypto";
 
-import type { PageResult, StorageState, TrailStep } from "@/lib/shared/domain/types";
+import type { PageResult, StorageState, TrailStep, A11yViolation } from "@/lib/shared/domain/types";
 import { hasSession } from "@/lib/shared/domain/types";
-
+import AxeBuilder from "@axe-core/playwright";
 import { PAGE_GOTO_TIMEOUT_MS } from "@/lib/shared/domain/constants";
 import { derivePageStatus } from "@/lib/shared/domain/checks";
 import {
@@ -346,6 +346,32 @@ async function inspectRoute({
       sameSite: c.sameSite,
     }));
 
+    let a11yViolations: A11yViolation[] = [];
+    try {
+      const axeResults = await new AxeBuilder({ page: desktopPage })
+        .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+        .disableRules(["color-contrast"])
+        .analyze();
+
+      a11yViolations = axeResults.violations.map((v) => ({
+        id: v.id,
+        impact: v.impact ?? "minor",
+        description: v.description,
+        help: v.help,
+        helpUrl: v.helpUrl,
+        nodes: v.nodes.map((n) => ({
+          target: n.target.map((t) => (typeof t === "string" ? t : JSON.stringify(t))),
+          html: n.html,
+          failureSummary: n.failureSummary,
+        })),
+      }));
+    } catch (axeErr) {
+      console.warn(
+        `[Helios] Accessibility audit skipped for ${route.url}:`,
+        axeErr instanceof Error ? axeErr.message : axeErr,
+      );
+    }
+
     const { title, finalUrl, description, loadMetrics } =
       await capturePageMetadata(desktopPage);
     const brokenImages = await captureBrokenImages(desktopPage);
@@ -400,6 +426,7 @@ async function inspectRoute({
         insecureResources: collector.insecureResources,
         cookies,
         securityHeaders: desktopResponse?.headers(),
+        a11yViolations,
         loadMetrics,
         createdAt: startedAt.toISOString(),
         updatedAt: finishedAt.toISOString(),

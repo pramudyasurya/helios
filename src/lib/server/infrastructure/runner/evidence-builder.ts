@@ -73,6 +73,18 @@ function buildImageRows(
     createEvidenceRow(context, "image", "low", url, undefined, url),
   );
 }
+function buildA11yRows(
+  violations: PageResult["a11yViolations"],
+  context: EvidenceRowContext,
+): Prisma.EvidenceCreateManyInput[] {
+  if (!violations || violations.length === 0) return [];
+  return violations.flatMap((v) => {
+    const severity = v.impact === "critical" || v.impact === "serious" ? "high" : "medium";
+    const target = v.nodes[0]?.target[0] || "document";
+    const content = `[a11y] ${v.id}: ${v.help} (${target})`;
+    return [createEvidenceRow(context, "console", severity, content, "Desktop", undefined)];
+  });
+}
 
 export function buildEvidenceRows(
   pageResult: PageResult,
@@ -89,6 +101,7 @@ export function buildEvidenceRows(
     ...buildConsoleRows(pageResult.consoleErrors, context),
     ...buildNetworkRows(pageResult.failedRequests, context),
     ...buildImageRows(pageResult.brokenImages, context),
+    ...buildA11yRows(pageResult.a11yViolations, context),
   ];
 }
 

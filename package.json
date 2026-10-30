@@ -12,6 +12,7 @@
     "worker:qa": "node --conditions=react-server --import tsx --env-file=.env src/lib/server/workers/qa-worker.ts"
   },
   "dependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "cron-parser": "^5.6.2",

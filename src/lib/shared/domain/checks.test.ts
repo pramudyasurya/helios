@@ -268,6 +268,34 @@ describe("runPageChecks", () => {
       ),
     ).toMatchObject({ status: "failed", severity: "high" });
   });
+
+  it("emits failed accessibility check when critical a11y violations exist", () => {
+    const input: CheckInput = {
+      url: "https://example.com",
+      pageStatus: "Completed",
+      statusCode: 200,
+      a11yViolations: [
+        {
+          id: "button-name",
+          impact: "critical",
+          description: "Buttons must have discernible text",
+          help: "Buttons must have discernible text",
+          helpUrl: "https://dequeuniversity.com/rules/axe/4.4/button-name",
+          nodes: [{ target: ["button#submit"], html: "<button></button>" }],
+        },
+      ],
+      consoleErrors: [],
+      failedRequests: [],
+      brokenImages: [],
+    };
+
+    const checks = runPageChecks(input);
+    const a11yCheck = checks.find((c) => c.title === "Accessibility (WCAG AA)");
+    expect(a11yCheck).toBeDefined();
+    expect(a11yCheck?.status).toBe("failed");
+    expect(a11yCheck?.severity).toBe("high");
+    expect(a11yCheck?.detail).toContain("button-name");
+  });
 });
 
 describe("runChecks", () => {
@@ -389,6 +417,7 @@ describe("toCheckInput", () => {
       insecureResources: ["insecure1"],
       cookies: [{ name: "session", secure: true, httpOnly: true, sameSite: "lax" }],
       securityHeaders: { "strict-transport-security": "max-age=31536000" },
+      a11yViolations: undefined,
     });
   });
 
@@ -417,6 +446,7 @@ describe("toCheckInput", () => {
       insecureResources: undefined,
       cookies: undefined,
       securityHeaders: undefined,
+      a11yViolations: undefined,
     });
   });
 
