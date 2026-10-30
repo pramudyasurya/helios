@@ -27,9 +27,22 @@ export type StorageState = {
     localStorage: Array<{ name: string; value: string }>;
   }>;
 };
+export type A11yViolationNode = {
+  target: string[];
+  html: string;
+  failureSummary?: string;
+};
+
+export type A11yViolation = {
+  id: string;
+  impact: "minor" | "moderate" | "serious" | "critical" | null;
+  description: string;
+  help: string;
+  helpUrl: string;
+  nodes: A11yViolationNode[];
+};
 
 /**
- * SPAs commonly hold their session in localStorage rather than a cookie, so a
  * state with empty `cookies` can still be a live session.
  */
 export function hasSession(state: StorageState | undefined): boolean {
@@ -64,6 +77,7 @@ export type CheckInput = {
   insecureResources?: string[];
   cookies?: Array<{ name: string; secure: boolean; httpOnly: boolean; sameSite: string }>;
   securityHeaders?: Record<string, string>;
+  a11yViolations?: A11yViolation[];
 };
 
 export type LoadMetrics = {
@@ -96,6 +110,7 @@ export type PageResult = {
   insecureResources?: string[];
   cookies?: Array<{ name: string; secure: boolean; httpOnly: boolean; sameSite: string }>;
   securityHeaders?: Record<string, string>;
+  a11yViolations?: A11yViolation[];
   loadMetrics?: LoadMetrics;
   checks?: CheckResult[];
   createdAt: string;

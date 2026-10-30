@@ -71,6 +71,30 @@ describe("buildEvidenceRows", () => {
     }
   });
 
+  it("maps a11y violations into console evidence rows with [a11y] prefix and Desktop viewport", () => {
+    const pageWithA11y: PageResult = {
+      ...fixturePageResult,
+      a11yViolations: [
+        {
+          id: "button-name",
+          impact: "critical",
+          description: "Buttons must have discernible text",
+          help: "Buttons must have discernible text",
+          helpUrl: "https://example.com",
+          nodes: [{ target: ["button#submit"], html: "<button></button>" }],
+        },
+      ],
+    };
+
+    const rows = buildEvidenceRows(pageWithA11y, "run-1", "page-1");
+    const a11yRow = rows.find((r) => r.content.startsWith("[a11y]"));
+
+    expect(a11yRow).toBeDefined();
+    expect(a11yRow?.type).toBe("console");
+    expect(a11yRow?.severity).toBe("high");
+    expect(a11yRow?.viewport).toBe("Desktop");
+    expect(a11yRow?.content).toBe("[a11y] button-name: Buttons must have discernible text (button#submit)");
+  });
   it("falls back to the original url when the final url is absent", () => {
     const rows = buildEvidenceRows(
       { ...fixturePageResult, finalUrl: undefined },
@@ -87,8 +111,8 @@ describe("buildEvidenceRows", () => {
       brokenImages: [],
       consoleErrors: [],
       failedRequests: [],
+      a11yViolations: [],
     };
-
     expect(buildEvidenceRows(emptyPageResult, "run-1", "page-1")).toEqual([]);
   });
 

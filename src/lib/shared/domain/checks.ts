@@ -4,6 +4,7 @@ import {
   formatDomLoadMetric,
 } from "@/lib/shared/domain/performance";
 import { extractViewport } from "@/lib/shared/domain/evidence-transformer";
+import { evaluateA11yViolations } from "@/lib/shared/domain/a11y";
 import {
   CHECK_TITLE_COOKIE_SECURITY,
   CHECK_TITLE_MIXED_CONTENT,
@@ -183,6 +184,10 @@ export function runPageChecks(input: CheckInput): CheckResult[] {
           severity: hasMixedContent ? "high" : "info",
         });
       }
+      // Accessibility (axe-core) checks
+      if (input.a11yViolations !== undefined) {
+        securityChecks.push(...evaluateA11yViolations(input.a11yViolations));
+      }
 
       return securityChecks;
     })(),
@@ -279,6 +284,7 @@ export function toCheckInput(page: PageResult): CheckInput {
     insecureResources: page.insecureResources,
     cookies: page.cookies,
     securityHeaders: page.securityHeaders,
+    a11yViolations: page.a11yViolations,
   };
 }
 
