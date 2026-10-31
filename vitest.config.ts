@@ -32,11 +32,20 @@ export default defineConfig({
       {
         extends: true,
         test: {
+          name: "api",
+          include: ["src/app/api/**/*.test.{ts,tsx}"],
+          environment: "node",
+        },
+      },
+      {
+        extends: true,
+        test: {
           name: "components",
           include: [
-                      "src/components/**/*.test.{ts,tsx}",
-                      "src/app/**/*.test.{ts,tsx}",
-                    ],
+            "src/components/**/*.test.{ts,tsx}",
+            "src/app/**/!(*api*)/**/*.test.{ts,tsx}",
+            "src/app/*.test.{ts,tsx}",
+          ],
           environment: "jsdom",
           setupFiles: ["src/lib/shared/domain/vitest-setup.ts"],
         },

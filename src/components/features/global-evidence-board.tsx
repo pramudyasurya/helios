@@ -219,6 +219,7 @@ export function GlobalEvidenceBoard({
                       aria-label="View screenshot"
                       className="shrink-0 cursor-pointer rounded-xs overflow-hidden focus:outline-none focus:ring-2 focus:ring-accent"
                     >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={item.screenshotUrl}
                         alt={`Screenshot evidence for ${item.pageUrl}`}
@@ -339,6 +340,7 @@ export function GlobalEvidenceBoard({
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={lightboxSrc}
             alt="Evidence screenshot"

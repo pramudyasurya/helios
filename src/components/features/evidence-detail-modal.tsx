@@ -156,6 +156,8 @@ export function EvidenceDetailModal({
               className="mt-1 block w-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent rounded-xs"
               aria-label="View full screenshot"
             >
+              {/* Local Playwright artifact: rendered dynamically without fixed dimensions */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={evidence.screenshotUrl}
                 alt="Evidence screenshot"
@@ -164,7 +166,6 @@ export function EvidenceDetailModal({
             </button>
           </div>
         )}
-
         <pre className="mt-4 max-h-[50vh] overflow-auto whitespace-pre-wrap wrap-break-word rounded-xs border border-border bg-card p-4 text-xs text-foreground font-mono">
           {evidence.content}
         </pre>
@@ -194,6 +195,7 @@ export function EvidenceDetailModal({
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={evidence.screenshotUrl}
               alt="Evidence screenshot"

@@ -61,9 +61,31 @@ export function ProjectSchedulesTab({ project }: ProjectSchedulesTabProps) {
   }
 
   useEffect(() => {
-    loadSchedules();
+    let active = true;
+    const timer = setTimeout(() => setLoading(true), 0);
+    Promise.all(
+      project.environments.map(async (env) => {
+        const res = await listSchedules(project.id, env.id);
+        return res.map((schedule: QaScheduleView) => ({
+          ...schedule,
+          environmentName: env.name,
+        }));
+      }),
+    )
+      .then((results) => {
+        if (active) setSchedules(results.flat());
+      })
+      .catch(() => {
+        if (active) setSchedules([]);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      clearTimeout(timer);
+      active = false;
+    };
   }, [project.id, project.environments]);
-
   function openAddSchedule() {
     setScheduleToEdit(null);
     setIsModalOpen(true);

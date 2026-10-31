@@ -4,7 +4,7 @@ import type { RunMode } from "@/lib/server/infrastructure/runner/runner";
 import { prisma } from "@/lib/server/infrastructure/db/prisma";
 import { enqueueQARun } from "@/lib/server/infrastructure/queue/qa-jobs";
 import { getErrorMessage } from "@/lib/shared/domain/errors";
-
+import { reapStuckRuns } from "@/lib/server/workers/run-reaper";
 export type ScheduleTickJob = {
   scheduleId: string;
 };
@@ -19,6 +19,9 @@ const STALE_QUEUED_MS = 10 * 60 * 1000;
 // is a crash orphan (created but never enqueued) and is superseded. The tick
 // queue has retryLimit 0 — the cron cycle is the retry.
 export async function processScheduleTick(job: ScheduleTickJob): Promise<void> {
+  // Proactively clean up any stale or crashed runs during the tick cycle
+  await reapStuckRuns().catch(() => {});
+
   const schedule = await prisma.qaSchedule.findUnique({
     where: { id: job.scheduleId },
     include: { environment: true },

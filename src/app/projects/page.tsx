@@ -56,9 +56,29 @@ export default function ProjectsPage() {
   }
 
   useEffect(() => {
-    loadProjects();
+    let active = true;
+    const timer = setTimeout(() => setLoading(true), 0);
+    getProjects()
+      .then((data) => {
+        if (active) setProjects(data.projects);
+      })
+      .catch((err: unknown) => {
+        if (active) {
+          const msg =
+            typeof err === "object" && err !== null && "message" in err
+              ? (err as { message: string }).message
+              : "Failed to load projects.";
+          setError(msg);
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      clearTimeout(timer);
+      active = false;
+    };
   }, []);
-
   function handleSearchChange(val: string) {
     setSearchQuery(val);
     startTransition(() => {

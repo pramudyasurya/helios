@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PlayCircle, Filter, ExternalLink } from "lucide-react";
-import type { ProjectDetailDto, LatestRun, PaginatedResponse } from "@/lib/client/api";
+import type { ProjectDetailDto, LatestRun } from "@/lib/client/api";
+import type { RunStatus } from "@/lib/shared/domain/types";
 import { getRuns } from "@/lib/client/api";
 import { formatTimestamp, formatDurationMs } from "@/lib/shared/domain/format";
 import { ScheduledBadge } from "@/components/features/scheduled-badge";
-
 type ProjectRunsTabProps = {
   project: ProjectDetailDto;
 };
@@ -18,27 +18,29 @@ export function ProjectRunsTab({ project }: ProjectRunsTabProps) {
   const [selectedEnvId, setSelectedEnvId] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("All");
 
-  async function loadRuns() {
-    try {
-      setLoading(true);
-      const res: PaginatedResponse<LatestRun> = await getRuns({
-        projectId: project.id,
-        environmentId: selectedEnvId !== "all" ? selectedEnvId : undefined,
-        status: selectedStatus !== "All" ? selectedStatus : undefined,
-        limit: 20,
-      });
-      setRuns(res.data);
-    } catch {
-      setRuns([]);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   useEffect(() => {
-    loadRuns();
+    let active = true;
+    const timer = setTimeout(() => setLoading(true), 0);
+    getRuns({
+      projectId: project.id,
+      environmentId: selectedEnvId === "all" ? undefined : selectedEnvId,
+      status: selectedStatus === "all" ? undefined : (selectedStatus as RunStatus),
+      limit: 50,
+    })
+      .then((res) => {
+        if (active) setRuns(res.data);
+      })
+      .catch(() => {
+        if (active) setRuns([]);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      clearTimeout(timer);
+      active = false;
+    };
   }, [project.id, selectedEnvId, selectedStatus]);
-
   return (
     <div className="space-y-6">
       {/* Filter Bar */}

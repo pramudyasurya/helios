@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { X, AlertTriangle, AlertCircle, Loader2 } from "lucide-react";
 import { useModalFocus } from "@/lib/client/use-modal-focus";
 
@@ -24,14 +24,12 @@ export function DeleteConfirmationModal({
   const [error, setError] = useState<string | null>(null);
 
   const modalRef = useRef<HTMLDivElement>(null);
-  useModalFocus(modalRef, isOpen, onClose);
-
-  useEffect(() => {
-    if (isOpen) {
-      setTypedValue("");
-      setError(null);
-    }
-  }, [isOpen]);
+  useModalFocus(modalRef, isOpen, handleClose);
+  function handleClose() {
+    setTypedValue("");
+    setError(null);
+    onClose();
+  }
 
   if (!isOpen) return null;
 
@@ -80,7 +78,7 @@ export function DeleteConfirmationModal({
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             aria-label="Close dialog"
             className="text-muted hover:text-foreground p-1 rounded-xs transition-colors focus:outline-hidden cursor-pointer"
           >
@@ -128,7 +126,7 @@ export function DeleteConfirmationModal({
           <div className="flex items-center justify-end space-x-3 pt-4 border-t border-border">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               disabled={isSubmitting}
               className="rounded-xs border border-border bg-card px-3.5 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors cursor-pointer"
             >

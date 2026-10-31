@@ -1,9 +1,8 @@
 "use client";
 
-import { Download, ExternalLink, Activity, Info, Layers, Film, Network } from "lucide-react";
+import { Download, ExternalLink, Activity, Layers, Film, Network } from "lucide-react";
 import type { LatestRun } from "@/lib/shared/domain/types";
 import { EmptyState } from "@/components/ui/empty-state";
-
 export interface TraceViewerTabProps {
   run: LatestRun;
 }

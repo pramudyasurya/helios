@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import { X, AlertCircle, Loader2, CalendarClock } from "lucide-react";
 import { useModalFocus } from "@/lib/client/use-modal-focus";
@@ -50,29 +50,28 @@ export function ScheduleModal({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [prevScheduleId, setPrevScheduleId] = useState(schedule?.id);
+
+  if (schedule?.id !== prevScheduleId) {
+    setPrevScheduleId(schedule?.id);
+    setEnvironmentId(
+      schedule?.environmentId ??
+        project.environments.find((env) => env.baseUrl)?.id ??
+        "",
+    );
+    setCron(schedule?.cronExpression ?? DEFAULT_CRON);
+    setActive(schedule?.active ?? true);
+    setRunConfig({
+      mode: schedule?.mode ?? "single",
+      routes: schedule?.routes,
+      maxPages: schedule?.maxPages ?? undefined,
+      maxDepth: schedule?.maxDepth ?? undefined,
+    });
+    setError(null);
+  }
 
   const modalRef = useRef<HTMLDivElement>(null);
   useModalFocus(modalRef, isOpen, onClose);
-
-  useLayoutEffect(() => {
-    if (isOpen) {
-      setEnvironmentId(
-        schedule?.environmentId ??
-          project.environments.find((env) => env.baseUrl)?.id ??
-          "",
-      );
-      setCron(schedule?.cronExpression ?? DEFAULT_CRON);
-      setActive(schedule?.active ?? true);
-      setRunConfig({
-        mode: schedule?.mode ?? "single",
-        routes: schedule?.routes,
-        maxPages: schedule?.maxPages ?? undefined,
-        maxDepth: schedule?.maxDepth ?? undefined,
-      });
-      setError(null);
-    }
-  }, [isOpen, schedule, project.environments]);
-
   if (!isOpen) return null;
 
   const selectedEnvironment = project.environments.find(

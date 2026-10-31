@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { X, AlertCircle, Loader2 } from "lucide-react";
 import { useModalFocus } from "@/lib/client/use-modal-focus";
 import type { ProjectDto } from "@/lib/client/api";
@@ -18,19 +18,19 @@ export function ProjectModal({
   onSave,
   projectToEdit,
 }: ProjectModalProps) {
-  const [name, setName] = useState("");
+  const [name, setName] = useState(projectToEdit ? projectToEdit.name : "");
+  const [prevEditId, setPrevEditId] = useState(projectToEdit?.id);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  if (projectToEdit?.id !== prevEditId) {
+    setPrevEditId(projectToEdit?.id);
+    setName(projectToEdit ? projectToEdit.name : "");
+    setError(null);
+  }
+
   const modalRef = useRef<HTMLDivElement>(null);
   useModalFocus(modalRef, isOpen, onClose);
-
-  useEffect(() => {
-    if (isOpen) {
-      setName(projectToEdit ? projectToEdit.name : "");
-      setError(null);
-    }
-  }, [isOpen, projectToEdit]);
 
   if (!isOpen) return null;
 
