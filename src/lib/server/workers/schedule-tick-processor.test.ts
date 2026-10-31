@@ -12,6 +12,9 @@ vi.mock("@/lib/server/infrastructure/db/prisma", () => ({
 }));
 vi.mock("@/lib/server/infrastructure/queue/qa-jobs", () => queueMock);
 vi.mock("next/cache", () => cacheMock);
+vi.mock("@/lib/server/workers/run-reaper", () => ({
+  reapStuckRuns: vi.fn().mockResolvedValue({ reapedRunIds: [], count: 0 }),
+}));
 
 import { processScheduleTick } from "@/lib/server/workers/schedule-tick-processor";
 

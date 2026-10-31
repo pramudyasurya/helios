@@ -90,26 +90,29 @@ export function AIReportPanel({ runId, initialReport, onViewEvidence }: AIReport
   useEffect(() => {
     if (isLoading) {
       startTimeRef.current = Date.now();
-      setElapsed(0);
+      const timer = setTimeout(() => setElapsed(0), 0);
       elapsedTimerRef.current = setInterval(() => {
         setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000));
       }, 1000);
+      return () => {
+        clearTimeout(timer);
+        clearInterval(elapsedTimerRef.current);
+      };
     } else {
       clearInterval(elapsedTimerRef.current);
       elapsedTimerRef.current = undefined;
     }
     return () => clearInterval(elapsedTimerRef.current);
   }, [isLoading]);
-
   // Progress step advancement — walks through staged steps on a timer
   useEffect(() => {
     if (!isLoading) {
-      setProgressStep(0);
-      return;
+      const timer = setTimeout(() => setProgressStep(0), 0);
+      return () => clearTimeout(timer);
     }
 
-    setProgressStep(0);
     let currentStep = 0;
+    const initTimer = setTimeout(() => setProgressStep(0), 0);
 
     const advanceStep = () => {
       if (currentStep < PROGRESS_STEPS.length - 1) {
@@ -127,7 +130,10 @@ export function AIReportPanel({ runId, initialReport, onViewEvidence }: AIReport
       PROGRESS_STEPS[0].duration,
     );
 
-    return () => clearTimeout(stepTimerRef.current);
+    return () => {
+      clearTimeout(initTimer);
+      clearTimeout(stepTimerRef.current);
+    };
   }, [isLoading]);
 
   const handleGenerate = async () => {
@@ -162,10 +168,8 @@ export function AIReportPanel({ runId, initialReport, onViewEvidence }: AIReport
   // --- Loading state: staged progress card ---
   if (isLoading) {
     const currentStepData = PROGRESS_STEPS[progressStep];
-    const CurrentIcon = currentStepData.icon;
     return (
       <section
-        role="status"
         aria-busy="true"
         aria-live="polite"
         aria-label={`Generating AI report: ${currentStepData.label}`}

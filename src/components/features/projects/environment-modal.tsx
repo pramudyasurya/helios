@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { X, AlertCircle, Loader2 } from "lucide-react";
 import { useModalFocus } from "@/lib/client/use-modal-focus";
 import type { EnvironmentDto } from "@/lib/client/api";
@@ -39,26 +39,25 @@ export function EnvironmentModal({
   projectName,
   envToEdit,
 }: EnvironmentModalProps) {
-  const [name, setName] = useState("");
-  const [baseUrl, setBaseUrl] = useState("");
+  const [name, setName] = useState(envToEdit ? envToEdit.name : "");
+  const [baseUrl, setBaseUrl] = useState(envToEdit?.baseUrl || "");
   const [sessionJson, setSessionJson] = useState(EMPTY_STORAGE_STATE_JSON);
   const [clearSession, setClearSession] = useState(false);
+  const [prevEditId, setPrevEditId] = useState(envToEdit?.id);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  if (envToEdit?.id !== prevEditId) {
+    setPrevEditId(envToEdit?.id);
+    setName(envToEdit ? envToEdit.name : "");
+    setBaseUrl(envToEdit?.baseUrl || "");
+    setSessionJson(EMPTY_STORAGE_STATE_JSON);
+    setClearSession(false);
+    setError(null);
+  }
+
   const modalRef = useRef<HTMLDivElement>(null);
   useModalFocus(modalRef, isOpen, onClose);
-
-  useEffect(() => {
-    if (isOpen) {
-      setName(envToEdit ? envToEdit.name : "");
-      setBaseUrl(envToEdit?.baseUrl || "");
-      setSessionJson(EMPTY_STORAGE_STATE_JSON);
-      setClearSession(false);
-      setError(null);
-    }
-  }, [isOpen, envToEdit]);
-
   if (!isOpen) return null;
 
   async function handleSubmit(e: React.FormEvent) {

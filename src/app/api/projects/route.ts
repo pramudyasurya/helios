@@ -27,9 +27,7 @@ export async function GET() {
       return NextResponse.json({ projects: [] });
     }
 
-    const projectIds = projects.map((p) => p.id);
     const envIds = projects.flatMap((p) => p.environments.map((e) => e.id));
-
     // Single grouped query across all projects' environments — avoids N+1.
     const statusGroups = await prisma.run.groupBy({
       by: ["environmentId", "status"],

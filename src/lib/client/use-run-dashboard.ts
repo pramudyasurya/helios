@@ -255,8 +255,7 @@ export function useRunHistory(
     return () => {
       active = false;
     };
-  }, [currentPage, searchQuery, statusFilter, refreshTrigger]);
-
+  }, [currentPage, searchQuery, statusFilter, refreshTrigger, environmentId, projectId]);
   const handleDeleteRun = useCallback(
     async (id: string) => {
       try {

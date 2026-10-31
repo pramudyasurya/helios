@@ -1,10 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   getProjects,
-  getProject,
   createProject,
-  updateProject,
-  deleteProject,
   createEnvironment,
   updateEnvironment,
   deleteEnvironment,

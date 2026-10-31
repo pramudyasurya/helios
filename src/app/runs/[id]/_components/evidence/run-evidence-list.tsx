@@ -78,7 +78,9 @@ export function RunEvidenceList({
   useEffect(() => {
     if (!evidenceIdTarget) return;
 
-    setHighlightedEvidenceId(evidenceIdTarget);
+    queueMicrotask(() => {
+      setHighlightedEvidenceId(evidenceIdTarget);
+    });
 
     const scrollTimeoutId = window.setTimeout(() => {
       const element = document.getElementById(

@@ -35,12 +35,6 @@ function restoreEnv(keys: string[]) {
   });
 }
 
-function setEnv(vars: Record<string, string>) {
-  Object.entries(vars).forEach(([key, value]) => {
-    process.env[key] = value;
-  });
-}
-
 describe("Provider: Ollama (backward compat)", () => {
   beforeEach(() => {
     restoreEnv([

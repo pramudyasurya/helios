@@ -26,23 +26,6 @@ const getRunById = cache(async (id: string) => {
   });
 });
 
-const getPreviousRunId = cache(
-  async (run: { id: string; environmentId: string | null }) => {
-    if (!run.environmentId) return null;
-
-    const previous = await prisma.run.findFirst({
-      where: {
-        environmentId: run.environmentId,
-        id: { not: run.id },
-        status: { in: ["Completed", "Failed"] },
-      },
-      orderBy: { createdAt: "desc" },
-      select: { id: true },
-    });
-
-    return previous?.id ?? null;
-  },
-);
 
 export async function generateMetadata({
   params,
@@ -78,7 +61,6 @@ export default async function RunDetailPage({
   }
 
   const run = runRecordToLatestRun(record);
-  const previousRunId = await getPreviousRunId(record);
 
   const newIssueEvidenceIds = new Set(
     (record.runIssues ?? [])
