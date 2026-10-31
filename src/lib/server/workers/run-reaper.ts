@@ -57,9 +57,6 @@ export async function reapStuckRuns(
         status: "Failed",
         summary,
         finishedAt: new Date(finishedAt),
-        trail: {
-          push: terminalStep,
-        },
       },
     });
 
