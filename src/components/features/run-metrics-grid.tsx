@@ -3,6 +3,8 @@ import {
   Activity,
   AlertCircle,
   Clock,
+  Gauge,
+  LayoutGrid,
   ListChecks,
   Network,
 } from "lucide-react";
@@ -35,6 +37,18 @@ export function RunMetricsGrid({ run }: RunMetricsGridProps) {
       color: "text-muted",
     },
     {
+      label: "LCP",
+      value: run.loadMetrics?.lcpMs !== undefined ? `${run.loadMetrics.lcpMs} ms` : "-",
+      icon: Gauge,
+      color: "text-muted",
+    },
+    {
+      label: "CLS",
+      value: run.loadMetrics?.cls !== undefined ? run.loadMetrics.cls.toFixed(3) : "-",
+      icon: LayoutGrid,
+      color: "text-muted",
+    },
+    {
       label: "Findings",
       value: findingCount,
       icon: ListChecks,
@@ -55,7 +69,7 @@ export function RunMetricsGrid({ run }: RunMetricsGridProps) {
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-7">
       {metrics.map((m) => (
         <div
           key={m.label}

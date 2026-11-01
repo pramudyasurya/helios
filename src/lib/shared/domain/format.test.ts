@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  formatBytes,
   formatDurationMs,
   formatLabel,
   normalizeRunStatus,
@@ -30,5 +31,18 @@ describe("normalizeRunStatus", () => {
     expect(normalizeRunStatus(undefined)).toBe("Idle");
     expect(normalizeRunStatus("")).toBe("Idle");
     expect(normalizeRunStatus("unknown_status")).toBe("Idle");
+  });
+});
+
+describe("formatBytes", () => {
+  it("formats byte values cleanly across B, KB, MB, GB scales", () => {
+    expect(formatBytes(0)).toBe("0 B");
+    expect(formatBytes(-100)).toBe("0 B");
+    expect(formatBytes(512)).toBe("512 B");
+    expect(formatBytes(1024)).toBe("1.0 KB");
+    expect(formatBytes(1536)).toBe("1.5 KB");
+    expect(formatBytes(1048576)).toBe("1.0 MB");
+    expect(formatBytes(1572864)).toBe("1.5 MB");
+    expect(formatBytes(1073741824)).toBe("1.0 GB");
   });
 });

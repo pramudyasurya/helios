@@ -104,6 +104,45 @@ describe("createChecksFromRunResult", () => {
       evidenceType: "network",
     });
   });
+
+  it("includes Core Web Vitals and Resource transfer checks when metrics are present", () => {
+    const mockRun = createMockRun({
+      loadMetrics: {
+        domContentLoadedMs: 800,
+        loadEventMs: 1400,
+        lcpMs: 1500,
+        cls: 0.02,
+        ttfbMs: 120,
+        fcpMs: 700,
+        resources: {
+          jsBytes: 400_000,
+          cssBytes: 50_000,
+          imageBytes: 300_000,
+          fontBytes: 30_000,
+          totalTransferBytes: 780_000,
+          resourceCount: 25,
+        },
+      },
+    });
+
+    const checks = createChecksFromRunResult(mockRun);
+    const cwvCheck = checks.find((c) => c.title === "Core Web Vitals checked");
+    const budgetCheck = checks.find((c) => c.title === "Resource transfer budgets checked");
+
+    expect(cwvCheck).toBeDefined();
+    expect(cwvCheck).toMatchObject({
+      status: "passed",
+      severity: "info",
+    });
+    expect(cwvCheck?.detail).toContain("LCP: 1500ms (Good)");
+
+    expect(budgetCheck).toBeDefined();
+    expect(budgetCheck).toMatchObject({
+      status: "passed",
+      severity: "info",
+    });
+    expect(budgetCheck?.detail).toContain("Transferred 761.7 KB across 25 requests");
+  });
 });
 
 describe("derivePageStatus", () => {

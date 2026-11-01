@@ -15,6 +15,7 @@ import {
 
 import { getPlaywrightErrorMessage } from "@/lib/server/infrastructure/runner/errors";
 import { capturePageMetadata } from "@/lib/server/infrastructure/runner/metadata";
+import { VITALS_INIT_SCRIPT } from "@/lib/server/infrastructure/runner/vitals-script";
 import {
   attachPageEvidenceListeners,
   captureBrokenImages,
@@ -305,6 +306,7 @@ async function inspectRoute({
     }
 
     desktopPage = await context.newPage();
+    await desktopPage.addInitScript(VITALS_INIT_SCRIPT);
     await desktopPage.setViewportSize({ width: 1440, height: 900 });
     mobilePage = await context.newPage();
     await mobilePage.setViewportSize({ width: 390, height: 844 });

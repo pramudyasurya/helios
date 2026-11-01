@@ -17,6 +17,14 @@ export function formatLabel(value: string) {
 export function formatDurationMs(durationMs: number) {
   return `${(durationMs / 1000).toFixed(2)} s`;
 }
+export function formatBytes(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  if (i === 0) return `${bytes} B`;
+  const value = bytes / Math.pow(1024, i);
+  return `${value.toFixed(1)} ${units[i]}`;
+}
 
 export function normalizeRunStatus(status?: string): RunStatus {
   if (!status) return "Idle";

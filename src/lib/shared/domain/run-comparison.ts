@@ -128,6 +128,40 @@ function domLoadDirection(from: number | null, to: number | null): Direction {
   return toRank < fromRank ? "improved" : "regressed";
 }
 
+function lcpBandRank(ms: number): number {
+  if (ms <= 2500) return 1;
+  if (ms <= 4000) return 2;
+  return 3;
+}
+
+function lcpDirection(from: number | null, to: number | null): Direction {
+  if (from === null || to === null) return "unchanged";
+  const fromRank = lcpBandRank(from);
+  const toRank = lcpBandRank(to);
+  if (fromRank === toRank) {
+    if (Math.abs(to - from) < 100) return "unchanged";
+    return to < from ? "improved" : "regressed";
+  }
+  return toRank < fromRank ? "improved" : "regressed";
+}
+
+function clsBandRank(score: number): number {
+  if (score <= 0.1) return 1;
+  if (score <= 0.25) return 2;
+  return 3;
+}
+
+function clsDirection(from: number | null, to: number | null): Direction {
+  if (from === null || to === null) return "unchanged";
+  const fromRank = clsBandRank(from);
+  const toRank = clsBandRank(to);
+  if (fromRank === toRank) {
+    if (Math.abs(to - from) < 0.01) return "unchanged";
+    return to < from ? "improved" : "regressed";
+  }
+  return toRank < fromRank ? "improved" : "regressed";
+}
+
 function countOrNull(values: string[] | undefined): number | null {
   return values === undefined ? null : values.length;
 }
@@ -147,6 +181,27 @@ function computeMetricDeltas(a: LatestRun, b: LatestRun): MetricDelta[] {
       a.loadMetrics?.domContentLoadedMs ?? null,
       b.loadMetrics?.domContentLoadedMs ?? null,
       domLoadDirection,
+    ),
+    metricDelta(
+      "lcpMs",
+      "Largest Contentful Paint",
+      a.loadMetrics?.lcpMs ?? null,
+      b.loadMetrics?.lcpMs ?? null,
+      lcpDirection,
+    ),
+    metricDelta(
+      "cls",
+      "Cumulative Layout Shift",
+      a.loadMetrics?.cls ?? null,
+      b.loadMetrics?.cls ?? null,
+      clsDirection,
+    ),
+    metricDelta(
+      "ttfbMs",
+      "Time to First Byte",
+      a.loadMetrics?.ttfbMs ?? null,
+      b.loadMetrics?.ttfbMs ?? null,
+      lowerIsBetterDirection,
     ),
     metricDelta(
       "consoleErrorCount",
