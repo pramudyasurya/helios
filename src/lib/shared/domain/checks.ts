@@ -2,6 +2,8 @@ import type { CheckInput, CheckResult, CheckStatus, CheckSeverity, CreateRunResp
 import {
   getDomLoadStatus,
   formatDomLoadMetric,
+  evaluateCoreWebVitals,
+  evaluateResourceBudgets,
 } from "@/lib/shared/domain/performance";
 import { extractViewport } from "@/lib/shared/domain/evidence-transformer";
 import { evaluateA11yViolations } from "@/lib/shared/domain/a11y";
@@ -60,6 +62,8 @@ export function runPageChecks(input: CheckInput): CheckResult[] {
       status: domLoadStatus?.status ?? "warning",
       severity: domLoadStatus?.severity ?? "low",
     },
+    ...(input.loadMetrics ? evaluateCoreWebVitals(input.loadMetrics) : []),
+    ...(input.loadMetrics?.resources ? evaluateResourceBudgets(input.loadMetrics.resources) : []),
     {
       title: "Page title checked",
       detail:

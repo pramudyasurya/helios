@@ -5,6 +5,7 @@ import type { PageResult } from "@/lib/shared/domain/types";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Globe } from "lucide-react";
+import { formatBytes } from "@/lib/shared/domain/format";
 type PageResultsTabProps = {
   pageResults?: PageResult[];
 };
@@ -83,9 +84,18 @@ export function PageResultsTab({ pageResults = [] }: PageResultsTabProps) {
                     </div>
                   )}
                   {page.loadMetrics && (
-                    <div className="flex gap-4 text-muted font-mono">
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-muted font-mono">
                       <span>DOM: {page.loadMetrics.domContentLoadedMs}ms</span>
                       <span>Load: {page.loadMetrics.loadEventMs}ms</span>
+                      {page.loadMetrics.lcpMs !== undefined && (
+                        <span>LCP: {page.loadMetrics.lcpMs}ms</span>
+                      )}
+                      {page.loadMetrics.cls !== undefined && (
+                        <span>CLS: {page.loadMetrics.cls.toFixed(3)}</span>
+                      )}
+                      {page.loadMetrics.ttfbMs !== undefined && (
+                        <span>TTFB: {page.loadMetrics.ttfbMs}ms</span>
+                      )}
                       {page.durationMs && <span>Total: {page.durationMs}ms</span>}
                     </div>
                   )}
@@ -119,6 +129,11 @@ export function PageResultsTab({ pageResults = [] }: PageResultsTabProps) {
                     >
                       Failed requests: {failedRequestCount}
                     </span>
+                    {page.loadMetrics?.resources && (
+                      <span className="rounded px-2 py-1 text-xs font-mono font-medium bg-accent/10 text-accent">
+                        {formatBytes(page.loadMetrics.resources.totalTransferBytes)} ({page.loadMetrics.resources.resourceCount} reqs)
+                      </span>
+                    )}
                   </div>
                 </div>
 

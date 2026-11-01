@@ -80,9 +80,23 @@ export type CheckInput = {
   a11yViolations?: A11yViolation[];
 };
 
+export type ResourceBudgets = {
+  jsBytes: number;
+  cssBytes: number;
+  imageBytes: number;
+  fontBytes: number;
+  totalTransferBytes: number;
+  resourceCount: number;
+};
+
 export type LoadMetrics = {
   domContentLoadedMs: number;
   loadEventMs: number;
+  ttfbMs?: number;
+  fcpMs?: number;
+  lcpMs?: number;
+  cls?: number;
+  resources?: ResourceBudgets;
 };
 
 export type PageResult = {

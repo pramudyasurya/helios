@@ -108,6 +108,50 @@ describe("computeRunDiff issues", () => {
     );
   });
 
+  it("computes metric deltas for LCP, CLS, and TTFB", () => {
+    const a = makeRun({
+      id: "a",
+      loadMetrics: {
+        domContentLoadedMs: 1000,
+        loadEventMs: 2000,
+        lcpMs: 2000,
+        cls: 0.05,
+        ttfbMs: 300,
+      },
+    });
+    const b = makeRun({
+      id: "b",
+      loadMetrics: {
+        domContentLoadedMs: 1000,
+        loadEventMs: 2000,
+        lcpMs: 4500, // Regressed to Poor
+        cls: 0.02, // Improved
+        ttfbMs: 150, // Improved
+      },
+    });
+
+    const diff = computeRunDiff(a, b);
+    const lcpDelta = diff.metricDeltas.find((m) => m.key === "lcpMs");
+    const clsDelta = diff.metricDeltas.find((m) => m.key === "cls");
+    const ttfbDelta = diff.metricDeltas.find((m) => m.key === "ttfbMs");
+
+    expect(lcpDelta).toMatchObject({
+      direction: "regressed",
+      from: 2000,
+      to: 4500,
+    });
+    expect(clsDelta).toMatchObject({
+      direction: "improved",
+      from: 0.05,
+      to: 0.02,
+    });
+    expect(ttfbDelta).toMatchObject({
+      direction: "improved",
+      from: 300,
+      to: 150,
+    });
+  });
+
   it("groups multiple evidence rows sharing one fingerprint into one issue", () => {
     const b = makeRun({
       id: "b",
