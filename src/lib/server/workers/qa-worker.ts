@@ -6,9 +6,9 @@ import {
 } from "@/lib/server/infrastructure/queue/qa-jobs";
 import { reconcileQARunSchedules } from "@/lib/server/infrastructure/queue/qa-schedule-reconciler";
 import { getErrorMessage } from "@/lib/shared/domain/errors";
+import { closeAllActiveBrowsers } from "@/lib/server/infrastructure/runner/runner";
 import { processQARun } from "@/lib/server/workers/qa-run-processor";
 import { processScheduleTick } from "@/lib/server/workers/schedule-tick-processor";
-
 async function main() {
   const boss = await startQARunWorker(processQARun);
   await startScheduleTickWorker(processScheduleTick);
@@ -17,11 +17,18 @@ async function main() {
   console.info("QA worker is listening for queued runs.");
 
   const shutdown = async () => {
+    try {
+      const closed = await closeAllActiveBrowsers();
+      if (closed > 0) {
+        console.info(`Closed ${closed} active Playwright browser instance(s) during shutdown.`);
+      }
+    } catch {
+      // Best-effort cleanup
+    }
     await boss.stop();
     await prisma.$disconnect();
     process.exit(0);
   };
-
   process.once("SIGINT", shutdown);
   process.once("SIGTERM", shutdown);
 }

@@ -62,13 +62,12 @@ export async function processQARun(
     const primaryResult = result.pageResults[0];
     const existingRun = await prisma.run.findUnique({
       where: { id: job.runId },
-      select: { trail: true },
+      select: { trail: true, status: true, summary: true },
     });
     const rawTrail = Array.isArray(existingRun?.trail)
       ? (existingRun.trail as unknown[])
       : [];
     const trail = mergeTrailSteps(sanitizeTrailSteps(rawTrail), result.trail);
-
     // Compute QA checks from run results (T034-T035)
     let checks: unknown[] = [];
     try {
@@ -86,6 +85,14 @@ export async function processQARun(
       console.warn(
         `Checks computation failed for run ${job.runId}: ${getErrorMessage(checkError, "Unknown error")}. Persisting empty checks.`,
       );
+    }
+
+    // Guard against clobbering runs that were already marked Failed by watchdog run-reaper
+    if (existingRun && existingRun.status === "Failed" && existingRun.summary?.includes("watchdog")) {
+      console.warn(
+        `Run ${job.runId} was already reaped by watchdog as Failed. Skipping completion overwrite to preserve watchdog failure status.`,
+      );
+      return;
     }
 
     await prisma.run.update({
@@ -107,7 +114,6 @@ export async function processQARun(
         trail: trail as unknown as Prisma.InputJsonValue,
       },
     });
-
     try {
       await fingerprintRunIssues(job.runId);
     } catch (error) {

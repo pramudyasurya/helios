@@ -13,6 +13,7 @@ import {
   isLoginRedirect,
 } from "@/lib/shared/domain/bot-protection";
 
+import { getErrorMessage } from "@/lib/shared/domain/errors";
 import { getPlaywrightErrorMessage } from "@/lib/server/infrastructure/runner/errors";
 import { capturePageMetadata } from "@/lib/server/infrastructure/runner/metadata";
 import { VITALS_INIT_SCRIPT } from "@/lib/server/infrastructure/runner/vitals-script";
@@ -43,9 +44,32 @@ import {
   persistPageEvidence,
 } from "@/lib/server/infrastructure/runner/evidence-builder";
 import { prisma } from "@/lib/server/infrastructure/db/prisma";
+const activeBrowsers = new Set<Browser>();
+
+/**
+ * Closes any lingering Playwright Chromium browser instances.
+ * Used on worker shutdown or process exit to prevent orphaned zombie processes.
+ */
+export async function closeAllActiveBrowsers(): Promise<number> {
+  const count = activeBrowsers.size;
+  if (count === 0) return 0;
+
+  const closers = Array.from(activeBrowsers).map(async (browser) => {
+    try {
+      await browser.close();
+    } catch {
+      // Ignore errors on force-close during teardown
+    } finally {
+      activeBrowsers.delete(browser);
+    }
+  });
+
+  await Promise.allSettled(closers);
+  activeBrowsers.clear();
+  return count;
+}
 
 export type RunMode = "single" | "manual" | "crawl";
-
 export type RunMultiRouteQAProps = {
   submittedUrl: string;
   runId: string;
@@ -158,6 +182,7 @@ export async function runMultiRouteQA({
 
   try {
     browser = await chromium.launch();
+    activeBrowsers.add(browser);
     await appendRunTrailStep({
       runId,
       step: {
@@ -192,20 +217,31 @@ export async function runMultiRouteQA({
         storageState,
       });
       pageResults.push(pageResult);
-      const createdPage = await prisma.pageResult.create({
-        data: pageResultToCreateInput(pageResult, runId),
-      });
+      let createdPageId: string | null = null;
       try {
-        await persistPageEvidence({
-          runId,
-          pageResult,
-          pageResultId: createdPage.id,
-          prisma,
+        const createdPage = await prisma.pageResult.create({
+          data: pageResultToCreateInput(pageResult, runId),
         });
-      } catch (evidenceError) {
+        createdPageId = createdPage.id;
+      } catch (pageResultError) {
         console.warn(
-          `Evidence persistence failed for page ${pageResult.url} in run ${runId}: ${evidenceError instanceof Error ? evidenceError.message : "Unknown error"}. Continuing crawl.`,
+          `PageResult persistence failed for page ${pageResult.url} in run ${runId}: ${getErrorMessage(pageResultError, "Unknown error")}. Continuing crawl.`,
         );
+      }
+
+      if (createdPageId) {
+        try {
+          await persistPageEvidence({
+            runId,
+            pageResult,
+            pageResultId: createdPageId,
+            prisma,
+          });
+        } catch (evidenceError) {
+          console.warn(
+            `Evidence persistence failed for page ${pageResult.url} in run ${runId}: ${getErrorMessage(evidenceError, "Unknown error")}. Continuing crawl.`,
+          );
+        }
       }
 
       const stepInput = {
@@ -216,8 +252,13 @@ export async function runMultiRouteQA({
         timestamp: pageResult.updatedAt,
       };
       trail.push(createTrailStep(stepInput));
-      await appendRunTrailStep({ runId, step: stepInput });
-
+      try {
+        await appendRunTrailStep({ runId, step: stepInput });
+      } catch (trailErr) {
+        console.warn(
+          `Failed to append trail step for run ${runId}: ${getErrorMessage(trailErr, "Unknown error")}`,
+        );
+      }
       if (mode === "crawl" && pageResult.status === "Completed") {
         queue = enqueueCrawlLinks({
           state: queue,
@@ -267,7 +308,10 @@ export async function runMultiRouteQA({
       trail,
     };
   } finally {
-    await browser?.close().catch(() => {});
+    if (browser) {
+      activeBrowsers.delete(browser);
+      await browser.close().catch(() => {});
+    }
   }
 }
 

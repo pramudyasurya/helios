@@ -106,6 +106,23 @@ describe("processQARun", () => {
       successfulResult.trail[0],
     ]);
   });
+  it("does not overwrite status if run was already marked Failed by watchdog reaper", async () => {
+    prismaMock.run.findUnique.mockResolvedValueOnce({
+      trail: [],
+      status: "Failed",
+      summary: "Helios watchdog terminated run: exceeded 30 minute timeout or worker stopped responding.",
+    });
+    runnerMock.runMultiRouteQA.mockResolvedValueOnce(successfulResult);
+
+    await processQARun(job, { retryCount: 0, retryLimit: 2 });
+
+    // Should NOT call the final prisma.run.update with Completed status
+    expect(prismaMock.run.update).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ status: "Completed" }),
+      }),
+    );
+  });
 
   it("keeps an intermediate retry active and records the attempt failure", async () => {
     runnerMock.runMultiRouteQA.mockRejectedValueOnce(new Error("retryable failure"));
