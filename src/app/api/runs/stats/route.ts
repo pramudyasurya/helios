@@ -84,6 +84,7 @@ const getCachedStatsData = unstable_cache(
           id: true,
           status: true,
           createdAt: true,
+          loadMetrics: true,
         },
       }),
     ]);
@@ -183,14 +184,19 @@ export async function GET(request: Request) {
     );
 
     const timeseries = terminalRuns
-      .map((run) => ({
-        date: run.createdAt.toISOString(),
-        runId: run.id,
-        passRate: run.status === "Completed" ? 100 : 0,
-        errorCount: errorCountByRunId.get(run.id) ?? 0,
-      }))
+      .map((run) => {
+        const loadMetrics = (run.loadMetrics as { lcpMs?: number; cls?: number; ttfbMs?: number } | null) ?? null;
+        return {
+          date: run.createdAt.toISOString(),
+          runId: run.id,
+          passRate: run.status === "Completed" ? 100 : 0,
+          errorCount: errorCountByRunId.get(run.id) ?? 0,
+          lcpMs: loadMetrics?.lcpMs ?? null,
+          cls: loadMetrics?.cls ?? null,
+          ttfbMs: loadMetrics?.ttfbMs ?? null,
+        };
+      })
       .reverse();
-
     return Response.json({
       totalRuns,
       completedRuns,

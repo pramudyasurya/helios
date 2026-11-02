@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { formatDurationMs, formatLabel } from "@/lib/shared/domain/format";
+import { CWV_THRESHOLDS } from "@/lib/shared/domain/performance";
 import type { CheckTransition } from "@/lib/shared/domain/check-comparison";
 import type {
   IssueDiff,
@@ -26,7 +27,6 @@ type CompareRunTabsProps = {
 };
 
 type TabId = "issues" | "checks" | "metrics";
-
 const DIRECTION_META: Record<
   CheckTransition["direction"],
   { label: string; icon: LucideIcon; tone: string }
@@ -58,7 +58,29 @@ const ISSUE_GROUPS: {
 const TIME_METRIC_KEYS: Record<string, true> = {
   durationMs: true,
   domContentLoadedMs: true,
+  lcpMs: true,
+  ttfbMs: true,
 };
+
+function getCwvBenchmark(key: string, value: number | null): { label: string; tone: string } | null {
+  if (value === null) return null;
+  if (key === "lcpMs") {
+    if (value <= CWV_THRESHOLDS.LCP_GOOD_MS) return { label: "Good", tone: "border-success/40 text-success bg-success/10" };
+    if (value <= CWV_THRESHOLDS.LCP_POOR_MS) return { label: "Needs Imp.", tone: "border-accent/40 text-accent bg-accent/10" };
+    return { label: "Poor", tone: "border-danger/40 text-danger bg-danger/10" };
+  }
+  if (key === "cls") {
+    if (value <= CWV_THRESHOLDS.CLS_GOOD) return { label: "Good", tone: "border-success/40 text-success bg-success/10" };
+    if (value <= CWV_THRESHOLDS.CLS_POOR) return { label: "Needs Imp.", tone: "border-accent/40 text-accent bg-accent/10" };
+    return { label: "Poor", tone: "border-danger/40 text-danger bg-danger/10" };
+  }
+  if (key === "ttfbMs") {
+    if (value <= CWV_THRESHOLDS.TTFB_GOOD_MS) return { label: "Good", tone: "border-success/40 text-success bg-success/10" };
+    if (value <= CWV_THRESHOLDS.TTFB_POOR_MS) return { label: "Needs Imp.", tone: "border-accent/40 text-accent bg-accent/10" };
+    return { label: "Poor", tone: "border-danger/40 text-danger bg-danger/10" };
+  }
+  return null;
+}
 
 function issuesForGroup(
   comparison: RunComparison,
@@ -76,15 +98,17 @@ function issuesForGroup(
 
 function formatMetricValue(delta: MetricDelta, value: number | null): string {
   if (value === null) return "—";
+  if (delta.key === "cls") return value.toFixed(3);
   if (TIME_METRIC_KEYS[delta.key]) return formatDurationMs(value);
   return String(value);
 }
-
 function formatMetricDeltaText(delta: MetricDelta): string {
   if (delta.delta === null) return "—";
 
   let text: string;
-  if (TIME_METRIC_KEYS[delta.key]) {
+  if (delta.key === "cls") {
+    text = `${delta.delta > 0 ? "+" : ""}${delta.delta.toFixed(3)}`;
+  } else if (TIME_METRIC_KEYS[delta.key]) {
     const seconds = delta.delta / 1000;
     text = `${seconds > 0 ? "+" : ""}${seconds.toFixed(2)}s`;
   } else {
@@ -98,7 +122,6 @@ function formatMetricDeltaText(delta: MetricDelta): string {
 
   return text;
 }
-
 function IssuesPanel({ comparison }: { comparison: RunComparison }) {
   const total =
     comparison.newIssues.length +
@@ -224,6 +247,7 @@ function MetricsPanel({ deltas }: { deltas: MetricDelta[] }) {
       {deltas.map((delta) => {
         const meta = DIRECTION_META[delta.direction];
         const Icon = meta.icon;
+        const benchmark = getCwvBenchmark(delta.key, delta.to);
 
         return (
           <li
@@ -231,7 +255,16 @@ function MetricsPanel({ deltas }: { deltas: MetricDelta[] }) {
             className="flex flex-col gap-1 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
           >
             <div>
-              <p className="text-sm text-foreground">{delta.label}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-foreground">{delta.label}</p>
+                {benchmark && (
+                  <span
+                    className={`rounded-full border px-1.5 py-0.2 font-mono text-[10px] ${benchmark.tone}`}
+                  >
+                    {benchmark.label}
+                  </span>
+                )}
+              </div>
               <p className="mt-0.5 text-xs text-muted">
                 {formatMetricValue(delta, delta.from)} →{" "}
                 {formatMetricValue(delta, delta.to)}
@@ -254,7 +287,6 @@ function MetricsPanel({ deltas }: { deltas: MetricDelta[] }) {
     </ul>
   );
 }
-
 export function CompareRunTabs({
   comparison,
   checkTransitions,
