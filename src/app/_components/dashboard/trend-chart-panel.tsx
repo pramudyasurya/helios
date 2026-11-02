@@ -1,5 +1,9 @@
+"use client";
+
+import { useState } from "react";
 import dynamic from "next/dynamic";
 import type { RunStats } from "@/lib/shared/domain/types";
+import type { TrendMetricMode } from "@/app/_components/charts/trend-line-chart";
 
 type TrendChartPanelProps = {
   stats: RunStats | null;
@@ -22,6 +26,7 @@ const TrendLineChart = dynamic(
 );
 
 export function TrendChartPanel({ stats }: TrendChartPanelProps) {
+  const [metricMode, setMetricMode] = useState<TrendMetricMode>("quality");
   if (stats === null) {
     return (
       <div
@@ -39,18 +44,46 @@ export function TrendChartPanel({ stats }: TrendChartPanelProps) {
 
   return (
     <div className="rounded-xs border border-border/80 bg-panel/90 p-4 shadow-xs">
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-medium text-foreground">
-          Pass rate &amp; error trends
-        </h3>
-        {timeseries.length >= 2 && (
-          <span className="text-[11px] font-mono text-muted">
-            Last {timeseries.length} runs
-          </span>
-        )}
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-medium text-foreground">
+            {metricMode === "performance"
+              ? "Core Web Vitals trends"
+              : "Pass rate & error trends"}
+          </h3>
+          {timeseries.length >= 2 && (
+            <span className="text-[11px] font-mono text-muted">
+              ({timeseries.length} runs)
+            </span>
+          )}
+        </div>
+        <div className="flex items-center rounded-xs border border-border/80 bg-card/60 p-0.5 text-xs">
+          <button
+            type="button"
+            onClick={() => setMetricMode("quality")}
+            className={`rounded-xs px-2 py-0.5 font-medium transition-colors cursor-pointer ${
+              metricMode === "quality"
+                ? "bg-foreground/10 text-foreground"
+                : "text-muted hover:text-foreground"
+            }`}
+          >
+            Quality
+          </button>
+          <button
+            type="button"
+            onClick={() => setMetricMode("performance")}
+            className={`rounded-xs px-2 py-0.5 font-medium transition-colors cursor-pointer ${
+              metricMode === "performance"
+                ? "bg-foreground/10 text-foreground"
+                : "text-muted hover:text-foreground"
+            }`}
+          >
+            CWV
+          </button>
+        </div>
       </div>
       {timeseries.length >= 2 ? (
-        <TrendLineChart data={timeseries} />
+        <TrendLineChart data={timeseries} metricMode={metricMode} />
       ) : (
         <p
           role="status"

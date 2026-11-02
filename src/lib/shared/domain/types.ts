@@ -319,8 +319,10 @@ export type TrendPoint = {
   runId: string;
   passRate: number;
   errorCount: number;
+  lcpMs?: number | null;
+  cls?: number | null;
+  ttfbMs?: number | null;
 };
-
 export type PaginatedResponse<T> = {
   data: T[];
   meta: {

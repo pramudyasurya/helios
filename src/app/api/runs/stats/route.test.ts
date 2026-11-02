@@ -75,14 +75,13 @@ describe("GET /api/runs/stats", () => {
     prismaMock.run.findMany
       .mockResolvedValueOnce([{ durationMs: 2000 }, { durationMs: 1500 }])
       .mockResolvedValueOnce([
-        { id: "run-c", status: "Failed", createdAt: new Date("2026-08-14T00:00:00.000Z") },
-        { id: "run-b", status: "Completed", createdAt: new Date("2026-08-12T00:00:00.000Z") },
-        { id: "run-a", status: "Completed", createdAt: new Date("2026-08-10T00:00:00.000Z") },
+        { id: "run-c", status: "Failed", createdAt: new Date("2026-08-14T00:00:00.000Z"), loadMetrics: null },
+        { id: "run-b", status: "Completed", createdAt: new Date("2026-08-12T00:00:00.000Z"), loadMetrics: { lcpMs: 2100, cls: 0.05, ttfbMs: 400 } },
+        { id: "run-a", status: "Completed", createdAt: new Date("2026-08-10T00:00:00.000Z"), loadMetrics: { lcpMs: 3200, cls: 0.12, ttfbMs: 950 } },
       ]);
     prismaMock.evidence.groupBy.mockResolvedValue([
       { runId: "run-b", _count: { _all: 3 } },
     ]);
-
     const response = await GET(statsRequest());
 
     expect(response.status).toBe(200);
@@ -90,9 +89,9 @@ describe("GET /api/runs/stats", () => {
 
     expect(body.recentDurations).toEqual([1500, 2000]);
     expect(body.timeseries).toEqual([
-      { date: "2026-08-10T00:00:00.000Z", runId: "run-a", passRate: 100, errorCount: 0 },
-      { date: "2026-08-12T00:00:00.000Z", runId: "run-b", passRate: 100, errorCount: 3 },
-      { date: "2026-08-14T00:00:00.000Z", runId: "run-c", passRate: 0, errorCount: 0 },
+      { date: "2026-08-10T00:00:00.000Z", runId: "run-a", passRate: 100, errorCount: 0, lcpMs: 3200, cls: 0.12, ttfbMs: 950 },
+      { date: "2026-08-12T00:00:00.000Z", runId: "run-b", passRate: 100, errorCount: 3, lcpMs: 2100, cls: 0.05, ttfbMs: 400 },
+      { date: "2026-08-14T00:00:00.000Z", runId: "run-c", passRate: 0, errorCount: 0, lcpMs: null, cls: null, ttfbMs: null },
     ]);
 
     expect(prismaMock.run.findMany).toHaveBeenNthCalledWith(
