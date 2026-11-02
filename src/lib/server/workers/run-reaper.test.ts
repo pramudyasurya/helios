@@ -32,12 +32,23 @@ describe("reapStuckRuns", () => {
     trailMock.appendRunTrailStep.mockResolvedValue(undefined);
   });
 
-  it("returns 0 reaped runs when no runs are stuck past the timeout", async () => {
-    const result = await reapStuckRuns();
+  it("queries stuck runs using createdAt cutoff", async () => {
+    const result = await reapStuckRuns(10000);
     expect(result).toEqual({ reapedRunIds: [], count: 0 });
+    expect(prismaMock.run.findMany).toHaveBeenCalledWith({
+      where: {
+        status: { in: ["Running", "Queued"] },
+        createdAt: { lt: expect.any(Date) },
+        finishedAt: null,
+      },
+      select: {
+        id: true,
+        status: true,
+        createdAt: true,
+      },
+    });
     expect(prismaMock.run.update).not.toHaveBeenCalled();
   });
-
   it("terminates and marks stuck runs as Failed with watchdog trail step", async () => {
     const stuckRun = {
       id: "run-stuck-1",
