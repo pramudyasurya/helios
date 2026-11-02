@@ -87,7 +87,6 @@ export async function processQARun(
       );
     }
 
-    // Guard against clobbering runs that were already marked Failed by watchdog run-reaper
     if (existingRun && existingRun.status === "Failed" && existingRun.summary?.includes("watchdog")) {
       console.warn(
         `Run ${job.runId} was already reaped by watchdog as Failed. Skipping completion overwrite to preserve watchdog failure status.`,

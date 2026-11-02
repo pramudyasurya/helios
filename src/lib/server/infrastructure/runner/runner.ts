@@ -46,10 +46,6 @@ import {
 import { prisma } from "@/lib/server/infrastructure/db/prisma";
 const activeBrowsers = new Set<Browser>();
 
-/**
- * Closes any lingering Playwright Chromium browser instances.
- * Used on worker shutdown or process exit to prevent orphaned zombie processes.
- */
 export async function closeAllActiveBrowsers(): Promise<number> {
   const count = activeBrowsers.size;
   if (count === 0) return 0;
@@ -58,7 +54,7 @@ export async function closeAllActiveBrowsers(): Promise<number> {
     try {
       await browser.close();
     } catch {
-      // Ignore errors on force-close during teardown
+      // Idempotent process cleanup on exit
     } finally {
       activeBrowsers.delete(browser);
     }

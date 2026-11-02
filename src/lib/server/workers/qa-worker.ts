@@ -23,7 +23,7 @@ async function main() {
         console.info(`Closed ${closed} active Playwright browser instance(s) during shutdown.`);
       }
     } catch {
-      // Best-effort cleanup
+      // Idempotent teardown on exit
     }
     await boss.stop();
     await prisma.$disconnect();

@@ -116,7 +116,6 @@ describe("processQARun", () => {
 
     await processQARun(job, { retryCount: 0, retryLimit: 2 });
 
-    // Should NOT call the final prisma.run.update with Completed status
     expect(prismaMock.run.update).not.toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({ status: "Completed" }),
