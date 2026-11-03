@@ -271,7 +271,13 @@ export async function runMultiRouteQA({
             timestamp: new Date().toISOString(),
           };
           trail.push(createTrailStep(discoveryStep));
-          await appendRunTrailStep({ runId, step: discoveryStep });
+          try {
+            await appendRunTrailStep({ runId, step: discoveryStep });
+          } catch (discoveryTrailErr) {
+            console.warn(
+              `Failed to append discovery trail step for run ${runId}: ${getErrorMessage(discoveryTrailErr, "Unknown error")}`,
+            );
+          }
         }
       }
     }
