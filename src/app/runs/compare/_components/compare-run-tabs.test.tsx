@@ -17,13 +17,22 @@ afterEach(() => {
   container = undefined;
 });
 
-function renderCompareRunTabs(comparison: RunComparison) {
+function renderCompareRunTabs(
+  comparison: RunComparison,
+  visualDiff?: Parameters<typeof CompareRunTabs>[0]["visualDiff"],
+) {
   container = document.createElement("div");
   document.body.append(container);
   root = createRoot(container);
 
   act(() => {
-    root?.render(<CompareRunTabs comparison={comparison} checkTransitions={[]} />);
+    root?.render(
+      <CompareRunTabs
+        comparison={comparison}
+        checkTransitions={[]}
+        visualDiff={visualDiff}
+      />,
+    );
   });
 
   return container;
@@ -97,5 +106,67 @@ describe("CompareRunTabs", () => {
     expect(content).toContain("Time to First Byte");
     expect(content).toContain("0.60 s → 0.75 s");
     expect(content).toContain("+0.15s (+25.0%)");
+  });
+
+  it("renders visual diff tab with viewport switchers and diff stats", () => {
+    const mockComparison: RunComparison = {
+      runA: { id: "run-a", createdAt: "2026-07-20T10:00:00Z" },
+      runB: { id: "run-b", createdAt: "2026-07-20T11:00:00Z" },
+      newIssues: [],
+      resolvedIssues: [],
+      recurringIssues: [],
+      metricDeltas: [],
+    };
+
+    const mockVisualDiff = {
+      items: [
+        {
+          viewport: "desktop" as const,
+          runAImage: "/artifacts/runs/run-a/desktop.png",
+          runBImage: "/artifacts/runs/run-b/desktop.png",
+          diffImage: "/artifacts/diffs/run-a--run-b/desktop-diff.png",
+          diffPixelCount: 1540,
+          diffPercentage: 1.25,
+          width: 1280,
+          height: 720,
+          hasDiff: true,
+          status: "diff" as const,
+        },
+        {
+          viewport: "mobile" as const,
+          runAImage: "/artifacts/runs/run-a/mobile.png",
+          runBImage: "/artifacts/runs/run-b/mobile.png",
+          diffImage: null,
+          diffPixelCount: 0,
+          diffPercentage: 0,
+          width: 390,
+          height: 844,
+          hasDiff: false,
+          status: "match" as const,
+        },
+      ],
+      totalDiffPixels: 1540,
+      maxDiffPercentage: 1.25,
+      hasVisualDiff: true,
+    };
+
+    const rendered = renderCompareRunTabs(mockComparison, mockVisualDiff);
+    const tabs = rendered.querySelectorAll("button[role='tab']");
+    const visualTab = Array.from(tabs).find((t) => t.textContent?.includes("Visual Diff"));
+    expect(visualTab).toBeDefined();
+
+    act(() => {
+      visualTab?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    const content = rendered.textContent || "";
+    expect(content).toContain("Desktop");
+    expect(content).toContain("Mobile");
+    expect(content).toContain("Side by Side");
+    expect(content).toContain("Diff Overlay");
+    expect(content).toContain("1,540 px changed");
+    expect(content).toContain("1.25% diff");
+    expect(content).toContain("Run A (Baseline)");
+    expect(content).toContain("Run B (Target)");
   });
 });

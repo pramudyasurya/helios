@@ -6,8 +6,12 @@ import {
   ArrowUpRight,
   CheckCircle2,
   CirclePlus,
+  Eye,
+  Image as ImageIcon,
   Minus,
+  Monitor,
   RefreshCw,
+  Smartphone,
   type LucideIcon,
 } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -19,14 +23,18 @@ import type {
   MetricDelta,
   RunComparison,
 } from "@/lib/shared/domain/run-comparison";
-import type { CheckStatus } from "@/lib/shared/domain/types";
+import type {
+  CheckStatus,
+  VisualDiffComparison,
+} from "@/lib/shared/domain/types";
 
 type CompareRunTabsProps = {
   comparison: RunComparison;
   checkTransitions: CheckTransition[];
+  visualDiff?: VisualDiffComparison | null;
 };
 
-type TabId = "issues" | "checks" | "metrics";
+type TabId = "issues" | "checks" | "metrics" | "visual";
 const DIRECTION_META: Record<
   CheckTransition["direction"],
   { label: string; icon: LucideIcon; tone: string }
@@ -287,12 +295,190 @@ function MetricsPanel({ deltas }: { deltas: MetricDelta[] }) {
     </ul>
   );
 }
+function VisualDiffPanel({ visualDiff }: { visualDiff?: VisualDiffComparison | null }) {
+  const [viewport, setViewport] = useState<"desktop" | "mobile">("desktop");
+  const [mode, setMode] = useState<"side-by-side" | "diff">("side-by-side");
+
+  if (!visualDiff || visualDiff.items.length === 0) {
+    return (
+      <EmptyState
+        title="No visual artifacts available"
+        description="Screenshots were not captured or are unavailable for one or both of these runs."
+        icon={ImageIcon}
+      />
+    );
+  }
+
+  const currentItem = visualDiff.items.find((item) => item.viewport === viewport) ?? visualDiff.items[0];
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-4">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center rounded-xs border border-border/80 bg-card/60 p-0.5">
+            <button
+              type="button"
+              onClick={() => setViewport("desktop")}
+              className={`flex items-center gap-1.5 rounded-xs px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer ${
+                viewport === "desktop"
+                  ? "bg-foreground/10 text-foreground font-semibold"
+                  : "text-muted hover:text-foreground"
+              }`}
+              aria-pressed={viewport === "desktop"}
+            >
+              <Monitor className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>Desktop</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewport("mobile")}
+              className={`flex items-center gap-1.5 rounded-xs px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer ${
+                viewport === "mobile"
+                  ? "bg-foreground/10 text-foreground font-semibold"
+                  : "text-muted hover:text-foreground"
+              }`}
+              aria-pressed={viewport === "mobile"}
+            >
+              <Smartphone className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>Mobile</span>
+            </button>
+          </div>
+
+          <div className="flex items-center rounded-xs border border-border/80 bg-card/60 p-0.5">
+            <button
+              type="button"
+              onClick={() => setMode("side-by-side")}
+              className={`rounded-xs px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer ${
+                mode === "side-by-side"
+                  ? "bg-foreground/10 text-foreground font-semibold"
+                  : "text-muted hover:text-foreground"
+              }`}
+              aria-pressed={mode === "side-by-side"}
+            >
+              Side by Side
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("diff")}
+              className={`flex items-center gap-1 rounded-xs px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer ${
+                mode === "diff"
+                  ? "bg-foreground/10 text-foreground font-semibold"
+                  : "text-muted hover:text-foreground"
+              }`}
+              aria-pressed={mode === "diff"}
+            >
+              <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>Diff Overlay</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 text-xs">
+          {currentItem.status === "missing" ? (
+            <span className="rounded-xs border border-border/70 bg-card/40 px-2 py-0.5 font-mono text-muted">
+              Missing Screenshot Artifacts
+            </span>
+          ) : currentItem.hasDiff ? (
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-muted">
+                {currentItem.diffPixelCount.toLocaleString()} px changed
+              </span>
+              <span className="rounded-xs border border-danger/40 bg-danger/10 px-2 py-0.5 font-mono font-medium text-danger">
+                {currentItem.diffPercentage}% diff
+              </span>
+            </div>
+          ) : (
+            <span className="rounded-xs border border-success/40 bg-success/10 px-2 py-0.5 font-mono font-medium text-success">
+              0.00% diff (Identical)
+            </span>
+          )}
+        </div>
+      </div>
+
+      {currentItem.status === "missing" ? (
+        <div className="rounded-xs border border-border/60 bg-card/20 p-8 text-center text-xs text-muted">
+          Screenshots for {viewport} view are not present in artifact storage.
+        </div>
+      ) : mode === "side-by-side" ? (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs text-muted">
+              <span className="font-medium text-foreground">Run A (Baseline)</span>
+              <span className="font-mono text-[11px]">{currentItem.width} × {currentItem.height}</span>
+            </div>
+            <div className="overflow-hidden rounded-xs border border-border/80 bg-black/40">
+              {currentItem.runAImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={currentItem.runAImage}
+                  alt="Run A baseline screenshot"
+                  className="w-full object-contain"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="p-8 text-center text-xs text-muted">No image</div>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs text-muted">
+              <span className="font-medium text-foreground">Run B (Target)</span>
+              <span className="font-mono text-[11px]">{currentItem.width} × {currentItem.height}</span>
+            </div>
+            <div className="overflow-hidden rounded-xs border border-border/80 bg-black/40">
+              {currentItem.runBImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={currentItem.runBImage}
+                  alt="Run B target screenshot"
+                  className="w-full object-contain"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="p-8 text-center text-xs text-muted">No image</div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-xs text-muted">
+            <span className="font-medium text-foreground">
+              Difference Map (Changed pixels highlighted in magenta)
+            </span>
+            <span className="font-mono text-[11px]">{currentItem.width} × {currentItem.height}</span>
+          </div>
+          <div className="overflow-hidden rounded-xs border border-border/80 bg-black/40">
+            {currentItem.diffImage ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={currentItem.diffImage}
+                alt="Visual diff heatmap overlay"
+                className="mx-auto max-h-[700px] w-auto object-contain"
+                loading="lazy"
+              />
+            ) : (
+              <div className="p-8 text-center text-xs text-muted">
+                Diff overlay unavailable
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function CompareRunTabs({
   comparison,
   checkTransitions,
+  visualDiff,
 }: CompareRunTabsProps) {
   const [activeTab, setActiveTab] = useState<TabId>("issues");
   const tabListId = useId();
+
+  const visualDiffCount = visualDiff?.items.filter((item) => item.hasDiff).length ?? 0;
 
   const tabs: { id: TabId; label: string; count: number }[] = [
     {
@@ -316,6 +502,11 @@ export function CompareRunTabs({
       count: comparison.metricDeltas.filter(
         (delta) => delta.direction !== "unchanged",
       ).length,
+    },
+    {
+      id: "visual",
+      label: "Visual Diff",
+      count: visualDiffCount,
     },
   ];
 
@@ -369,6 +560,9 @@ export function CompareRunTabs({
         )}
         {activeTab === "metrics" && (
           <MetricsPanel deltas={comparison.metricDeltas} />
+        )}
+        {activeTab === "visual" && (
+          <VisualDiffPanel visualDiff={visualDiff} />
         )}
       </div>
     </div>

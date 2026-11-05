@@ -57,9 +57,22 @@ describe("TraceViewerTab", () => {
     );
     expect(element.querySelector("iframe")).toBeNull();
     expect(element.querySelector("a[download]")).toBeNull();
+    expect(element.querySelector("a[title*='Trace Viewer']")).toBeNull();
   });
 
-  it("renders trace viewer iframe and download button when trace artifact exists", () => {
+  it("renders empty state when run.artifacts is completely undefined", () => {
+    const runWithoutArtifacts: LatestRun = {
+      ...baseRun,
+      artifacts: undefined,
+    };
+
+    const element = renderTraceViewerTab(runWithoutArtifacts);
+
+    expect(element.textContent).toContain("No trace recorded");
+    expect(element.querySelector("iframe")).toBeNull();
+  });
+
+  it("renders trace viewer iframe and download button when relative trace artifact exists", () => {
     const tracePath = "/artifacts/runs/run-test-123/trace.zip";
     const runWithTrace: LatestRun = {
       ...baseRun,
@@ -77,24 +90,74 @@ describe("TraceViewerTab", () => {
     expect(element.textContent).toContain("DOM Snapshots");
     expect(element.textContent).toContain("Network & Logs");
 
-    // Download link
     const downloadLink = element.querySelector("a[download]") as HTMLAnchorElement | null;
     expect(downloadLink).not.toBeNull();
     expect(downloadLink?.getAttribute("href")).toBe(tracePath);
     expect(downloadLink?.getAttribute("download")).toBe("trace-run-test-123.zip");
 
-    // External viewer link
-    const expectedViewerUrl = `https://trace.playwright.dev/?trace=${encodeURIComponent(tracePath)}`;
+    const absoluteOrigin = typeof window !== "undefined" ? window.location.origin : "";
+    const expectedExternalViewerUrl = `https://trace.playwright.dev/?trace=${encodeURIComponent(`${absoluteOrigin}${tracePath}`)}`;
     const externalLink = element.querySelector(
-      `a[href="${expectedViewerUrl}"]`
+      `a[href="${expectedExternalViewerUrl}"]`,
     ) as HTMLAnchorElement | null;
     expect(externalLink).not.toBeNull();
     expect(externalLink?.getAttribute("target")).toBe("_blank");
 
-    // Embedded iframe
+    const expectedLocalViewerUrl = `/trace-viewer/index.html?trace=${encodeURIComponent(`${absoluteOrigin}${tracePath}`)}`;
     const iframe = element.querySelector("iframe");
     expect(iframe).not.toBeNull();
-    expect(iframe?.getAttribute("src")).toBe(expectedViewerUrl);
+    expect(iframe?.getAttribute("src")).toBe(expectedLocalViewerUrl);
     expect(iframe?.getAttribute("title")).toBe("Playwright Trace Viewer");
+  });
+  it("properly encodes nested and absolute trace URLs with special characters and spaces", () => {
+    const nestedTracePath = "/artifacts/runs/run_1793674672531/898d4507-450b-4b07-91ca-c27f82847a63/trace.zip";
+    const runWithNestedTrace: LatestRun = {
+      ...baseRun,
+      id: "run_1793674672531",
+      artifacts: {
+        desktopScreenshot: "/artifacts/runs/run_1793674672531/desktop.png",
+        mobileScreenshot: "/artifacts/runs/run_1793674672531/mobile.png",
+        trace: nestedTracePath,
+      },
+    };
+
+    const element = renderTraceViewerTab(runWithNestedTrace);
+
+    const absoluteOrigin = typeof window !== "undefined" ? window.location.origin : "";
+    const expectedLocalUrl = `/trace-viewer/index.html?trace=${encodeURIComponent(`${absoluteOrigin}${nestedTracePath}`)}`;
+    const expectedExternalUrl = `https://trace.playwright.dev/?trace=${encodeURIComponent(`${absoluteOrigin}${nestedTracePath}`)}`;
+    const iframe = element.querySelector("iframe");
+    expect(iframe?.getAttribute("src")).toBe(expectedLocalUrl);
+    const externalLink = element.querySelector("a[target='_blank']") as HTMLAnchorElement | null;
+    expect(externalLink?.getAttribute("href")).toBe(expectedExternalUrl);
+
+    const downloadLink = element.querySelector("a[download]") as HTMLAnchorElement | null;
+    expect(downloadLink?.getAttribute("download")).toBe("trace-run_1793674672531.zip");
+  });
+
+  it("handles absolute HTTP/HTTPS trace URLs correctly", () => {
+    const absoluteTraceUrl = "https://qa-storage.example.com/artifacts/runs/run-123/trace.zip";
+    const runWithAbsoluteTrace: LatestRun = {
+      ...baseRun,
+      artifacts: {
+        desktopScreenshot: "/artifacts/runs/run-123/desktop.png",
+        mobileScreenshot: "/artifacts/runs/run-123/mobile.png",
+        trace: absoluteTraceUrl,
+      },
+    };
+
+    const element = renderTraceViewerTab(runWithAbsoluteTrace);
+
+    const expectedLocalUrl = `/trace-viewer/index.html?trace=${encodeURIComponent(absoluteTraceUrl)}`;
+    const expectedExternalUrl = `https://trace.playwright.dev/?trace=${encodeURIComponent(absoluteTraceUrl)}`;
+
+    const iframe = element.querySelector("iframe");
+    expect(iframe?.getAttribute("src")).toBe(expectedLocalUrl);
+
+    const externalLink = element.querySelector("a[target='_blank']") as HTMLAnchorElement | null;
+    expect(externalLink?.getAttribute("href")).toBe(expectedExternalUrl);
+
+    const downloadLink = element.querySelector("a[download]") as HTMLAnchorElement | null;
+    expect(downloadLink?.getAttribute("href")).toBe(absoluteTraceUrl);
   });
 });
