@@ -332,3 +332,25 @@ export type PaginatedResponse<T> = {
     totalPages: number;
   };
 };
+
+export type VisualDiffStatus = "match" | "diff" | "missing";
+
+export type VisualDiffItem = {
+  viewport: "desktop" | "mobile";
+  runAImage: string | null;
+  runBImage: string | null;
+  diffImage: string | null;
+  diffPixelCount: number;
+  diffPercentage: number;
+  width: number;
+  height: number;
+  hasDiff: boolean;
+  status: VisualDiffStatus;
+};
+
+export type VisualDiffComparison = {
+  items: VisualDiffItem[];
+  totalDiffPixels: number;
+  maxDiffPercentage: number;
+  hasVisualDiff: boolean;
+};

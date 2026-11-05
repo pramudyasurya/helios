@@ -43,6 +43,7 @@ next-env.d.ts
 
 # artifacts
 /public/artifacts/
+/public/trace-viewer/
 /src/generated/prisma
 tasks/
 docs/decisions/

@@ -19,13 +19,16 @@ export function TraceViewerTab({ run }: TraceViewerTabProps) {
       />
     );
   }
-
-  const encodedTraceUrl = encodeURIComponent(traceUrl);
-  const traceViewerUrl = `https://trace.playwright.dev/?trace=${encodedTraceUrl}`;
-
+  const isAbsolute = /^https?:\/\//i.test(traceUrl);
+  const resolvedTraceUrl =
+    !isAbsolute && typeof window !== "undefined"
+      ? `${window.location.origin}${traceUrl.startsWith("/") ? "" : "/"}${traceUrl}`
+      : traceUrl;
+  const encodedTraceUrl = encodeURIComponent(resolvedTraceUrl);
+  const localTraceViewerUrl = `/trace-viewer/index.html?trace=${encodedTraceUrl}`;
+  const externalTraceViewerUrl = `https://trace.playwright.dev/?trace=${encodedTraceUrl}`;
   return (
     <div className="space-y-6 w-full">
-      {/* Header action bar */}
       <div className="rounded-xs border border-border bg-card p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
@@ -51,39 +54,35 @@ export function TraceViewerTab({ run }: TraceViewerTabProps) {
           </a>
 
           <a
-            href={traceViewerUrl}
+            href={externalTraceViewerUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-xs border border-accent/40 bg-accent/10 hover:bg-accent/20 px-3 py-1.5 text-xs font-medium text-accent transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-xs border border-border bg-muted/20 hover:bg-muted/40 px-3 py-1.5 text-xs font-medium text-foreground transition-colors cursor-pointer"
             title="Open in official Playwright Trace Viewer"
           >
-            <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>Open in Trace Viewer</span>
+            <ExternalLink className="h-3.5 w-3.5 text-muted" aria-hidden="true" />
+            <span>Open External Viewer</span>
           </a>
         </div>
       </div>
 
-      {/* Embedded viewer / instructions */}
       <div className="rounded-xs border border-border bg-card overflow-hidden">
         <div className="border-b border-border/80 bg-muted/10 px-4 py-2.5 flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs font-medium text-foreground">
             <Film className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
             <span>Interactive Timeline & Snapshot Viewer</span>
           </div>
-          <span className="text-[11px] font-mono text-muted">trace.playwright.dev</span>
+          <span className="text-[11px] font-mono text-muted">embedded local viewer</span>
         </div>
 
         <div className="relative w-full aspect-video min-h-[500px] bg-background">
           <iframe
-            src={traceViewerUrl}
+            src={localTraceViewerUrl}
             title="Playwright Trace Viewer"
             className="absolute inset-0 w-full h-full border-0"
             allow="clipboard-read; clipboard-write"
-            sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-downloads"
           />
         </div>
-
-        {/* Feature guidance badges */}
         <div className="p-4 border-t border-border/80 bg-muted/5 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
           <div className="flex items-start gap-2 text-muted">
             <Film className="h-4 w-4 shrink-0 text-accent mt-0.5" aria-hidden="true" />

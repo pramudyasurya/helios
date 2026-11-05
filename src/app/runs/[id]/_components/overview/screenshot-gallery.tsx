@@ -4,7 +4,6 @@ import { useCallback, useRef, useState } from "react";
 import { useModalFocus } from "@/lib/client/use-modal-focus";
 import { X, ImageIcon } from "lucide-react";
 import type { LatestRun } from "@/lib/shared/domain/types";
-import Image from "next/image";
 import { EmptyState } from "@/components/ui/empty-state";
 type ScreenshotGalleryProps = {
   artifacts: LatestRun["artifacts"];
@@ -51,13 +50,12 @@ export function ScreenshotGallery({ artifacts }: ScreenshotGalleryProps) {
               }
               className="block w-full cursor-pointer transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-accent"
             >
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={artifacts.desktopScreenshot}
                 alt="Desktop screenshot"
-                width={1920}
-                height={1080}
-                unoptimized
-                className="w-full h-auto"
+                className="w-full h-auto object-contain block"
+                loading="lazy"
               />
             </button>
           </div>
@@ -78,13 +76,12 @@ export function ScreenshotGallery({ artifacts }: ScreenshotGalleryProps) {
               }
               className="block w-full cursor-pointer transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-accent"
             >
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={artifacts.mobileScreenshot}
                 alt="Mobile screenshot"
-                width={390}
-                height={844}
-                unoptimized
-                className="w-full h-auto"
+                className="w-full h-auto object-contain block"
+                loading="lazy"
               />
             </button>
           </div>
@@ -114,13 +111,11 @@ export function ScreenshotGallery({ artifacts }: ScreenshotGalleryProps) {
             className="relative h-full w-full max-w-6xl overflow-y-auto rounded-xs border border-border bg-panel"
             onClick={(e) => e.stopPropagation()}
           >
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={zoomedScreenshot.src}
               alt={zoomedScreenshot.alt}
-              width={zoomedScreenshot.width}
-              height={zoomedScreenshot.height}
-              unoptimized
-              className="w-full h-auto"
+              className="w-full h-auto object-contain block"
             />
           </div>
         </div>

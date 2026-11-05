@@ -60,6 +60,19 @@ export default async function RunDetailPage({
     notFound();
   }
 
+  const previousRecord = await prisma.run.findFirst({
+    where: {
+      id: { not: id },
+      status: { in: ["Completed", "Failed"] },
+      ...(record.environmentId
+        ? { environmentId: record.environmentId }
+        : { startingUrl: record.startingUrl }),
+      createdAt: { lt: record.createdAt },
+    },
+    orderBy: { createdAt: "desc" },
+    select: { id: true },
+  });
+
   const run = runRecordToLatestRun(record);
 
   const newIssueEvidenceIds = new Set(
@@ -71,7 +84,7 @@ export default async function RunDetailPage({
   return (
     <AppShell>
       <main className="py-8 px-4 sm:px-6 mx-auto max-w-7xl">
-        <RunSummaryHeader run={run} />
+        <RunSummaryHeader run={run} previousRunId={previousRecord?.id} />
         <div className="mt-6">
           <RunDetailTabs run={run} newIssueEvidenceIds={newIssueEvidenceIds} />
         </div>
