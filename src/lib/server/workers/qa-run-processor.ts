@@ -55,6 +55,7 @@ export async function processQARun(
       runId: job.runId,
       mode: job.mode,
       routes: job.routes,
+      journeySteps: job.journeySteps,
       maxPages: job.maxPages,
       maxDepth: job.maxDepth,
       storageState,

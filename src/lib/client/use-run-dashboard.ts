@@ -11,10 +11,10 @@ import {
   getRunDetail,
   clearRecentRuns,
   deleteRun,
+  type CreateRunOptions,
 } from "@/lib/client/api";
 import { createQueuedRunState } from "@/lib/client/run-state";
 import { createFailedRunState } from "@/lib/client/run-transformer";
-
 export function useRunDashboard(onRunComplete?: () => void) {
   const [latestRun, setLatestRun] = useState<LatestRun | null>(null);
   const [runError, setRunError] = useState<string | undefined>();
@@ -77,15 +77,7 @@ export function useRunDashboard(onRunComplete?: () => void) {
 
   const handleSubmit = async (
     url: string,
-    config?: {
-      mode?: "single" | "manual" | "crawl";
-      routes?: string[];
-      maxPages?: number;
-      maxDepth?: number;
-      projectId?: string;
-      environmentId?: string;
-      origin?: "manual";
-    },
+    config?: Omit<CreateRunOptions, "url">,
   ) => {
     setRunError(undefined);
 
@@ -101,6 +93,7 @@ export function useRunDashboard(onRunComplete?: () => void) {
         url: normalizedUrl,
         mode: config?.mode,
         routes: config?.routes,
+        steps: config?.steps,
         maxPages: config?.maxPages,
         maxDepth: config?.maxDepth,
         projectId: config?.projectId,

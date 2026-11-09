@@ -2,6 +2,7 @@ import "server-only";
 
 import { PgBoss, type JobWithMetadata, type ScheduleOptions } from "pg-boss";
 import type { RunMode } from "@/lib/server/infrastructure/runner/runner";
+import type { JourneyStep } from "@/lib/shared/domain/journey";
 import { getErrorMessage } from "@/lib/shared/domain/errors";
 
 export const QA_RUN_JOB_NAME = "qa-run";
@@ -12,6 +13,7 @@ export type QARunJob = {
   submittedUrl: string;
   mode: RunMode;
   routes: string[];
+  journeySteps?: JourneyStep[];
   maxPages?: number;
   maxDepth?: number;
 };

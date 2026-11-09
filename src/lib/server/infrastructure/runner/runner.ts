@@ -6,6 +6,8 @@ import { randomUUID } from "node:crypto";
 import type { PageResult, StorageState, TrailStep, A11yViolation } from "@/lib/shared/domain/types";
 import { hasSession } from "@/lib/shared/domain/types";
 import AxeBuilder from "@axe-core/playwright";
+import type { JourneyStep } from "@/lib/shared/domain/journey";
+import { executeJourney } from "@/lib/server/infrastructure/runner/journey-executor";
 import { PAGE_GOTO_TIMEOUT_MS } from "@/lib/shared/domain/constants";
 import { derivePageStatus } from "@/lib/shared/domain/checks";
 import {
@@ -65,12 +67,13 @@ export async function closeAllActiveBrowsers(): Promise<number> {
   return count;
 }
 
-export type RunMode = "single" | "manual" | "crawl";
+export type RunMode = "single" | "manual" | "crawl" | "journey";
 export type RunMultiRouteQAProps = {
   submittedUrl: string;
   runId: string;
   mode: RunMode;
   routes?: string[];
+  journeySteps?: JourneyStep[];
   maxPages?: number;
   maxDepth?: number;
   storageState?: StorageState;
@@ -141,6 +144,7 @@ export async function runMultiRouteQA({
   runId,
   mode,
   routes = [],
+  journeySteps,
   maxPages,
   maxDepth,
   storageState,
@@ -211,6 +215,7 @@ export async function runMultiRouteQA({
         runId,
         dnsCache,
         storageState,
+        journeySteps: mode === "journey" ? journeySteps : undefined,
       });
       pageResults.push(pageResult);
       let createdPageId: string | null = null;
@@ -323,12 +328,14 @@ async function inspectRoute({
   runId,
   dnsCache,
   storageState,
+  journeySteps,
 }: {
   browser: Browser;
   route: { url: string; depth: number };
   runId: string;
   dnsCache: Map<string, boolean>;
   storageState?: StorageState;
+  journeySteps?: JourneyStep[];
 }): Promise<{ pageResult: PageResult; discoveredLinks: string[] }> {
   const pageId = randomUUID();
   const startedAt = new Date();
@@ -386,6 +393,19 @@ async function inspectRoute({
     await waitForPageToSettle(desktopPage);
     await waitForPageToSettle(mobilePage);
 
+    let journeyOutcomePassed = true;
+    if (journeySteps && journeySteps.length > 0) {
+      const journeyResult = await executeJourney(desktopPage, journeySteps, { dnsCache });
+      journeyOutcomePassed = journeyResult.passed;
+      for (const stepOutcome of journeyResult.outcomes) {
+        const stepTrail = {
+          label: `Journey Step: ${stepOutcome.action} (${stepOutcome.stepId})`,
+          detail: stepOutcome.error ? `Failed: ${stepOutcome.error}` : `Completed in ${stepOutcome.durationMs}ms`,
+          timestamp: new Date().toISOString(),
+        };
+        await appendRunTrailStep({ runId, step: stepTrail }).catch(() => {});
+      }
+    }
     const rawCookies = await context.cookies().catch(() => []);
     const cookies = rawCookies.map((c) => ({
       name: c.name,
@@ -452,8 +472,8 @@ async function inspectRoute({
     const pageFailed =
       derivePageStatus(statusCode) === "Failed" ||
       authExpired ||
+      !journeyOutcomePassed ||
       botChallenge !== undefined;
-
     return {
       pageResult: {
         id: pageId,

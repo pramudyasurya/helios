@@ -4,8 +4,8 @@ import {
   EVIDENCE_STATUSES,
 } from "@/lib/shared/domain/types";
 import { isValidCron } from "@/lib/shared/domain/cron";
+import { JourneyStepSchema } from "@/lib/shared/domain/journey";
 import { z } from "zod";
-
 const TRUTHY_VALUES: Record<string, true> = {
   "1": true,
   true: true,
@@ -171,15 +171,23 @@ export const CreateRunSchema = z
     return data;
   }, z.object({
     url: HttpUrlSchema,
-    mode: z.enum(["single", "manual", "crawl"]).default("single"),
+    mode: z.enum(["single", "manual", "crawl", "journey"]).default("single"),
     routes: z.array(HttpUrlSchema).max(4).default([]),
+    steps: z.array(JourneyStepSchema).max(50).default([]),
     maxPages: z.coerce.number().int().min(1).max(5).default(5),
     maxDepth: z.coerce.number().int().min(0).max(2).default(2),
     projectId: z.string().trim().min(1).optional(),
     environmentId: z.string().trim().min(1).optional(),
     origin: z.enum(["manual", "ci", "scheduled"]).optional().default("manual"),
   }))
-  .superRefine(({ mode, routes, projectId, environmentId }, context) => {
+  .superRefine(({ mode, routes, steps, projectId, environmentId }, context) => {
+    if (mode === "journey" && steps.length === 0) {
+      context.addIssue({
+        code: "custom",
+        path: ["steps"],
+        message: "At least one step is required in journey mode.",
+      });
+    }
     if (mode === "manual" && routes.length === 0) {
       context.addIssue({
         code: "custom",

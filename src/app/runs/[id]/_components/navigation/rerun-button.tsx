@@ -28,13 +28,13 @@ export function RerunButton({ run, className }: RerunButtonProps) {
       const payload = {
         url: run.startingUrl,
         mode: run.mode,
+        steps: run.journeySteps,
         maxDepth: run.maxDepth,
         maxPages: run.maxPages,
         projectId: run.projectId,
         environmentId: run.environmentId,
         origin: "manual" as const,
       };
-
       const newRun = await createRun(payload);
       router.push(HELIOS_ROUTES.runDetail(newRun.id));
     } catch (err) {

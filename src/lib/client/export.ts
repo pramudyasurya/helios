@@ -15,3 +15,10 @@ export function downloadRunJson(run: LatestRun) {
 
   URL.revokeObjectURL(url);
 }
+
+export function downloadRunHtml(runId: string) {
+  const link = document.createElement("a");
+  link.href = `/api/runs/${runId}/export/html`;
+  link.download = `helios-audit-${runId}.html`;
+  link.click();
+}

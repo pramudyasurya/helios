@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Globe, ListChecks, Network, Plus, Minus } from "lucide-react";
+import { Globe, ListChecks, Network, PlaySquare, Plus, Minus } from "lucide-react";
+import type { JourneyStep } from "@/lib/shared/domain/journey";
 
-export type RunMode = "single" | "manual" | "crawl";
+export type RunMode = "single" | "manual" | "crawl" | "journey";
 
 export type RunConfig = {
   mode: RunMode;
   routes?: string[];
+  steps?: JourneyStep[];
   maxPages?: number;
   maxDepth?: number;
   projectId?: string;
@@ -32,6 +34,12 @@ export function RunOptionsPicker({
   );
   const [maxPages, setMaxPages] = useState(defaultConfig?.maxPages ?? 5);
   const [maxDepth, setMaxDepth] = useState(defaultConfig?.maxDepth ?? 2);
+  const [stepsText, setStepsText] = useState(
+    defaultConfig?.steps
+      ? JSON.stringify(defaultConfig.steps, null, 2)
+      : `[\n  { "id": "1", "action": "waitForSelector", "selector": "body" },\n  { "id": "2", "action": "assertVisible", "selector": "body" }\n]`,
+  );
+
   useEffect(() => {
     let routes: string[] | undefined;
     if (mode === "manual") {
@@ -41,13 +49,24 @@ export function RunOptionsPicker({
         .filter(Boolean);
     }
 
+    let steps: JourneyStep[] | undefined;
+    if (mode === "journey") {
+      try {
+        const parsed = JSON.parse(stepsText);
+        if (Array.isArray(parsed)) steps = parsed;
+      } catch {
+        steps = undefined;
+      }
+    }
+
     onChange({
       mode,
       routes: mode === "manual" ? routes : undefined,
+      steps: mode === "journey" ? steps : undefined,
       maxPages: mode === "crawl" ? maxPages : undefined,
       maxDepth: mode === "crawl" ? maxDepth : undefined,
     });
-  }, [mode, routesText, maxPages, maxDepth, onChange]);
+  }, [mode, routesText, stepsText, maxPages, maxDepth, onChange]);
 
   const modeCards = [
     {
@@ -68,6 +87,12 @@ export function RunOptionsPicker({
       description: "Explicit route paths (/pricing, /login)",
       icon: ListChecks,
     },
+    {
+      id: "journey" as RunMode,
+      title: "Synthetic Journey",
+      description: "Automated clicks, forms & assertions DSL",
+      icon: PlaySquare,
+    },
   ];
 
   return (
@@ -78,7 +103,7 @@ export function RunOptionsPicker({
         </span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
         {modeCards.map((card) => {
           const Icon = card.icon;
           const isSelected = mode === card.id;
@@ -249,6 +274,27 @@ export function RunOptionsPicker({
               Max link hop distance from root (type or click + / -).
             </p>
           </div>
+        </div>
+      )}
+      {mode === "journey" && (
+        <div className="mt-3">
+          <label
+            htmlFor="journey-steps"
+            className="block text-xs font-semibold text-foreground"
+          >
+            Declarative Step Sequence (JSON DSL)
+          </label>
+          <textarea
+            id="journey-steps"
+            disabled={isDisabled}
+            value={stepsText}
+            onChange={(e) => setStepsText(e.target.value)}
+            rows={6}
+            className="mt-1.5 w-full rounded-xs border border-border bg-background px-3 py-2 text-xs font-mono text-foreground placeholder:text-muted outline-none focus:ring-1 focus:ring-accent disabled:opacity-60"
+          />
+          <p className="mt-1 text-[11px] text-muted">
+            Supported actions: <code>goto</code>, <code>click</code>, <code>fill</code>, <code>select</code>, <code>pressKey</code>, <code>waitForSelector</code>, <code>assertVisible</code>, <code>assertText</code>, <code>assertUrl</code>.
+          </p>
         </div>
       )}
     </div>
