@@ -1,5 +1,6 @@
-export type RunStatus = "Idle" | "Queued" | "Running" | "Completed" | "Failed";
+import type { JourneyStep } from "./journey";
 
+export type RunStatus = "Idle" | "Queued" | "Running" | "Completed" | "Failed";
 export type TrailStep = {
   label: string;
   detail: string;
@@ -185,9 +186,10 @@ export type LatestRun = {
   projectName?: string;
   environmentName?: string;
   origin?: "manual" | "ci" | "scheduled";
-  mode?: "single" | "manual" | "crawl";
+  mode?: "single" | "manual" | "crawl" | "journey";
   maxPages?: number;
   maxDepth?: number;
+  journeySteps?: JourneyStep[];
 };
 export type CreateQueuedRunResponse = {
   id: string;

@@ -28,15 +28,15 @@ export type ApiErrorResponse = {
 
 export type CreateRunOptions = {
   url: string;
-  mode?: "single" | "manual" | "crawl";
+  mode?: "single" | "manual" | "crawl" | "journey";
   routes?: string[];
+  steps?: import("@/lib/shared/domain/journey").JourneyStep[];
   maxPages?: number;
   maxDepth?: number;
   projectId?: string;
   environmentId?: string;
   origin?: "manual";
 };
-
 export async function parseJsonResponse<T>(response: Response): Promise<T> {
   const contentType = response.headers.get("content-type") || "";
   let data: unknown;
@@ -362,7 +362,7 @@ export async function deleteEnvironment(
 export type ScheduleInput = {
   cronExpression: string;
   timezone?: string;
-  mode?: "single" | "manual" | "crawl";
+  mode?: "single" | "manual" | "crawl" | "journey";
   routes?: string[];
   maxPages?: number;
   maxDepth?: number;
