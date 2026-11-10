@@ -356,3 +356,6 @@ export type VisualDiffComparison = {
   maxDiffPercentage: number;
   hasVisualDiff: boolean;
 };
+
+export const ISSUE_STATUSES = ["open", "acknowledged", "resolved", "ignored"] as const;
+export type IssueStatus = (typeof ISSUE_STATUSES)[number];

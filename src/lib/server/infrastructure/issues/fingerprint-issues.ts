@@ -84,7 +84,7 @@ export async function fingerprintRunIssues(runId: string): Promise<void> {
       },
       update: {
         lastSeenRunId: runId,
-        // A re-observed issue is no longer resolved; triage status is untouched.
+        // Re-observed issue clears auto-resolve unless explicitly marked ignored or acknowledged.
         resolvedBy: null,
         resolvedAtRunId: null,
       },

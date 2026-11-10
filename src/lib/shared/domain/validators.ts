@@ -584,3 +584,8 @@ const expandIPv6 = (host: string): number[] | null => {
 
   return nums;
 };
+
+export const UpdateIssueStatusSchema = z.object({
+  status: z.enum(["open", "acknowledged", "resolved", "ignored"]),
+});
+export type UpdateIssueStatusInput = z.infer<typeof UpdateIssueStatusSchema>;

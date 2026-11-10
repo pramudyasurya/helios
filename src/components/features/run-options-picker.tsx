@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Globe, ListChecks, Network, PlaySquare, Plus, Minus } from "lucide-react";
+import { Globe, ListChecks, Network, PlaySquare, Plus, Minus, Code2, Sliders } from "lucide-react";
 import type { JourneyStep } from "@/lib/shared/domain/journey";
+import { JourneyStepBuilder } from "./journey-step-builder";
 
 export type RunMode = "single" | "manual" | "crawl" | "journey";
 
@@ -39,7 +40,7 @@ export function RunOptionsPicker({
       ? JSON.stringify(defaultConfig.steps, null, 2)
       : `[\n  { "id": "1", "action": "waitForSelector", "selector": "body" },\n  { "id": "2", "action": "assertVisible", "selector": "body" }\n]`,
   );
-
+  const [journeyTab, setJourneyTab] = useState<"builder" | "json">("builder");
   useEffect(() => {
     let routes: string[] | undefined;
     if (mode === "manual") {
@@ -278,23 +279,69 @@ export function RunOptionsPicker({
       )}
       {mode === "journey" && (
         <div className="mt-3">
-          <label
-            htmlFor="journey-steps"
-            className="block text-xs font-semibold text-foreground"
-          >
-            Declarative Step Sequence (JSON DSL)
-          </label>
-          <textarea
-            id="journey-steps"
-            disabled={isDisabled}
-            value={stepsText}
-            onChange={(e) => setStepsText(e.target.value)}
-            rows={6}
-            className="mt-1.5 w-full rounded-xs border border-border bg-background px-3 py-2 text-xs font-mono text-foreground placeholder:text-muted outline-none focus:ring-1 focus:ring-accent disabled:opacity-60"
-          />
-          <p className="mt-1 text-[11px] text-muted">
-            Supported actions: <code>goto</code>, <code>click</code>, <code>fill</code>, <code>select</code>, <code>pressKey</code>, <code>waitForSelector</code>, <code>assertVisible</code>, <code>assertText</code>, <code>assertUrl</code>.
-          </p>
+          <div className="flex items-center justify-between mb-2">
+            <label
+              htmlFor="journey-steps"
+              className="block text-xs font-semibold text-foreground"
+            >
+              User Journey Steps
+            </label>
+            <div className="flex items-center rounded-xs bg-background/80 p-0.5 border border-border/60">
+              <button
+                type="button"
+                onClick={() => setJourneyTab("builder")}
+                className={`flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded-xs transition ${
+                  journeyTab === "builder"
+                    ? "bg-card text-foreground shadow-xs"
+                    : "text-muted hover:text-foreground"
+                }`}
+              >
+                <Sliders className="h-3 w-3" />
+                Visual Builder
+              </button>
+              <button
+                type="button"
+                onClick={() => setJourneyTab("json")}
+                className={`flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded-xs transition ${
+                  journeyTab === "json"
+                    ? "bg-card text-foreground shadow-xs"
+                    : "text-muted hover:text-foreground"
+                }`}
+              >
+                <Code2 className="h-3 w-3" />
+                JSON DSL
+              </button>
+            </div>
+          </div>
+
+          {journeyTab === "builder" ? (
+            <JourneyStepBuilder
+              steps={(() => {
+                try {
+                  const parsed = JSON.parse(stepsText);
+                  return Array.isArray(parsed) ? parsed : [];
+                } catch {
+                  return [];
+                }
+              })()}
+              onChange={(newSteps) => setStepsText(JSON.stringify(newSteps, null, 2))}
+              isDisabled={isDisabled}
+            />
+          ) : (
+            <>
+              <textarea
+                id="journey-steps"
+                disabled={isDisabled}
+                value={stepsText}
+                onChange={(e) => setStepsText(e.target.value)}
+                rows={6}
+                className="mt-1 w-full rounded-xs border border-border bg-background px-3 py-2 text-xs font-mono text-foreground placeholder:text-muted outline-none focus:ring-1 focus:ring-accent disabled:opacity-60"
+              />
+              <p className="mt-1 text-[11px] text-muted">
+                Supported actions: <code>goto</code>, <code>click</code>, <code>fill</code>, <code>select</code>, <code>pressKey</code>, <code>waitForSelector</code>, <code>assertVisible</code>, <code>assertText</code>, <code>assertUrl</code>.
+              </p>
+            </>
+          )}
         </div>
       )}
     </div>
