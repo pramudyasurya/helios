@@ -53,9 +53,21 @@ describe("RunOptionsPicker", () => {
       journeyButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
 
-    expect(container.textContent).toContain("Declarative Step Sequence (JSON DSL)");
+    expect(container.textContent).toContain("User Journey Steps");
+    expect(container.textContent).toContain("Visual Builder");
+    expect(container.textContent).toContain("JSON DSL");
+
+    const jsonTabButton = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("JSON DSL"),
+    );
+    expect(jsonTabButton).toBeDefined();
+
+    act(() => {
+      jsonTabButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
     const textarea = container.querySelector("textarea#journey-steps") as HTMLTextAreaElement;
-    expect(textarea).toBeDefined();
+    expect(textarea).not.toBeNull();
     expect(textarea.value).toContain("waitForSelector");
 
     act(() => {

@@ -17,7 +17,8 @@ import { runChecks, toCheckInput, attachEvidenceIds } from "@/lib/shared/domain/
 import { fingerprintRunIssues } from "@/lib/server/infrastructure/issues/fingerprint-issues";
 import { generateAIReport } from "@/lib/server/infrastructure/ai/report-generator";
 import { runRecordToLatestRun } from "@/lib/server/infrastructure/runner/run-record";
-
+import { dispatchRunAlerts } from "@/lib/server/infrastructure/notifications/webhook-dispatcher";
+import type { WebhookConfig } from "@/lib/shared/domain/notifications";
 export async function processQARun(
   job: QARunJob,
   meta: QARunJobMeta,
@@ -136,6 +137,25 @@ export async function processQARun(
             report: report as Prisma.InputJsonValue,
           },
         });
+      }
+
+      try {
+        const runForAlerts = await prisma.run.findUnique({
+          where: { id: job.runId },
+          include: {
+            evidence: true,
+            pageResults: true,
+            environment: true,
+          },
+        });
+        if (runForAlerts) {
+          const latestRun = runRecordToLatestRun(runForAlerts);
+          const envSettings = runForAlerts.environment?.storageState as Record<string, unknown> | null;
+          const webhooks = (envSettings?.webhooks ?? []) as WebhookConfig[];
+          await dispatchRunAlerts(latestRun, webhooks);
+        }
+      } catch (alertErr) {
+        console.warn(`[qa-run-processor] Alert dispatch failed for run ${job.runId}:`, alertErr);
       }
     } catch (err) {
       console.error("Auto AI report generation failed", err);
