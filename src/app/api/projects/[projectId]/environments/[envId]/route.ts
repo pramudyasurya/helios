@@ -32,6 +32,36 @@ export async function PATCH(
       );
     }
 
+    const existingStorage =
+      existing.storageState && typeof existing.storageState === "object"
+        ? (existing.storageState as Record<string, unknown>)
+        : {};
+
+    let nextStorageState: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput | undefined;
+    if (result.data.storageState !== undefined || result.data.webhooks !== undefined) {
+      if (result.data.storageState === null && result.data.webhooks === undefined) {
+        nextStorageState = Prisma.DbNull;
+      } else {
+        const baseStorage =
+          result.data.storageState === null
+            ? {}
+            : result.data.storageState !== undefined
+              ? (result.data.storageState as Record<string, unknown>)
+              : existingStorage;
+
+        const merged = {
+          ...baseStorage,
+          ...(result.data.webhooks !== undefined
+            ? { webhooks: result.data.webhooks }
+            : existingStorage.webhooks !== undefined
+              ? { webhooks: existingStorage.webhooks }
+              : {}),
+        };
+
+        nextStorageState = Object.keys(merged).length === 0 ? Prisma.DbNull : (merged as Prisma.InputJsonValue);
+      }
+    }
+
     const updated = await prisma.environment.update({
       where: { id: envId },
       data: {
@@ -39,14 +69,7 @@ export async function PATCH(
         ...(result.data.baseUrl !== undefined
           ? { baseUrl: result.data.baseUrl }
           : {}),
-        ...(result.data.storageState !== undefined
-          ? {
-              storageState:
-                result.data.storageState === null
-                  ? Prisma.DbNull
-                  : (result.data.storageState as Prisma.InputJsonValue),
-            }
-          : {}),
+        ...(nextStorageState !== undefined ? { storageState: nextStorageState } : {}),
       },
       select: {
         id: true,
@@ -60,10 +83,16 @@ export async function PATCH(
     });
 
     const { storageState: persistedStorageState, ...environment } = updated;
+    const storageObj =
+      persistedStorageState && typeof persistedStorageState === "object"
+        ? (persistedStorageState as Record<string, unknown>)
+        : null;
+    const webhooks = (storageObj?.webhooks ?? []) as unknown[];
 
     return NextResponse.json({
       ...environment,
       hasStorageState: Boolean(persistedStorageState),
+      webhooks,
     });
   } catch (error) {
     const uniqueConflict = uniqueConstraintResponse(

@@ -5,6 +5,7 @@ import {
 } from "@/lib/shared/domain/types";
 import { isValidCron } from "@/lib/shared/domain/cron";
 import { JourneyStepSchema } from "@/lib/shared/domain/journey";
+import { WebhookConfigSchema } from "@/lib/shared/domain/notifications";
 import { z } from "zod";
 const TRUTHY_VALUES: Record<string, true> = {
   "1": true,
@@ -314,6 +315,7 @@ export const UpdateEnvironmentSchema = z.object({
         .nullable()
         .optional(),
     ),
+  webhooks: z.array(WebhookConfigSchema).optional(),
 });
 
 const VALID_QUERY_STATUSES = [

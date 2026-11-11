@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Shield, Globe, ExternalLink, Edit2, Trash2, Clock, Copy, Check } from "lucide-react";
+import { Plus, Shield, Globe, ExternalLink, Edit2, Trash2, Clock, Copy, Check, Bell } from "lucide-react";
 import type { ProjectDetailDto, EnvironmentDto } from "@/lib/client/api";
 import { EnvironmentModal } from "@/components/features/projects/environment-modal";
 import { DeleteConfirmationModal } from "@/components/features/projects/delete-confirmation-modal";
+import { WebhookSettingsModal } from "@/components/features/projects/webhook-settings-modal";
 import { createEnvironment, updateEnvironment, deleteEnvironment } from "@/lib/client/api";
+import type { WebhookConfig } from "@/lib/shared/domain/notifications";
 import { formatTimestamp } from "@/lib/shared/domain/format";
 import type { StorageState } from "@/lib/shared/domain/types";
 
@@ -17,6 +19,7 @@ type ProjectEnvironmentsTabProps = {
 export function ProjectEnvironmentsTab({ project, onRefresh }: ProjectEnvironmentsTabProps) {
   const [isEnvModalOpen, setIsEnvModalOpen] = useState(false);
   const [envToEdit, setEnvToEdit] = useState<EnvironmentDto | null>(null);
+  const [envForWebhooks, setEnvForWebhooks] = useState<EnvironmentDto | null>(null);
   const [envToDelete, setEnvToDelete] = useState<{ id: string; name: string } | null>(null);
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
 
@@ -138,6 +141,15 @@ export function ProjectEnvironmentsTab({ project, onRefresh }: ProjectEnvironmen
                 <div className="flex items-center space-x-1">
                   <button
                     type="button"
+                    onClick={() => setEnvForWebhooks(env)}
+                    className="p-1.5 text-muted hover:text-accent hover:bg-card rounded-xs transition-colors cursor-pointer"
+                    title="Configure Webhook Alerts"
+                    aria-label={`Configure webhooks for ${env.name}`}
+                  >
+                    <Bell className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => openEditEnv(env)}
                     className="p-1.5 text-muted hover:text-foreground hover:bg-card rounded-xs transition-colors cursor-pointer"
                     title="Edit environment"
@@ -209,6 +221,17 @@ export function ProjectEnvironmentsTab({ project, onRefresh }: ProjectEnvironmen
         onConfirm={handleConfirmDeleteEnv}
         targetName={envToDelete?.name || ""}
         resourceType="Environment"
+      />
+
+      <WebhookSettingsModal
+        isOpen={Boolean(envForWebhooks)}
+        onClose={() => setEnvForWebhooks(null)}
+        environment={envForWebhooks}
+        onSave={async (webhooks: WebhookConfig[]) => {
+          if (!envForWebhooks) return;
+          await updateEnvironment(project.id, envForWebhooks.id, { webhooks });
+          onRefresh();
+        }}
       />
     </div>
   );
