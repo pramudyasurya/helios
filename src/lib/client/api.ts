@@ -9,7 +9,7 @@ import type {
   AIReport,
   StorageState,
 } from "@/lib/shared/domain/types";
-
+import type { WebhookConfig } from "@/lib/shared/domain/notifications";
 export type {
   CreateQueuedRunResponse,
   EvidenceStatus,
@@ -252,6 +252,7 @@ export type EnvironmentDto = {
   name: string;
   baseUrl?: string | null;
   hasStorageState?: boolean;
+  webhooks?: WebhookConfig[];
   createdAt: string;
   updatedAt: string;
   lastRunStatus?: string | null;
@@ -339,6 +340,7 @@ export async function updateEnvironment(
     name?: string;
     baseUrl?: string | null;
     storageState?: StorageState | null;
+    webhooks?: WebhookConfig[];
   },
 ): Promise<EnvironmentDto> {
   const response = await fetch(`/api/projects/${projectId}/environments/${envId}`, {

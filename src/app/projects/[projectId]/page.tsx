@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
-import { Shield, PlayCircle, Settings, AlertCircle, ArrowLeft, CalendarClock } from "lucide-react";
+import { Shield, PlayCircle, Settings, AlertCircle, ArrowLeft, CalendarClock, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/shared/app-shell";
 import { Tabs } from "@/components/ui/tabs";
@@ -9,9 +9,9 @@ import { ProjectDetailHeader } from "./_components/project-detail-header";
 import { ProjectEnvironmentsTab } from "./_components/project-environments-tab";
 import { ProjectRunsTab } from "./_components/project-runs-tab";
 import { ProjectSchedulesTab } from "./_components/project-schedules-tab";
+import { ProjectIssuesTab } from "./_components/project-issues-tab";
 import { ProjectSettingsTab } from "./_components/project-settings-tab";
 import { getProject, type ProjectDetailDto } from "@/lib/client/api";
-
 type ProjectDetailPageProps = {
   params: Promise<{ projectId: string }>;
 };
@@ -77,6 +77,11 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
       icon: <CalendarClock className="h-4 w-4" />,
     },
     {
+      id: "issues",
+      label: "Issues",
+      icon: <AlertTriangle className="h-4 w-4" />,
+    },
+    {
       id: "runs",
       label: "Run History",
       icon: <PlayCircle className="h-4 w-4" />,
@@ -134,6 +139,10 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
 
             {activeTab === "schedules" && (
               <ProjectSchedulesTab project={project} />
+            )}
+
+            {activeTab === "issues" && (
+              <ProjectIssuesTab project={project} />
             )}
 
             {activeTab === "runs" && <ProjectRunsTab project={project} />}
