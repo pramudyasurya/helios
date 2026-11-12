@@ -105,4 +105,92 @@ describe("ProjectIssuesTab", () => {
       }),
     );
   });
+
+  it("supports batch selecting issues and triggering bulk status update", async () => {
+    const mockIssues = [
+      {
+        id: "issue-1",
+        fingerprint: "fp-1",
+        type: "console",
+        normalizedMessage: "TypeError: Cannot read properties of undefined",
+        firstSeenRunId: "run-11111111",
+        lastSeenRunId: "run-22222222",
+        occurrences: 4,
+        status: "open",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: "issue-2",
+        fingerprint: "fp-2",
+        type: "network",
+        normalizedMessage: "GET /api/v1/user 500 Internal Server Error",
+        firstSeenRunId: "run-11111111",
+        lastSeenRunId: "run-22222222",
+        occurrences: 2,
+        status: "open",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    ];
+
+    const fetchMock = vi.fn().mockImplementation((url: string, init?: RequestInit) => {
+      if (init?.method === "PATCH") {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true }),
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({ issues: mockIssues }),
+      });
+    });
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+
+    await act(async () => {
+      root?.render(<ProjectIssuesTab project={mockProject} />);
+    });
+
+    const selectAllCheckbox = container.querySelector(
+      "input[type='checkbox']",
+    ) as HTMLInputElement | null;
+    expect(selectAllCheckbox).toBeTruthy();
+
+    await act(async () => {
+      selectAllCheckbox?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(container.textContent).toContain("2 of 2 selected");
+
+    const allButtons = Array.from(container.querySelectorAll("button"));
+    const ackBatchBtn = allButtons.find((b) => b.textContent?.trim() === "Acknowledge");
+    expect(ackBatchBtn).toBeTruthy();
+
+    await act(async () => {
+      ackBatchBtn?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("/issues/issue-1"),
+      expect.objectContaining({
+        method: "PATCH",
+        body: JSON.stringify({ status: "acknowledged" }),
+      }),
+    );
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("/issues/issue-2"),
+      expect.objectContaining({
+        method: "PATCH",
+        body: JSON.stringify({ status: "acknowledged" }),
+      }),
+    );
+
+    vi.unstubAllGlobals();
+  });
 });

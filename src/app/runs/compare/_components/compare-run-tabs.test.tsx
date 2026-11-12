@@ -163,10 +163,23 @@ describe("CompareRunTabs", () => {
     expect(content).toContain("Desktop");
     expect(content).toContain("Mobile");
     expect(content).toContain("Side by Side");
-    expect(content).toContain("Diff Overlay");
+    expect(content).toContain("Diff Map");
+    expect(content).toContain("Cross-Fade Slider");
     expect(content).toContain("1,540 px changed");
     expect(content).toContain("1.25% diff");
     expect(content).toContain("Run A (Baseline)");
     expect(content).toContain("Run B (Target)");
+
+    // Test switching to Cross-Fade Slider
+    const allButtons = Array.from(rendered.querySelectorAll("button"));
+    const sliderBtn = allButtons.find((b) => b.textContent?.includes("Cross-Fade Slider"));
+    expect(sliderBtn).toBeDefined();
+
+    act(() => {
+      sliderBtn?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    const updatedContent = rendered.textContent || "";
+    expect(updatedContent).toContain("Cross-Fade Comparison: Run A (50%) ↔ Run B (50%)");
   });
 });

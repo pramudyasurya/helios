@@ -181,7 +181,7 @@ export async function dispatchRunAlerts(
         });
 
         if (!res.ok) {
-          console.warn(`[webhook-dispatcher] Webhook ${w.id} returned status ${res.status}`);
+          throw new Error(`Endpoint returned HTTP ${res.status}`);
         }
       } finally {
         clearTimeout(timer);

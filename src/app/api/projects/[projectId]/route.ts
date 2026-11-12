@@ -67,19 +67,27 @@ export async function GET(
 
     const formattedEnvironments = project.environments.map((env) => {
       const lastEnvRun = env.runs[0];
+      const rawStorage = env.storageState;
+      let webhooks: unknown[] = [];
+      if (rawStorage && typeof rawStorage === "object" && "webhooks" in rawStorage) {
+        webhooks = Array.isArray((rawStorage as Record<string, unknown>).webhooks)
+          ? ((rawStorage as Record<string, unknown>).webhooks as unknown[])
+          : [];
+      }
+
       return {
         id: env.id,
         projectId: env.projectId,
         name: env.name,
         baseUrl: env.baseUrl,
         hasStorageState: env.storageState !== null,
+        webhooks,
         createdAt: env.createdAt,
         updatedAt: env.updatedAt,
         lastRunStatus: lastEnvRun ? lastEnvRun.status : null,
         lastRunAt: lastEnvRun ? lastEnvRun.createdAt : null,
       };
     });
-
     return NextResponse.json({
       ...project,
       environments: formattedEnvironments,

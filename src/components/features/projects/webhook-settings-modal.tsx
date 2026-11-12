@@ -39,19 +39,20 @@ export function WebhookSettingsModal({
   const [triggerOnFailure, setTriggerOnFailure] = useState(true);
   const [triggerOnEveryRun, setTriggerOnEveryRun] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-
-  if (environment?.id !== prevEnvId) {
-    setPrevEnvId(environment?.id);
-    setWebhooks(environment?.webhooks ?? []);
-    setShowAddForm(false);
-    setError(null);
-    setFormError(null);
-  }
+  const [testingWebhookId, setTestingWebhookId] = useState<string | null>(null);
+  const [testStatus, setTestStatus] = useState<Record<string, { success: boolean; message: string }>>({});
+    if (environment?.id !== prevEnvId) {
+      setPrevEnvId(environment?.id);
+      setWebhooks(environment?.webhooks ?? []);
+      setShowAddForm(false);
+      setError(null);
+      setFormError(null);
+      setTestStatus({});
+    }
 
   const modalRef = useRef<HTMLDivElement>(null);
   useModalFocus(modalRef, isOpen, onClose);
   if (!isOpen || !environment) return null;
-
   function handleAddWebhook() {
     const trimmedUrl = url.trim();
     if (!trimmedUrl) {
@@ -99,7 +100,54 @@ export function WebhookSettingsModal({
       webhooks.map((w) => (w.id === id ? { ...w, enabled: !w.enabled } : w)),
     );
   }
+  async function handleTestWebhook(webhook: WebhookConfig) {
+    try {
+      setTestingWebhookId(webhook.id);
+      setTestStatus((prev) => {
+        const next = { ...prev };
+        delete next[webhook.id];
+        return next;
+      });
 
+      const res = await fetch(
+        `/api/projects/${environment?.projectId}/environments/${environment?.id}/webhooks/test`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(webhook),
+        },
+      );
+
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
+        setTestStatus((prev) => ({
+          ...prev,
+          [webhook.id]: {
+            success: true,
+            message: data.message ?? "Test delivered successfully",
+          },
+        }));
+      } else {
+        setTestStatus((prev) => ({
+          ...prev,
+          [webhook.id]: {
+            success: false,
+            message: data.error ?? `Error ${res.status}: Failed to deliver test`,
+          },
+        }));
+      }
+    } catch (err: unknown) {
+      setTestStatus((prev) => ({
+        ...prev,
+        [webhook.id]: {
+          success: false,
+          message: (err as Error)?.message ?? "Network error during test dispatch",
+        },
+      }));
+    } finally {
+      setTestingWebhookId(null);
+    }
+  }
   async function handleSave() {
     try {
       setIsSubmitting(true);
@@ -169,9 +217,10 @@ export function WebhookSettingsModal({
                 {webhooks.map((w) => (
                   <div
                     key={w.id}
-                    className="flex items-center justify-between gap-3 rounded-xs border border-border/70 bg-card/40 p-3 text-xs"
+                    className="rounded-xs border border-border/70 bg-card/40 p-3 text-xs space-y-2"
                   >
-                    <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-[10px] uppercase font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded-xs">
                           {w.provider}
@@ -197,6 +246,14 @@ export function WebhookSettingsModal({
                     <div className="flex items-center gap-2 shrink-0">
                       <button
                         type="button"
+                        disabled={testingWebhookId === w.id}
+                        onClick={() => handleTestWebhook(w)}
+                        className="px-2 py-1 text-[11px] font-medium rounded-xs border border-border bg-card text-foreground hover:bg-card/80 transition cursor-pointer disabled:opacity-50"
+                      >
+                        {testingWebhookId === w.id ? "Sending..." : "Test"}
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => handleToggleWebhook(w.id)}
                         className="px-2 py-1 text-[11px] font-medium rounded-xs border border-border bg-card text-foreground hover:bg-card/80 transition cursor-pointer"
                       >
@@ -212,6 +269,19 @@ export function WebhookSettingsModal({
                       </button>
                     </div>
                   </div>
+                  {testStatus[w.id] && (
+                    <div
+                      className={`text-[11px] px-2.5 py-1.5 rounded-xs border ${
+                        testStatus[w.id].success
+                          ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+                          : "border-danger/40 bg-danger/10 text-danger"
+                      }`}
+                    >
+                      {testStatus[w.id].success ? "✓ " : "✗ "}
+                      {testStatus[w.id].message}
+                    </div>
+                  )}
+                </div>
                 ))}
               </div>
             )}

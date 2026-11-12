@@ -122,4 +122,44 @@ describe("WebhookSettingsModal", () => {
       ]),
     );
   });
+
+  it("allows testing a webhook via live endpoint trigger", async () => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true, message: "Ping received" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    act(() => {
+      root?.render(
+        <WebhookSettingsModal
+          isOpen={true}
+          onClose={vi.fn()}
+          onSave={vi.fn()}
+          environment={mockEnv}
+        />,
+      );
+    });
+
+    const allButtons = Array.from(container.querySelectorAll("button"));
+    const testButton = allButtons.find((b) => b.textContent?.includes("Test"));
+
+    expect(testButton).toBeTruthy();
+
+    await act(async () => {
+      testButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/projects/proj-1/environments/env-1/webhooks/test",
+      expect.objectContaining({ method: "POST" }),
+    );
+    expect(container.textContent).toContain("Ping received");
+
+    vi.unstubAllGlobals();
+  });
 });

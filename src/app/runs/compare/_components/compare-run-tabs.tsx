@@ -297,8 +297,8 @@ function MetricsPanel({ deltas }: { deltas: MetricDelta[] }) {
 }
 function VisualDiffPanel({ visualDiff }: { visualDiff?: VisualDiffComparison | null }) {
   const [viewport, setViewport] = useState<"desktop" | "mobile">("desktop");
-  const [mode, setMode] = useState<"side-by-side" | "diff">("side-by-side");
-
+  const [mode, setMode] = useState<"side-by-side" | "diff" | "slider">("side-by-side");
+  const [sliderOpacity, setSliderOpacity] = useState<number>(50);
   if (!visualDiff || visualDiff.items.length === 0) {
     return (
       <EmptyState
@@ -368,11 +368,22 @@ function VisualDiffPanel({ visualDiff }: { visualDiff?: VisualDiffComparison | n
               aria-pressed={mode === "diff"}
             >
               <Eye className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>Diff Overlay</span>
+              <span>Diff Map</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("slider")}
+              className={`flex items-center gap-1 rounded-xs px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer ${
+                mode === "slider"
+                  ? "bg-foreground/10 text-foreground font-semibold"
+                  : "text-muted hover:text-foreground"
+              }`}
+              aria-pressed={mode === "slider"}
+            >
+              <span>Cross-Fade Slider</span>
             </button>
           </div>
         </div>
-
         <div className="flex items-center gap-3 text-xs">
           {currentItem.status === "missing" ? (
             <span className="rounded-xs border border-border/70 bg-card/40 px-2 py-0.5 font-mono text-muted">
@@ -439,6 +450,53 @@ function VisualDiffPanel({ visualDiff }: { visualDiff?: VisualDiffComparison | n
                 <div className="p-8 text-center text-xs text-muted">No image</div>
               )}
             </div>
+          </div>
+        </div>
+      ) : mode === "slider" ? (
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted">
+            <span className="font-medium text-foreground">
+              Cross-Fade Comparison: Run A ({100 - sliderOpacity}%) &harr; Run B ({sliderOpacity}%)
+            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-mono">Run A</span>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={sliderOpacity}
+                onChange={(e) => setSliderOpacity(Number(e.target.value))}
+                className="w-36 sm:w-48 accent-amber-500 cursor-pointer"
+                aria-label="Cross-fade opacity slider between Run A and Run B"
+              />
+              <span className="text-[11px] font-mono">Run B</span>
+            </div>
+          </div>
+          <div className="relative overflow-hidden rounded-xs border border-border/80 bg-black/40 min-h-[300px]">
+            {currentItem.runAImage && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={currentItem.runAImage}
+                alt="Run A baseline screenshot"
+                className="w-full object-contain"
+                loading="lazy"
+              />
+            )}
+            {currentItem.runBImage && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={currentItem.runBImage}
+                alt="Run B target screenshot"
+                className="absolute inset-0 w-full h-full object-contain pointer-events-none transition-opacity duration-75"
+                style={{ opacity: sliderOpacity / 100 }}
+                loading="lazy"
+              />
+            )}
+            {!currentItem.runAImage && !currentItem.runBImage && (
+              <div className="p-8 text-center text-xs text-muted">
+                Screenshots unavailable for comparison
+              </div>
+            )}
           </div>
         </div>
       ) : (

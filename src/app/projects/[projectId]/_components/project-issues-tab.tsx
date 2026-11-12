@@ -43,7 +43,8 @@ export function ProjectIssuesTab({ project }: ProjectIssuesTabProps) {
   const [loading, setLoading] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
+  const [selectedIssueIds, setSelectedIssueIds] = useState<Set<string>>(new Set());
+  const [isBatchUpdating, setIsBatchUpdating] = useState(false);
   const loadIssues = useCallback(
     async (envId: string, filter: string) => {
       if (!envId) {
@@ -129,6 +130,62 @@ export function ProjectIssuesTab({ project }: ProjectIssuesTabProps) {
     }
   }
 
+  function toggleSelectAll() {
+    if (selectedIssueIds.size === issues.length && issues.length > 0) {
+      setSelectedIssueIds(new Set());
+    } else {
+      setSelectedIssueIds(new Set(issues.map((i) => i.id)));
+    }
+  }
+
+  function toggleSelectIssue(id: string) {
+    setSelectedIssueIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  async function handleBatchUpdateStatus(nextStatus: IssueStatus) {
+    if (selectedIssueIds.size === 0) return;
+    try {
+      setIsBatchUpdating(true);
+      setError(null);
+      const ids = Array.from(selectedIssueIds);
+
+      await Promise.all(
+        ids.map((issueId) =>
+          fetch(
+            `/api/projects/${project.id}/environments/${selectedEnvId}/issues/${issueId}`,
+            {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ status: nextStatus }),
+            },
+          ).then((res) => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          }),
+        ),
+      );
+
+      setIssues((prev) =>
+        prev.map((i) => (selectedIssueIds.has(i.id) ? { ...i, status: nextStatus } : i)),
+      );
+      setSelectedIssueIds(new Set());
+    } catch (err: unknown) {
+      const msg =
+        typeof err === "object" && err !== null && "message" in err
+          ? (err as { message: string }).message
+          : "Failed to update issues in batch.";
+      setError(msg);
+    } finally {
+      setIsBatchUpdating(false);
+    }
+  }
   const selectedEnv = environments.find((e) => e.id === selectedEnvId);
 
   return (
@@ -189,6 +246,54 @@ export function ProjectIssuesTab({ project }: ProjectIssuesTabProps) {
         ))}
       </div>
 
+      {/* Batch Action Bar */}
+      {issues.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xs border border-border/70 bg-card/40 px-3.5 py-2 text-xs">
+          <label className="flex items-center gap-2 cursor-pointer font-medium text-foreground">
+            <input
+              type="checkbox"
+              checked={selectedIssueIds.size === issues.length && issues.length > 0}
+              onChange={toggleSelectAll}
+              className="rounded-xs border-border text-accent focus:ring-accent accent-amber-500 cursor-pointer"
+            />
+            <span>
+              {selectedIssueIds.size > 0
+                ? `${selectedIssueIds.size} of ${issues.length} selected`
+                : "Select All"}
+            </span>
+          </label>
+
+          {selectedIssueIds.size > 0 && (
+            <div className="flex items-center gap-1.5">
+              <span className="text-muted text-[11px] mr-1">Batch Actions:</span>
+              <button
+                type="button"
+                disabled={isBatchUpdating}
+                onClick={() => handleBatchUpdateStatus("acknowledged")}
+                className="px-2 py-1 font-medium rounded-xs border border-border bg-card text-foreground hover:bg-card/80 transition cursor-pointer disabled:opacity-50"
+              >
+                Acknowledge
+              </button>
+              <button
+                type="button"
+                disabled={isBatchUpdating}
+                onClick={() => handleBatchUpdateStatus("resolved")}
+                className="px-2 py-1 font-medium rounded-xs border border-border bg-card text-foreground hover:bg-card/80 transition cursor-pointer disabled:opacity-50"
+              >
+                Resolve
+              </button>
+              <button
+                type="button"
+                disabled={isBatchUpdating}
+                onClick={() => handleBatchUpdateStatus("ignored")}
+                className="px-2 py-1 font-medium rounded-xs border border-border bg-card text-muted hover:text-foreground transition cursor-pointer disabled:opacity-50"
+              >
+                Ignore (Mute)
+              </button>
+            </div>
+          )}
+        </div>
+      )}
       {error && (
         <div className="rounded-xs border border-danger/40 bg-danger/10 p-3 text-xs text-danger">
           {error}
@@ -214,9 +319,21 @@ export function ProjectIssuesTab({ project }: ProjectIssuesTabProps) {
             return (
               <div
                 key={issue.id}
-                className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 rounded-xs border border-border/70 bg-card/40 p-4 transition hover:border-border"
+                className={`flex flex-col md:flex-row items-start md:items-center justify-between gap-4 rounded-xs border p-4 transition ${
+                  selectedIssueIds.has(issue.id)
+                    ? "border-accent/60 bg-accent/5"
+                    : "border-border/70 bg-card/40 hover:border-border"
+                }`}
               >
-                <div className="flex-1 min-w-0 space-y-1.5">
+                <div className="flex items-start gap-3 flex-1 min-w-0">
+                  <input
+                    type="checkbox"
+                    checked={selectedIssueIds.has(issue.id)}
+                    onChange={() => toggleSelectIssue(issue.id)}
+                    className="mt-1 rounded-xs border-border text-accent focus:ring-accent accent-amber-500 cursor-pointer"
+                    aria-label={`Select issue ${issue.id}`}
+                  />
+                  <div className="space-y-1.5 flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <span
                       className={`text-[10px] font-mono uppercase font-bold px-1.5 py-0.5 rounded-xs border ${
@@ -277,11 +394,10 @@ export function ProjectIssuesTab({ project }: ProjectIssuesTabProps) {
                     </span>
                   </div>
                 </div>
+              </div>
 
-                {/* Triage Action Controls */}
                 <div className="flex items-center gap-1.5 shrink-0 self-end md:self-center">
                   <select
-                    disabled={isUpdating}
                     value={issue.status}
                     onChange={(e) =>
                       handleUpdateStatus(issue.id, e.target.value as IssueStatus)
