@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useRunStream } from "@/lib/client/use-run-stream";
 import { updateEvidenceStatus } from "@/lib/client/api";
 import type {
   EvidenceStatus,
@@ -9,6 +10,7 @@ import type {
   LatestRun,
 } from "@/lib/shared/domain/types";
 import { normalizeRunStatus } from "@/lib/shared/domain/format";
+import { RunSummaryHeader } from "@/app/runs/[id]/_components/overview/summary-header";
 import { RunOverview } from "@/app/runs/[id]/_components/overview/run-overview";
 import { RunEvidenceList } from "@/app/runs/[id]/_components/evidence/run-evidence-list";
 import { type EvidenceFilter } from "@/lib/shared/domain/evidence-sections";
@@ -27,6 +29,7 @@ import {
 type RunDetailTabsProps = {
   run: LatestRun;
   newIssueEvidenceIds?: Set<string>;
+  previousRunId?: string | null;
 };
 
 const evidenceFilterByType: Record<EvidenceType, EvidenceFilter> = {
@@ -37,9 +40,27 @@ const evidenceFilterByType: Record<EvidenceType, EvidenceFilter> = {
 
 const RUN_DETAIL_REFRESH_INTERVAL_MS = 3_000;
 
-export function RunDetailTabs({ run, newIssueEvidenceIds }: RunDetailTabsProps) {
+export function RunDetailTabs({
+  run,
+  newIssueEvidenceIds,
+  previousRunId,
+}: RunDetailTabsProps) {
   const router = useRouter();
   const [isRefreshPending, startRefreshTransition] = useTransition();
+
+  const {
+    status: liveStatus,
+    trail: liveTrail,
+    isStreaming,
+  } = useRunStream({
+    runId: run.id,
+    initialStatus: run.status,
+    initialTrail: run.trail,
+    onTerminal: () => {
+      startRefreshTransition(() => router.refresh());
+    },
+  });
+
   const [activeSection, setActiveSection] = useState<RunDetailSectionId>("overview");
   const [activeEvidenceFilter, setActiveEvidenceFilter] =
     useState<EvidenceFilter>("all");
@@ -95,7 +116,7 @@ export function RunDetailTabs({ run, newIssueEvidenceIds }: RunDetailTabsProps) 
   const findingCount = getFindingsFromChecks(run.checks).length;
   const evidenceCount = evidence.length;
   const checksCount = run.checks.length;
-  const trailCount = run.trail.length;
+  const trailCount = liveTrail.length;
   const pageResultsCount = run.pageResults?.length ?? 0;
 
   const handleViewEvidence = (evidenceType: EvidenceType) => {
@@ -203,7 +224,7 @@ export function RunDetailTabs({ run, newIssueEvidenceIds }: RunDetailTabsProps) 
           />
         );
       case "trail":
-        return <BrowserTrail trail={run.trail} />;
+        return <BrowserTrail trail={liveTrail} />;
       case "trace":
         return <TraceViewerTab run={run} />;
       default:
@@ -213,6 +234,14 @@ export function RunDetailTabs({ run, newIssueEvidenceIds }: RunDetailTabsProps) 
 
   return (
     <div className="space-y-4 w-full">
+      <RunSummaryHeader
+        run={{
+          ...run,
+          status: liveStatus,
+        }}
+        previousRunId={previousRunId}
+        isStreaming={isStreaming}
+      />
       <RunDetailSidebar
         activeSection={activeSection}
         onSelectSection={(id) => setActiveSection(id)}

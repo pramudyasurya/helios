@@ -4,6 +4,7 @@ import { ArrowLeft, Clock, Calendar, GitCompareArrows, Hash } from "lucide-react
 
 import { StatusBadge } from "@/components/ui/status-badge";
 import { ScheduledBadge } from "@/components/features/scheduled-badge";
+import { LiveStreamBadge } from "@/components/ui/live-stream-badge";
 import { ExportRunButton } from "@/app/runs/[id]/_components/navigation/export-run-button";
 import { RerunButton } from "@/app/runs/[id]/_components/navigation/rerun-button";
 import { formatDurationMs, formatTimestamp } from "@/lib/shared/domain/format";
@@ -12,11 +13,13 @@ import { HELIOS_ROUTES } from "@/lib/shared/domain/routes";
 type RunSummaryHeaderProps = {
   run: LatestRun;
   previousRunId?: string | null;
+  isStreaming?: boolean;
 };
 
 export function RunSummaryHeader({
   run,
   previousRunId,
+  isStreaming = false,
 }: RunSummaryHeaderProps) {
   const isFinished = run.status === "Completed" || run.status === "Failed";
   const displayTitle = run.title ?? run.startingUrl;
@@ -43,6 +46,7 @@ export function RunSummaryHeader({
             </span>
           ) : null}
           <StatusBadge status={run.status} />
+          <LiveStreamBadge isStreaming={isStreaming} />
           {run.origin === "scheduled" && <ScheduledBadge />}
           {isFinished && <RerunButton run={run} />}
           {isFinished && <ExportRunButton run={run} />}

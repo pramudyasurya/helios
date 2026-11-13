@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/server/infrastructure/db/prisma";
+import { runEventBus } from "@/lib/server/infrastructure/events/run-event-bus";
 import type { Prisma } from "@/generated/prisma/client";
 import type { TrailStep } from "@/lib/shared/domain/types";
 
@@ -155,6 +156,11 @@ export async function appendRunTrailStep({
     data: {
       trail: newTrail as unknown as Prisma.InputJsonValue,
     },
+  });
+
+  runEventBus.emitRunEvent(runId, {
+    type: "trail",
+    step: newStep,
   });
 
   return newTrail;

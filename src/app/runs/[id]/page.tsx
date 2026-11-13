@@ -4,7 +4,6 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/server/infrastructure/db/prisma";
 
 import { AppShell } from "@/components/shared/app-shell";
-import { RunSummaryHeader } from "@/app/runs/[id]/_components/overview/summary-header";
 import { runRecordToLatestRun } from "@/lib/server/infrastructure/runner/run-record";
 import { RunDetailTabs } from "@/app/runs/[id]/_components/navigation/run-detail-tabs";
 
@@ -84,10 +83,11 @@ export default async function RunDetailPage({
   return (
     <AppShell>
       <main className="py-8 px-4 sm:px-6 mx-auto max-w-7xl">
-        <RunSummaryHeader run={run} previousRunId={previousRecord?.id} />
-        <div className="mt-6">
-          <RunDetailTabs run={run} newIssueEvidenceIds={newIssueEvidenceIds} />
-        </div>
+        <RunDetailTabs
+          run={run}
+          newIssueEvidenceIds={newIssueEvidenceIds}
+          previousRunId={previousRecord?.id}
+        />
       </main>
     </AppShell>
   );

@@ -1,6 +1,6 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-
+import { runEventBus } from "@/lib/server/infrastructure/events/run-event-bus";
 import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 import type { EvidenceType, PageResult } from "@/lib/shared/domain/types";
 import {
@@ -119,6 +119,10 @@ export async function persistPageEvidence({
   const rows = buildEvidenceRows(pageResult, runId, pageResultId);
   if (rows.length === 0) return;
   await prisma.evidence.createMany({ data: rows });
+  runEventBus.emitRunEvent(runId, {
+    type: "evidence",
+    evidenceCount: rows.length,
+  });
 }
 
 export function pageResultToCreateInput(

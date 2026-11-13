@@ -5,6 +5,7 @@ import type {
 } from "@/lib/server/infrastructure/queue/qa-jobs";
 import { prisma } from "@/lib/server/infrastructure/db/prisma";
 import { getErrorMessage } from "@/lib/shared/domain/errors";
+import { runEventBus } from "@/lib/server/infrastructure/events/run-event-bus";
 import { runMultiRouteQA } from "@/lib/server/infrastructure/runner/runner";
 import { loadRunStorageState } from "@/lib/server/infrastructure/runner/storage-state";
 import {
@@ -45,6 +46,11 @@ export async function processQARun(
     await prisma.run.update({
       where: { id: job.runId },
       data: { status: "Running", summary: "Helios is running browser QA." },
+    });
+    runEventBus.emitRunEvent(job.runId, {
+      type: "status",
+      status: "Running",
+      summary: "Helios is running browser QA.",
     });
     await prisma.evidence.deleteMany({ where: { runId: job.runId } });
     await prisma.pageResult.deleteMany({ where: { runId: job.runId } });
@@ -114,6 +120,11 @@ export async function processQARun(
         checks: checks as Prisma.InputJsonValue,
         trail: trail as unknown as Prisma.InputJsonValue,
       },
+    });
+    runEventBus.emitRunEvent(job.runId, {
+      type: "status",
+      status: result.status,
+      summary: result.summary,
     });
     try {
       await fingerprintRunIssues(job.runId);
@@ -191,6 +202,11 @@ export async function processQARun(
             },
           ],
         },
+      });
+      runEventBus.emitRunEvent(job.runId, {
+        type: "status",
+        status: "Failed",
+        summary: "Helios could not complete the browser QA run.",
       });
     }
 

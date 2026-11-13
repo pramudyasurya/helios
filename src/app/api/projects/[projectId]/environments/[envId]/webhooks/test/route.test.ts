@@ -44,7 +44,7 @@ describe("POST /api/projects/[projectId]/environments/[envId]/webhooks/test", ()
       id: "e1",
       name: "Staging",
       baseUrl: "https://staging.example.com",
-    } as unknown as { id: string; name: string; baseUrl: string | null });
+    } as unknown as never);
 
     const req = new Request("http://localhost/api/test", {
       method: "POST",
@@ -67,7 +67,7 @@ describe("POST /api/projects/[projectId]/environments/[envId]/webhooks/test", ()
       id: "e1",
       name: "Staging",
       baseUrl: "https://staging.example.com",
-    } as unknown as { id: string; name: string; baseUrl: string | null });
+    } as unknown as never);
 
     const dispatchSpy = vi.spyOn(dispatcher, "dispatchRunAlerts").mockResolvedValue([
       {
@@ -102,7 +102,7 @@ describe("POST /api/projects/[projectId]/environments/[envId]/webhooks/test", ()
       id: "e1",
       name: "Staging",
       baseUrl: "https://staging.example.com",
-    } as unknown as { id: string; name: string; baseUrl: string | null });
+    } as unknown as never);
 
     vi.spyOn(dispatcher, "dispatchRunAlerts").mockResolvedValue([
       {

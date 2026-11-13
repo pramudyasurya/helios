@@ -45,7 +45,7 @@ describe("GET /api/projects/[projectId]", () => {
           runs: [],
         },
       ],
-    } as unknown as { id: string; name: string; environments: Array<Record<string, unknown>> });
+    } as unknown as never);
     vi.mocked(prisma.run.count).mockResolvedValue(10);
     vi.mocked(prisma.run.findFirst).mockResolvedValue(null);
 
