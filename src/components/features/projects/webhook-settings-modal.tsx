@@ -183,7 +183,7 @@ export function WebhookSettingsModal({
           type="button"
           onClick={onClose}
           className="absolute right-4 top-4 p-1.5 text-muted hover:text-foreground hover:bg-card rounded-xs transition-colors cursor-pointer"
-          aria-label="Close"
+          aria-label="Close webhook settings modal"
         >
           <X className="h-4 w-4" />
         </button>
@@ -228,7 +228,7 @@ export function WebhookSettingsModal({
                         <span
                           className={`text-[10px] font-mono px-1.5 py-0.5 rounded-xs ${
                             w.enabled
-                              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                              ? "bg-success/10 text-success border border-success/30"
                               : "bg-muted/10 text-muted border border-border"
                           }`}
                         >
@@ -248,6 +248,7 @@ export function WebhookSettingsModal({
                         type="button"
                         disabled={testingWebhookId === w.id}
                         onClick={() => handleTestWebhook(w)}
+                        aria-label={`Test webhook ${w.provider}`}
                         className="px-2 py-1 text-[11px] font-medium rounded-xs border border-border bg-card text-foreground hover:bg-card/80 transition cursor-pointer disabled:opacity-50"
                       >
                         {testingWebhookId === w.id ? "Sending..." : "Test"}
@@ -255,6 +256,7 @@ export function WebhookSettingsModal({
                       <button
                         type="button"
                         onClick={() => handleToggleWebhook(w.id)}
+                        aria-label={`${w.enabled ? "Disable" : "Enable"} webhook`}
                         className="px-2 py-1 text-[11px] font-medium rounded-xs border border-border bg-card text-foreground hover:bg-card/80 transition cursor-pointer"
                       >
                         {w.enabled ? "Disable" : "Enable"}
@@ -271,9 +273,11 @@ export function WebhookSettingsModal({
                   </div>
                   {testStatus[w.id] && (
                     <div
+                      role="alert"
+                      aria-live="polite"
                       className={`text-[11px] px-2.5 py-1.5 rounded-xs border ${
                         testStatus[w.id].success
-                          ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+                          ? "border-success/40 bg-success/10 text-success"
                           : "border-danger/40 bg-danger/10 text-danger"
                       }`}
                     >

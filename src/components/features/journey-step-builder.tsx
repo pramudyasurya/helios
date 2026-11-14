@@ -68,10 +68,11 @@ export function JourneyStepBuilder({
                   <select
                     disabled={isDisabled}
                     value={step.action}
+                    aria-label={`Step ${idx + 1} action`}
                     onChange={(e) =>
                       handleUpdateStep(idx, { action: e.target.value as JourneyAction })
                     }
-                    className="h-7 rounded-xs border border-border bg-card px-2 text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-accent disabled:opacity-60"
+                    className="h-7 rounded-xs border border-border bg-card px-2 text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-accent disabled:opacity-60 cursor-pointer"
                   >
                     {STEP_ACTIONS.map((a) => (
                       <option key={a.value} value={a.value}>
@@ -80,11 +81,11 @@ export function JourneyStepBuilder({
                     ))}
                   </select>
                 </div>
-
                 <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <input
                     type="text"
                     disabled={isDisabled}
+                    aria-label={`Step ${idx + 1} selector`}
                     placeholder="Selector (e.g. #submit-btn, input[name='q'])"
                     value={step.selector ?? ""}
                     onChange={(e) => handleUpdateStep(idx, { selector: e.target.value })}
@@ -95,6 +96,7 @@ export function JourneyStepBuilder({
                     <input
                       type="text"
                       disabled={isDisabled}
+                      aria-label={`Step ${idx + 1} value`}
                       placeholder={actionDef.valuePlaceholder ?? "Value"}
                       value={step.value ?? ""}
                       onChange={(e) => handleUpdateStep(idx, { value: e.target.value })}

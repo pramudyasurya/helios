@@ -462,12 +462,16 @@ function VisualDiffPanel({ visualDiff }: { visualDiff?: VisualDiffComparison | n
               <span className="text-[11px] font-mono">Run A</span>
               <input
                 type="range"
-                min="0"
-                max="100"
+                min={0}
+                max={100}
                 value={sliderOpacity}
                 onChange={(e) => setSliderOpacity(Number(e.target.value))}
-                className="w-36 sm:w-48 accent-amber-500 cursor-pointer"
+                className="w-36 sm:w-48 cursor-pointer accent-[var(--accent)]"
+                role="slider"
                 aria-label="Cross-fade opacity slider between Run A and Run B"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={sliderOpacity}
               />
               <span className="text-[11px] font-mono">Run B</span>
             </div>

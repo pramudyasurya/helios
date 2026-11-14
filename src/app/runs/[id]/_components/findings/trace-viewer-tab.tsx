@@ -75,12 +75,13 @@ export function TraceViewerTab({ run }: TraceViewerTabProps) {
           <span className="text-[11px] font-mono text-muted">embedded local viewer</span>
         </div>
 
-        <div className="relative w-full aspect-video min-h-[500px] bg-background">
+        <div className="relative w-full max-w-full min-h-[480px] h-[70vh] max-h-[850px] bg-background overflow-hidden">
           <iframe
             src={localTraceViewerUrl}
             title="Playwright Trace Viewer"
-            className="absolute inset-0 w-full h-full border-0"
+            className="w-full h-full border-0 block"
             allow="clipboard-read; clipboard-write"
+            loading="lazy"
           />
         </div>
         <div className="p-4 border-t border-border/80 bg-muted/5 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
