@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
-import { Shield, PlayCircle, Settings, AlertCircle, ArrowLeft, CalendarClock, AlertTriangle } from "lucide-react";
+import { Shield, PlayCircle, Settings, AlertCircle, ArrowLeft, CalendarClock, AlertTriangle, Key } from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/shared/app-shell";
 import { Tabs } from "@/components/ui/tabs";
@@ -11,7 +11,9 @@ import { ProjectRunsTab } from "./_components/project-runs-tab";
 import { ProjectSchedulesTab } from "./_components/project-schedules-tab";
 import { ProjectIssuesTab } from "./_components/project-issues-tab";
 import { ProjectSettingsTab } from "./_components/project-settings-tab";
+import { ProjectApiKeysTab } from "./_components/project-api-keys-tab";
 import { getProject, type ProjectDetailDto } from "@/lib/client/api";
+
 type ProjectDetailPageProps = {
   params: Promise<{ projectId: string }>;
 };
@@ -87,6 +89,11 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
       icon: <PlayCircle className="h-4 w-4" />,
     },
     {
+      id: "api-keys",
+      label: "API Keys",
+      icon: <Key className="h-4 w-4" />,
+    },
+    {
       id: "settings",
       label: "Settings",
       icon: <Settings className="h-4 w-4" />,
@@ -146,6 +153,10 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
             )}
 
             {activeTab === "runs" && <ProjectRunsTab project={project} />}
+
+            {activeTab === "api-keys" && (
+              <ProjectApiKeysTab projectId={project.id} projectSlug={project.slug} />
+            )}
 
             {activeTab === "settings" && (
               <ProjectSettingsTab project={project} onRefresh={loadProject} />
